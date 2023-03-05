@@ -1,0 +1,17 @@
+<project name="Swingland" default="compile">
+	<target name="clean">
+		<delete dir="bin"/>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="bin"/>
+		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin">
+		</javac>
+	</target>
+
+	<target name="test">
+		<java classpath="bin" classname="com.ashbysoft.Swingland.Tests" fork="true">
+		</java>
+	</target>
+
+</project>
