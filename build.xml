@@ -5,7 +5,7 @@
 
 	<target name="compile">
 		<mkdir dir="bin"/>
-		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin" />
+		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin" nativeheaderdir="bin/h" />
 		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
 		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.power_meter.PowerMeter"/>
 		<exec executable="jar">
