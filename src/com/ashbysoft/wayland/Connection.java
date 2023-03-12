@@ -56,16 +56,10 @@ public class Connection {
             _channel = null;
         }
     }
-    public boolean write(WaylandMessage m) {
-        // ensure size is valid
-        m.updateSize();
-        // build a host-endian ByteBuffer
-        ByteBuffer b = ByteBuffer.allocate(m.size());
-        b.order(ByteOrder.nativeOrder());
-        b.putInt(m.object());
-        b.putInt(m.sizeOpcode());
-        for (Integer i: m.params())
-            b.putInt(i);
+    public boolean write(ByteBuffer b) {
+        // ensure size is correct
+        int op = b.getInt(4) & 0xffff;
+        b.putInt(4, op | b.capacity() << 16);
         // rewind the position and send it..
         b.rewind();
         try {
@@ -87,30 +81,27 @@ public class Connection {
         }
         return false;
     }
-    public WaylandMessage read() {
+    public ByteBuffer read() {
         // initial read goes to fixed size header buffer..
         ByteBuffer h = ByteBuffer.allocate(8);
         h.order(ByteOrder.nativeOrder());
         if (!fillBuffer(h))
             return null;
-        logBuffer("Rx:", h);
         h.rewind();
         // read out the header values
         int oid = h.getInt();
         int szop = h.getInt();
-        // next read size is calculated for parameters
-        int psz = ((szop>>16) & 0xffff) - 8;
+        // next read size is calculated from sizeOp
+        int psz = ((szop>>16) & 0xffff);
         ByteBuffer b = ByteBuffer.allocate(psz);
         b.order(ByteOrder.nativeOrder());
+        b.putInt(oid);
+        b.putInt(szop);
         if (!fillBuffer(b))
             return null;
         logBuffer("Rx:", b);
         b.rewind();
-        // build output message
-        WaylandMessage m = new WaylandMessage(oid, szop);
-        while (b.remaining() > 0)
-            m.add(b.getInt());
-        return m;
+        return b;
     }
     private boolean fillBuffer(ByteBuffer b) {
         while (b.remaining() > 0) {

@@ -2,6 +2,8 @@ package com.ashbysoft.wayland;
 
 import com.ashbysoft.swingland.Logger;
 
+import java.nio.ByteBuffer;
+
 public class Display extends WaylandObject {
     // The well-known display objectID
     public static final int ID = 1;
@@ -24,26 +26,25 @@ public class Display extends WaylandObject {
     public Display(String path) {
         // connect or die..
         _display = new Connection(path);
-        // push a sync round to check everything is ok
-        if (!roundtrip())
-            throw new RuntimeException("Unable to sync() with server");
     }
 
     // message receiver
-    public boolean handle(WaylandMessage e) {
-        switch (e.opcode()) {
-        case EV_ERROR:
-            _log.error("Server error: object="+e.param(0)+" code="+e.param(1));
-            break;
-        case EV_DELETE_ID:
-            _log.info("Delete object: "+e.param(0));
-            Objects.unregister(e.param(0));
-            return true;
-        default:
-            _log.error("Unknown message opcode: "+e.opcode());
-            break;
+    public boolean handle(int oid, int op, int sz, ByteBuffer b) {
+        if (EV_ERROR == op) {
+            int eobj    = b.getInt();
+            int ecode   = b.getInt();
+            String emsg = getString(b);
+            _log.error("Server error: object="+eobj+" code="+ecode+" msg="+emsg);
+            return false;
+        } else if (EV_DELETE_ID == op) {
+            int dobj = b.getInt();
+            _log.info("Delete object: "+dobj);
+            Objects.unregister(dobj);
+        } else {
+            _log.error("Unknown message opcode: "+op);
+            return false;
         }
-        return false;
+        return true;
     }
 
     // display synchronization helper
@@ -72,27 +73,38 @@ public class Display extends WaylandObject {
     private boolean dispatchOne() {
         //read and dispatch one message (if any)
         boolean rv = true;
-        WaylandMessage e = _display.read();
-        WaylandObject o = Objects.get(e.object());
+        ByteBuffer b = _display.read();
+        int oid = b.getInt();
+        int szop = b.getInt();
+        WaylandObject o = Objects.get(oid);
         if (o != null) {
-            if (!o.handle(e))
+            if (!o.handle(oid, szop & 0xffff, (szop >> 16) & 0xffff, b))
                 rv = false;
         } else {
-            _log.detail("Ignoring event for missing object: "+e.object());
+            _log.detail("Ignoring event for missing object: "+oid);
         }
         return rv;
     }
 
-    // requests
-    private boolean sync(int cb) {
-        WaylandMessage r = new WaylandMessage(ID, RQ_SYNC);
-        r.add(cb);
-        return _display.write(r);
+    // convenience package-private writer
+    boolean write(ByteBuffer b) {
+        return _display.write(b);
     }
 
-    public boolean getRegistry(int reg) {
-        WaylandMessage r = new WaylandMessage(ID, RQ_GET_REGISTRY);
-        r.add(reg);
-        return _display.write(r);
+    // requests
+    private boolean sync(int cb) {
+        ByteBuffer m = newBuffer(12);
+        m.putInt(ID);
+        m.putInt(RQ_SYNC);
+        m.putInt(cb);
+        return _display.write(m);
+    }
+
+    public boolean getRegistry(Registry r) {
+        ByteBuffer m = newBuffer(12);
+        m.putInt(ID);
+        m.putInt(RQ_GET_REGISTRY);
+        m.putInt(r.getID());
+        return _display.write(m);
     }
 }
