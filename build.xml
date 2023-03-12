@@ -7,12 +7,12 @@
 		<mkdir dir="bin"/>
 		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin" nativeheaderdir="bin/h" />
 		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
-		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.power_meter.PowerMeter"/>
+		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.swingland.wayland.Test"/>
 		<exec executable="jar">
 			<arg value="cfme"/>
 			<arg value="bin/swingland.jar"/>
 			<arg value="src/MANIFEST.MF"/>
-			<arg value="com.ashbysoft.power_meter.PowerMeter"/>
+			<arg value="com.ashbysoft.swingland.wayland.Test"/>
 			<arg value="-C"/>
 			<arg value="bin"/>
 			<arg value="."/>
