@@ -1,11 +1,9 @@
-package com.ashbysoft.swingland.wayland;
+package com.ashbysoft.wayland;
 
-public class Callback implements MessageReceiver {
+public class Callback extends WaylandObject {
     public static final int EV_DONE = 0;
 
-    private int id = Objects.register(this);
     private boolean done = false;
-    public int getID() { return id; }
     public boolean handle(WaylandMessage e) {
         if (e.opcode() == EV_DONE) {
             done = true;

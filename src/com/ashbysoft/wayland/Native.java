@@ -1,4 +1,4 @@
-package com.ashbysoft.swingland.wayland;
+package com.ashbysoft.wayland;
 
 public class Native {
     // creates a new shared memory handle, and sets the allocated size (shm_open, ftruncate)

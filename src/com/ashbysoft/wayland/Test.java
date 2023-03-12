@@ -1,4 +1,4 @@
-package com.ashbysoft.swingland.wayland;
+package com.ashbysoft.wayland;
 
 public class Test {
     public static void main(String[] args) {

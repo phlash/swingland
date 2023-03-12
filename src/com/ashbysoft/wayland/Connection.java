@@ -1,4 +1,4 @@
-package com.ashbysoft.swingland.wayland;
+package com.ashbysoft.wayland;
 
 import com.ashbysoft.swingland.Logger;
 

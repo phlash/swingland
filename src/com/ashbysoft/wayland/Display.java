@@ -1,8 +1,8 @@
-package com.ashbysoft.swingland.wayland;
+package com.ashbysoft.wayland;
 
 import com.ashbysoft.swingland.Logger;
 
-public class Display implements MessageReceiver {
+public class Display extends WaylandObject {
     // The well-known display objectID
     public static final int ID = 1;
     // Request opcodes
@@ -17,7 +17,6 @@ public class Display implements MessageReceiver {
     public static final int E_NO_MEMORY = 2;
     public static final int E_IMPLEMENTATION = 3;
 
-    private Logger _log = new Logger("[Display@"+hashCode()+"]:");
     private Connection _display;
     public Display() {
         this(null);
@@ -25,15 +24,12 @@ public class Display implements MessageReceiver {
     public Display(String path) {
         // connect or die..
         _display = new Connection(path);
-        // register ourselves for events
-        Objects.registerDisplay(this);
         // push a sync round to check everything is ok
         if (!roundtrip())
             throw new RuntimeException("Unable to sync() with server");
     }
 
     // message receiver
-    public int getID() { return ID; }
     public boolean handle(WaylandMessage e) {
         switch (e.opcode()) {
         case EV_ERROR:
@@ -77,7 +73,7 @@ public class Display implements MessageReceiver {
         //read and dispatch one message (if any)
         boolean rv = true;
         WaylandMessage e = _display.read();
-        MessageReceiver o = Objects.get(e.object());
+        WaylandObject o = Objects.get(e.object());
         if (o != null) {
             if (!o.handle(e))
                 rv = false;
