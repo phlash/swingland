@@ -19,13 +19,13 @@ public class Display extends WaylandObject {
     public static final int E_NO_MEMORY = 2;
     public static final int E_IMPLEMENTATION = 3;
 
-    private Connection _display;
+    private Connection _conn;
     public Display() {
         this(null);
     }
     public Display(String path) {
         // connect or die..
-        _display = new Connection(path);
+        _conn = new Connection(path);
     }
 
     // message receiver
@@ -53,7 +53,8 @@ public class Display extends WaylandObject {
         _log.info("Roundtrip: "+cb.getID());
         sync(cb.getID());
         while (dispatchOne()) {
-            if (cb.done())
+            // we wait for the EV_DONE, and for the callback to be deleted
+            if (cb.done() && Objects.get(cb.getID())==null)
                 return true;
         }
         return false;
@@ -64,7 +65,7 @@ public class Display extends WaylandObject {
         // read messages, dispatch to registered objects until none left
         _log.info("Dispatch()");
         boolean rv = true;
-        while (_display.available()) {
+        while (_conn.available()) {
             if (!dispatchOne())
                 rv = false;
         }
@@ -73,7 +74,7 @@ public class Display extends WaylandObject {
     private boolean dispatchOne() {
         //read and dispatch one message (if any)
         boolean rv = true;
-        ByteBuffer b = _display.read();
+        ByteBuffer b = _conn.read();
         int oid = b.getInt();
         int szop = b.getInt();
         WaylandObject o = Objects.get(oid);
@@ -88,7 +89,7 @@ public class Display extends WaylandObject {
 
     // convenience package-private writer
     boolean write(ByteBuffer b) {
-        return _display.write(b);
+        return _conn.write(b);
     }
 
     // requests
@@ -97,7 +98,7 @@ public class Display extends WaylandObject {
         m.putInt(ID);
         m.putInt(RQ_SYNC);
         m.putInt(cb);
-        return _display.write(m);
+        return _conn.write(m);
     }
 
     public boolean getRegistry(Registry r) {
@@ -105,6 +106,6 @@ public class Display extends WaylandObject {
         m.putInt(ID);
         m.putInt(RQ_GET_REGISTRY);
         m.putInt(r.getID());
-        return _display.write(m);
+        return _conn.write(m);
     }
 }

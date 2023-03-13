@@ -10,7 +10,10 @@ public abstract class WaylandObject {
     protected Logger _log = new Logger("["+getClass().getSimpleName()+"@"+hashCode()+"]:");
     private final int id = Objects.register(this);
     public int getID() { return id; }
-    public abstract boolean handle(int oid, int op, int sz, ByteBuffer b);
+    public boolean handle(int oid, int op, int sz, ByteBuffer b) {
+        _log.error("No message handler!");
+        return false;
+    }
     // parser/encoder helpers
     public ByteBuffer newBuffer(int size) {
         ByteBuffer r = ByteBuffer.allocate(size);
@@ -37,6 +40,7 @@ public abstract class WaylandObject {
     }
     public void putArray(ByteBuffer b, byte[] r) {
         int l = r.length;
+        b.putInt(l);
         int n = (l+3)/4*4;
         b.put(r);
         while (l<n) {

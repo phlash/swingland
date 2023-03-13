@@ -47,12 +47,18 @@ public class Registry extends WaylandObject {
         return rv;
     }
 
-    public boolean bind(int name, WaylandObject obj) {
-        ByteBuffer b = newBuffer(16);
+    public boolean bind(int name, String iface, int version, WaylandObject obj) {
+        // [over]estimate buffer size from string length..
+        ByteBuffer b = newBuffer(24+iface.length()*2);
         b.putInt(getID());
         b.putInt(RQ_BIND);
         b.putInt(name);
+        // https://www.mail-archive.com/wayland-devel@lists.freedesktop.org/msg40960.html
+        putString(b, iface);
+        b.putInt(version);
         b.putInt(obj.getID());
+        // adjust buffer limit now we have actual size
+        b.limit(b.position());
         return _display.write(b);
     }
 }

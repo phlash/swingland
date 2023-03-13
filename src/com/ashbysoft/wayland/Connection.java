@@ -59,7 +59,7 @@ public class Connection {
     public boolean write(ByteBuffer b) {
         // ensure size is correct
         int op = b.getInt(4) & 0xffff;
-        b.putInt(4, op | b.capacity() << 16);
+        b.putInt(4, op | b.limit() << 16);
         // rewind the position and send it..
         b.rewind();
         try {
