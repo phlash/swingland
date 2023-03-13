@@ -19,8 +19,8 @@ public class Test implements Registry.Listener {
         _display.roundtrip();
         if (null == _compositor)
             throw new RuntimeException("oops: did not see a compositor!");
-        //_surface = new Surface();
-        //_compositor.createSurface(_surface);
+        _surface = new Surface();
+        _compositor.createSurface(_surface);
         System.out.println("pumping..");
         while (_display.dispatch())
             try { Thread.currentThread().sleep(1000); } catch (Exception e) {}
