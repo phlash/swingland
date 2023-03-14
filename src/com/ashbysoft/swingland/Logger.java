@@ -28,7 +28,7 @@ public class Logger {
             String val = System.getProperty("swingland.log.level");
             if (null==val)
                 val = System.getenv("SWINGLAND_LOG_LEVEL");
-            int lev = 1;
+            int lev = 0;
             try {
                 lev = Integer.parseInt(val);
             } catch (NumberFormatException e) {}

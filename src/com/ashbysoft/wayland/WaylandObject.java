@@ -2,22 +2,55 @@ package com.ashbysoft.wayland;
 
 import com.ashbysoft.swingland.Logger;
 
+import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-// base class for all interactive objects
-public abstract class WaylandObject {
+// base class for all protocol objects
+public abstract class WaylandObject<T> {
+    // default logger with type ID
     protected Logger _log = new Logger("["+getClass().getSimpleName()+"@"+hashCode()+"]:");
+    // connected display (if required in subtype)
+    protected Display _display;
+    // listener support (if required in subtype)
+    private ArrayList<T> _listeners;
+    // protocol objectID
     private final int id = Objects.register(this);
+
+    protected WaylandObject() {}
+    protected WaylandObject(Display d) { _display = d; }
     public int getID() { return id; }
+    // default message handler
     public boolean handle(int oid, int op, int sz, ByteBuffer b) {
         _log.error("No message handler!");
         return false;
     }
+    // default invalid opcode handler
+    protected boolean unknownOpcode(int op) {
+        _log.error("Unknown opcode: "+op);
+        return false;
+    }
+    protected Iterable<T> listeners() {
+        if (null == _listeners)
+            return java.util.Collections.emptyList();
+        return _listeners;
+    }
+    public void addListener(T l) {
+        if (null == _listeners)
+            _listeners = new ArrayList<T>();
+        _listeners.add(l);
+    }
+    public void removeListener(T l) {
+        if (null != _listeners)
+            _listeners.remove(l);
+    }
     // parser/encoder helpers
-    public ByteBuffer newBuffer(int size) {
+    public ByteBuffer newBuffer(int size, int request) {
         ByteBuffer r = ByteBuffer.allocate(size);
         r.order(ByteOrder.nativeOrder());
+        // always add our ID and the request
+        r.putInt(getID());
+        r.putInt(request);
         return r;
     }
     public byte[] getArray(ByteBuffer b) {

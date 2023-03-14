@@ -8,7 +8,7 @@
 		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin" nativeheaderdir="bin/h" />
 		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
 		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.wayland.Test"/>
-		<exec executable="jar">
+		<exec executable="jar" failonerror="true">
 			<arg value="cfme"/>
 			<arg value="bin/swingland.jar"/>
 			<arg value="src/MANIFEST.MF"/>
@@ -16,6 +16,20 @@
 			<arg value="-C"/>
 			<arg value="bin"/>
 			<arg value="."/>
+		</exec>
+		<exec executable="gcc" failonerror="true">
+			<arg value="-shared"/>
+			<arg value="-fPIC"/>
+			<arg value="-o"/>
+			<arg value="bin/libnative.so"/>
+			<arg value="-I"/>
+			<arg value="${java.home}/include"/>
+			<arg value="-I"/>
+			<arg value="${java.home}/include/linux"/>
+			<arg value="-I"/>
+			<arg value="${basedir}/bin/h"/>
+			<arg value="src/native.c"/>
+			<arg value="-lrt"/>
 		</exec>
 	</target>
 

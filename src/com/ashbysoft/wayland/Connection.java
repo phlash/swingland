@@ -72,6 +72,16 @@ public class Connection {
         }
         return false;
     }
+    public boolean writeFD(ByteBuffer b, int fd) {
+        // ensure size is correct
+        int op = b.getInt(4) & 0xffff;
+        b.putInt(4, op | b.limit() << 16);
+        // rewind the position and send it..
+        b.rewind();
+        boolean rv = Native.sendFD(_channel.getClass(), _channel, b.array(), fd);
+        logBuffer("Tx(fd="+fd+"):", b);
+        return rv;
+    }
     public boolean available() {
         try {
         if (_selector.selectNow() > 0)

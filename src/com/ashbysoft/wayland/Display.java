@@ -4,7 +4,10 @@ import com.ashbysoft.swingland.Logger;
 
 import java.nio.ByteBuffer;
 
-public class Display extends WaylandObject {
+public class Display extends WaylandObject<Display.Listener> {
+    public interface Listener {
+        void error(int id, int code, String msg);
+    }
     // The well-known display objectID
     public static final int ID = 1;
     // Request opcodes
@@ -35,6 +38,8 @@ public class Display extends WaylandObject {
             int ecode   = b.getInt();
             String emsg = getString(b);
             _log.error("Server error: object="+eobj+" code="+ecode+" msg="+emsg);
+            for (Listener l : listeners())
+                l.error(eobj, ecode, emsg);
             return false;
         } else if (EV_DELETE_ID == op) {
             int dobj = b.getInt();
@@ -51,7 +56,7 @@ public class Display extends WaylandObject {
     public boolean roundtrip() {
         Callback cb = new Callback();
         _log.info("Roundtrip: "+cb.getID());
-        sync(cb.getID());
+        sync(cb);
         while (dispatchOne()) {
             // we wait for the EV_DONE, and for the callback to be deleted
             if (cb.done() && Objects.get(cb.getID())==null)
@@ -87,24 +92,23 @@ public class Display extends WaylandObject {
         return rv;
     }
 
-    // convenience package-private writer
+    // convenience package-private writers
     boolean write(ByteBuffer b) {
         return _conn.write(b);
     }
+    boolean writeFD(ByteBuffer b, int fd) {
+        return _conn.writeFD(b, fd);
+    }
 
     // requests
-    private boolean sync(int cb) {
-        ByteBuffer m = newBuffer(12);
-        m.putInt(ID);
-        m.putInt(RQ_SYNC);
-        m.putInt(cb);
+    private boolean sync(Callback cb) {
+        ByteBuffer m = newBuffer(12, RQ_SYNC);
+        m.putInt(cb.getID());
         return _conn.write(m);
     }
 
     public boolean getRegistry(Registry r) {
-        ByteBuffer m = newBuffer(12);
-        m.putInt(ID);
-        m.putInt(RQ_GET_REGISTRY);
+        ByteBuffer m = newBuffer(12, RQ_GET_REGISTRY);
         m.putInt(r.getID());
         return _conn.write(m);
     }
