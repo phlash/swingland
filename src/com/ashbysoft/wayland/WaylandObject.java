@@ -1,6 +1,6 @@
 package com.ashbysoft.wayland;
 
-import com.ashbysoft.swingland.Logger;
+import com.ashbysoft.logger.Logger;
 
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
@@ -20,9 +20,13 @@ public abstract class WaylandObject<T> {
     protected WaylandObject() {}
     protected WaylandObject(Display d) { _display = d; }
     public int getID() { return id; }
+    // logging helper
+    protected void log(boolean inOut, String msg) {
+        _log.info("@"+getID()+(inOut ? "<IN>:" : "<OUT>:")+msg);
+    }
     // default message handler
     public boolean handle(int oid, int op, int sz, ByteBuffer b) {
-        _log.error("No message handler!");
+        _log.error("No message handler in class!");
         return false;
     }
     // default invalid opcode handler

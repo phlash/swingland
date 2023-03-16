@@ -1,19 +1,15 @@
 package com.ashbysoft.wayland;
 
-import com.ashbysoft.swingland.Logger;
+import com.ashbysoft.logger.Logger;
 
 import java.net.UnixDomainSocketAddress;
 import java.nio.channels.SocketChannel;
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class Connection {
     private Logger _log = new Logger("[Connection@"+hashCode()+"]:");
     private SocketChannel _channel;
-    private Selector _selector;
-    private SelectionKey _selKey;
 
     public Connection() {
         this(null);
@@ -38,19 +34,12 @@ public class Connection {
         _log.info("connect("+path+")");
         try {
             _channel = SocketChannel.open(UnixDomainSocketAddress.of(path));
-            _channel.configureBlocking(false);
-            _selector = Selector.open();
-            _selKey = _channel.register(_selector, SelectionKey.OP_READ, null);
         } catch (java.io.IOException e) {
             throw new RuntimeException("Unable to open connection to wayland: " + path, e);
         }
     }
     public void close() {
         _log.info("close()");
-        if (_selector != null) {
-            try { _selector.close(); } catch (java.io.IOException e) {}
-            _selector = null;
-        }
         if (_channel != null) {
             try { _channel.close(); } catch (java.io.IOException e) {}
             _channel = null;
@@ -83,13 +72,11 @@ public class Connection {
         return rv;
     }
     public boolean available() {
-        try {
-        if (_selector.selectNow() > 0)
-            return true;
-        } catch (java.io.IOException e) {
-            _log.error(e.toString());
-        }
-        return false;
+        int rv = Native.available(_channel.getClass(), _channel);
+        _log.detail("available:"+rv);
+        if (rv<=0)
+            return false;
+        return true;
     }
     public ByteBuffer read() {
         // initial read goes to fixed size header buffer..
@@ -126,6 +113,8 @@ public class Connection {
         return true;
     }
     private void logBuffer(String p, ByteBuffer b) {
+        if (_log.level()<2)
+            return;
         b.rewind();
         StringBuffer sb = new StringBuffer();
         while (b.remaining() > 0)

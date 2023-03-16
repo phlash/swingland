@@ -15,7 +15,7 @@ public class Buffer extends WaylandObject<Buffer.Listener> {
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
         boolean rv = true;
         if (EV_RELEASE == op) {
-            _log.info("release");
+            log(true, "release");
             for (Listener l : listeners())
                 if (!l.release())
                     rv = false;
@@ -27,6 +27,7 @@ public class Buffer extends WaylandObject<Buffer.Listener> {
 
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         return _display.write(b);
     }
 

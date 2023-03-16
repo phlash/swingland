@@ -14,7 +14,7 @@ public class Shm extends WaylandObject<Shm.Listener> {
         boolean rv = true;
         if (EV_FORMAT == op) {
             int fid = b.getInt();
-            _log.info("format: 0x"+Integer.toHexString(fid));
+            log(true, "format:0x"+Integer.toHexString(fid));
             for (Listener l : listeners())
                 if (!l.format(fid))
                     rv = false;
@@ -29,6 +29,7 @@ public class Shm extends WaylandObject<Shm.Listener> {
         ByteBuffer b = newBuffer(16, RQ_CREATE_POOL);
         b.putInt(p.getID());
         b.putInt(sz);
+        log(false, "createPool->"+p.getID());
         // ask ShmPool to add the file descriptor and write
         if (!p.writeFD(b)) {
             p = null;

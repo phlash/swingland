@@ -18,13 +18,13 @@ public class Registry extends WaylandObject<Registry.Listener> {
             int name = b.getInt();
             String iface = getString(b);
             int version = b.getInt();
-            _log.info("global: name="+name+" iface="+iface+" version="+version);
+            log(true, "global:name="+name+" iface="+iface+" version="+version);
             for (Listener l : listeners())
                 if (!l.global(name, iface, version))
                     rv = false;
         } else if (EV_GLOBAL_REMOVE == op) {
             int name = b.getInt();
-            _log.info("remove: name="+name);
+            log(true, "remove:name="+name);
             for (Listener l : listeners())
                 if (!l.remove(name))
                     rv = false;
@@ -44,6 +44,7 @@ public class Registry extends WaylandObject<Registry.Listener> {
         b.putInt(obj.getID());
         // adjust buffer limit now we have actual size
         b.limit(b.position());
+        log(false, "bind:name="+name+"->"+obj.getID());
         return _display.write(b);
     }
 }

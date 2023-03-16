@@ -1,6 +1,7 @@
 package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class ShmPool extends WaylandObject {
     public static final int RQ_CREATE_BUFFER = 0;
@@ -31,6 +32,7 @@ public class ShmPool extends WaylandObject {
         _pool.position(off);
         ByteBuffer v = _pool.slice();
         v.limit(h * s);
+        v.order(ByteOrder.LITTLE_ENDIAN);
         // now associate that view with a buffer object
         Buffer buf = new Buffer(_display, v);
         ByteBuffer b = newBuffer(32, RQ_CREATE_BUFFER);
@@ -40,6 +42,7 @@ public class ShmPool extends WaylandObject {
         b.putInt(h);
         b.putInt(s);
         b.putInt(f);
+        log(false, "createBuffer->"+buf.getID()+":off="+off+" w="+w+" h="+h+" stride="+s+" format="+f);
         if(!_display.write(b)) {
             buf = null;
             v = null;
@@ -48,6 +51,7 @@ public class ShmPool extends WaylandObject {
     }
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         boolean rv = _display.write(b);
         // now destroy the local resources
         Native.releaseSHM(_fd, _pool);
@@ -56,6 +60,7 @@ public class ShmPool extends WaylandObject {
     public boolean resize(int s) {
         ByteBuffer b = newBuffer(12, RQ_RESIZE);
         b.putInt(s);
+        log(false, "resize:size="+s);
         return _display.write(b);
         // XXX:TODO: How to resize the local memory pool?
     }

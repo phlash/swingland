@@ -31,13 +31,13 @@ public class Surface extends WaylandObject<Surface.Listener> {
         boolean rv = true;
         if (EV_ENTER == op) {
             int out = b.getInt();
-            _log.info("enter: "+out);
+            log(true, "enter:"+out);
             for (Listener l : listeners())
                 if (!l.enter(out))
                     rv = false;
         } else if (EV_LEAVE == op) {
             int out = b.getInt();
-            _log.info("leave: "+out);
+            log(true, "leave:"+out);
             for (Listener l : listeners())
                 if (!l.leave(out))
                     rv = false;
@@ -48,6 +48,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
     }
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         return _display.write(b);
     }
     public boolean attach(Buffer buf, int x, int y) {
@@ -55,6 +56,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
         b.putInt(buf!=null? buf.getID(): 0);
         b.putInt(x);
         b.putInt(y);
+        log(false, "attach:"+buf.getID());
         return _display.write(b);
     }
     public boolean damage(int x, int y, int w, int h) {
@@ -63,35 +65,43 @@ public class Surface extends WaylandObject<Surface.Listener> {
         b.putInt(y);
         b.putInt(w);
         b.putInt(h);
+        log(false, "damage:x="+x+" y="+y+" w="+w+" h="+h);
         return _display.write(b);
     }
     public boolean frame(Callback cb) {
+        cb.reset();
         ByteBuffer b = newBuffer(12, RQ_FRAME);
         b.putInt(cb.getID());
+        log(false, "frame->"+cb.getID());
         return _display.write(b);
     }
     public boolean setOpaqueRegion(Region r) {
         ByteBuffer b = newBuffer(12, RQ_SET_OPAQUE_REGION);
         b.putInt(r.getID());
+        log(false, "setOpaqueRegion<-"+r.getID());
         return _display.write(b);
     }
     public boolean setInputRegion(Region r) {
         ByteBuffer b = newBuffer(12, RQ_SET_INPUT_REGION);
         b.putInt(r.getID());
+        log(false, "setInputRegion<-"+r.getID());
         return _display.write(b);
     }
     public boolean commit() {
         ByteBuffer b = newBuffer(8, RQ_COMMIT);
+        log(false, "commit");
         return _display.write(b);
     }
     public boolean setBufferTransform(int tr) {
         ByteBuffer b = newBuffer(12, RQ_SET_BUFFER_TRANSFORM);
         b.putInt(tr);
+        log(false, "setBufferTransform:"+tr);
         return _display.write(b);
     }
     public boolean setBufferScale(int sc) {
         ByteBuffer b = newBuffer(12, RQ_SET_BUFFER_SCALE);
         b.putInt(sc);
+        log(false, "setBufferScale:"+sc);
         return _display.write(b);
     }
     public boolean damageBuffer(int x, int y, int w, int h) {
@@ -100,6 +110,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
         b.putInt(y);
         b.putInt(w);
         b.putInt(h);
+        log(false, "damageBuffer:x="+x+" y="+y+" w="+w+" h="+h);
         return _display.write(b);
     }
 }

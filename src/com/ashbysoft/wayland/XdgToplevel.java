@@ -37,12 +37,12 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
             int[] states = new int[n];
             for (int i=0; i<n; i++)
                 states[i] = ib.getInt();
-            _log.info("configure: x="+x+" y="+y+" states="+java.util.Arrays.toString(states));
+            log(true, "configure:x="+x+" y="+y+" states="+java.util.Arrays.toString(states));
             for (Listener l : listeners())
                 if (!l.xdgToplevelConfigure(x, y, states))
                     rv = false;
         } else if (EV_CLOSE == op) {
-            _log.info("close");
+            log(true, "close");
             for (Listener l : listeners())
                 if (!l.xdgToplevelClose())
                     rv = false;
@@ -53,11 +53,13 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     }
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         return _display.write(b);
     }
     public boolean setParent(XdgToplevel parent) {
         ByteBuffer b = newBuffer(12, RQ_SET_PARENT);
         b.putInt(parent.getID());
+        log(false, "setParent:"+parent.getID());
         return _display.write(b);
     }
     public boolean setTitle(String title) {
@@ -65,6 +67,7 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         putString(b, title);
         // adjust buffer limit now we know..
         b.limit(b.position());
+        log(false, "setTitle:"+title);
         return _display.write(b);
     }
     public boolean setAppID(String app) {
@@ -72,6 +75,7 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         putString(b, app);
         // adjust buffer limit now we know..
         b.limit(b.position());
+        log(false, "setAppID:"+app);
         return _display.write(b);
     }
     public boolean showWindowMenu(Seat seat, int serial, int x, int y) {
@@ -80,12 +84,14 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         b.putInt(serial);
         b.putInt(x);
         b.putInt(y);
+        log(false, "showWindowMenu:seat="+seat.getID()+" serial="+serial+" x="+x+" y="+y);
         return _display.write(b);
     }
     public boolean move(Seat seat, int serial) {
         ByteBuffer b = newBuffer(16, RQ_MOVE);
         b.putInt(seat.getID());
         b.putInt(serial);
+        log(false, "move:seat="+seat.getID()+" serial="+serial);
         return _display.write(b);
     }
     public boolean resize(Seat seat, int serial, int edges) {
@@ -93,39 +99,47 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         b.putInt(seat.getID());
         b.putInt(serial);
         b.putInt(edges);
+        log(false, "resize:seat="+seat.getID()+" serial="+serial+" edges="+edges);
         return _display.write(b);
     }
     public boolean setMaxSize(int w, int h) {
         ByteBuffer b = newBuffer(16, RQ_SET_MAX_SIZE);
         b.putInt(w);
         b.putInt(h);
+        log(false, "setMaxSize:w="+w+" h="+h);
         return _display.write(b);
     }
     public boolean setMinSize(int w, int h) {
         ByteBuffer b = newBuffer(16, RQ_SET_MIN_SIZE);
         b.putInt(w);
         b.putInt(h);
+        log(false, "setMinSize:w="+w+" h="+h);
         return _display.write(b);
     }
     public boolean setMaximized() {
         ByteBuffer b = newBuffer(8, RQ_SET_MAXIMIZED);
+        log(false, "setMaximized");
         return _display.write(b);
     }
     public boolean unsetMaximized() {
         ByteBuffer b = newBuffer(8, RQ_UNSET_MAXIMIZED);
+        log(false, "unsetMaximized");
         return _display.write(b);
     }
     public boolean setFullscreen(Output o) {
         ByteBuffer b = newBuffer(12, RQ_SET_FULLSCREEN);
         b.putInt(o.getID());
+        log(false, "setFullscreen:output="+o.getID());
         return _display.write(b);
     }
     public boolean unsetFullscreen() {
         ByteBuffer b = newBuffer(8, RQ_UNSET_FULLSCREEN);
+        log(false, "unsetFullscreen");
         return _display.write(b);
     }
     public boolean setMinimized() {
         ByteBuffer b = newBuffer(8, RQ_SET_MINIMIZED);
+        log(false, "setMinimized");
         return _display.write(b);
     }
 }

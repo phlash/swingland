@@ -3,7 +3,7 @@
 package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
-
+import com.ashbysoft.logger.Logger;
 import java.util.ArrayList;
 
 public abstract class Component {

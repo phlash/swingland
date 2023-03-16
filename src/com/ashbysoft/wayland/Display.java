@@ -1,6 +1,6 @@
 package com.ashbysoft.wayland;
 
-import com.ashbysoft.swingland.Logger;
+import com.ashbysoft.logger.Logger;
 
 import java.nio.ByteBuffer;
 
@@ -23,6 +23,7 @@ public class Display extends WaylandObject<Display.Listener> {
     public static final int E_IMPLEMENTATION = 3;
 
     private Connection _conn;
+    private Callback _sync;
     public Display() {
         this(null);
     }
@@ -30,7 +31,12 @@ public class Display extends WaylandObject<Display.Listener> {
         // connect or die..
         _conn = new Connection(path);
     }
-
+    public void close() {
+        if (_conn != null) {
+            _conn.close();
+            _conn = null;
+        }
+    }
     // message receiver
     public boolean handle(int oid, int op, int sz, ByteBuffer b) {
         if (EV_ERROR == op) {
@@ -43,41 +49,48 @@ public class Display extends WaylandObject<Display.Listener> {
             return false;
         } else if (EV_DELETE_ID == op) {
             int dobj = b.getInt();
-            _log.info("Delete object: "+dobj);
+            log(true, "delete:"+dobj);
             Objects.unregister(dobj);
         } else {
-            _log.error("Unknown message opcode: "+op);
-            return false;
+            return unknownOpcode(op);
         }
         return true;
     }
 
     // display synchronization helper
     public boolean roundtrip() {
-        Callback cb = new Callback();
-        _log.info("Roundtrip: "+cb.getID());
-        sync(cb);
-        while (dispatchOne()) {
+        _log.detail("enter:roundtrip");
+        if (null == _sync)
+            _sync = new Callback();
+        else
+            Objects.reRegister(_sync);
+        sync(_sync);
+        boolean rv = false;
+        while (!rv && dispatchOne()) {
             // we wait for the EV_DONE, and for the callback to be deleted
-            if (cb.done() && Objects.get(cb.getID())==null)
-                return true;
+            if (_sync.done() && Objects.get(_sync.getID())==null) {
+                rv = true;
+            }
         }
-        return false;
+        _log.detail("exit:roundtrip=true");
+        return rv;
     }
 
     // display message pump, call often!
     public boolean dispatch() {
         // read messages, dispatch to registered objects until none left
-        _log.info("Dispatch()");
+        _log.detail("dispatch:enter");
         boolean rv = true;
         while (_conn.available()) {
             if (!dispatchOne())
                 rv = false;
         }
+        _log.detail("dispatch:exit="+rv);
         return rv;
     }
     private boolean dispatchOne() {
         //read and dispatch one message (if any)
+        _log.detail("dispatchOne:enter");
         boolean rv = true;
         ByteBuffer b = _conn.read();
         int oid = b.getInt();
@@ -89,6 +102,7 @@ public class Display extends WaylandObject<Display.Listener> {
         } else {
             _log.detail("Ignoring event for missing object: "+oid);
         }
+        _log.detail("dispatchOne:exit="+rv);
         return rv;
     }
 
@@ -102,14 +116,17 @@ public class Display extends WaylandObject<Display.Listener> {
 
     // requests
     private boolean sync(Callback cb) {
+        cb.reset();
         ByteBuffer m = newBuffer(12, RQ_SYNC);
         m.putInt(cb.getID());
+        log(false, "sync->"+cb.getID());
         return _conn.write(m);
     }
 
     public boolean getRegistry(Registry r) {
         ByteBuffer m = newBuffer(12, RQ_GET_REGISTRY);
         m.putInt(r.getID());
+        log(false, "getRegistry->"+r.getID());
         return _conn.write(m);
     }
 }

@@ -1,4 +1,4 @@
-package com.ashbysoft.swingland;
+package com.ashbysoft.logger;
 
 public class Logger {
     private static final Output _out = new Output();
@@ -16,18 +16,22 @@ public class Logger {
     public void error(String msg) {
         _out.write(0, _pfx, msg);
     }
+    public int level() {
+        return _out.level();
+    }
 
     static class Output {
         private int _level = getLevel();
+        int level() { return _level; }
         void write(int level, String pfx, String msg) {
             if (level <= _level)
                 System.out.println(pfx+msg);
         }
         private int getLevel() {
             // in priority order, we check: command line, environment, default
-            String val = System.getProperty("swingland.log.level");
+            String val = System.getProperty("ashbysoft.log.level");
             if (null==val)
-                val = System.getenv("SWINGLAND_LOG_LEVEL");
+                val = System.getenv("ASHBYSOFT_LOG_LEVEL");
             int lev = 0;
             try {
                 lev = Integer.parseInt(val);

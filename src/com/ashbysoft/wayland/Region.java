@@ -10,6 +10,7 @@ public class Region extends WaylandObject {
     public Region(Display d) { super(d); }
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         return _display.write(b);
     }
     public boolean add(int x, int y, int w, int h) {
@@ -18,6 +19,7 @@ public class Region extends WaylandObject {
         b.putInt(y);
         b.putInt(w);
         b.putInt(h);
+        log(false, "add:x="+x+" y="+y+" w="+w+" h="+h);
         return _display.write(b);
     }
     public boolean subtract(int x, int y, int w, int h) {
@@ -26,6 +28,7 @@ public class Region extends WaylandObject {
         b.putInt(y);
         b.putInt(w);
         b.putInt(h);
+        log(false, "subtract:x="+x+" y="+y+" w="+w+" h="+h);
         return _display.write(b);
     }
 }

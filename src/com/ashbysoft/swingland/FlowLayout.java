@@ -1,5 +1,7 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.logger.Logger;
+
 // weirdly - not a LayoutManager2
 public class FlowLayout implements LayoutManager {
     public static final int LEFT = 0;

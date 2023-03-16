@@ -21,6 +21,12 @@ public class Objects {
             return id;
         }
     }
+    // re-register an object that has a valid ID
+    public static void reRegister(WaylandObject o) {
+        synchronized(_lock) {
+            register(o, o.getID());
+        }
+    }
     public static void unregister(int id) {
         synchronized(_lock) {
             _objects.remove(id);

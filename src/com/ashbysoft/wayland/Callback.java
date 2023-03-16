@@ -8,13 +8,13 @@ public class Callback extends WaylandObject {
     private boolean done = false;
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
         if (EV_DONE == op) {
-            _log.info("done: serial="+b.getInt());
+            log(true, "done:serial="+b.getInt());
             done = true;
         } else {
-            _log.error("Unknown message opcode: "+op);
-            return false;
+            return unknownOpcode(op);
         }
         return true;
     }
+    public boolean reset() { boolean old = done; done = false; return old; }
     public boolean done() { return done; }
 }

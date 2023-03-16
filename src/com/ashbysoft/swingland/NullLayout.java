@@ -1,5 +1,7 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.logger.Logger;
+
 public class NullLayout implements LayoutManager2 {
     protected Logger _log = new Logger("["+getClass().getSimpleName()+"@"+hashCode()+"]:");
     // LayoutManager

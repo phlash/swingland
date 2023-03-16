@@ -2,6 +2,7 @@
 #include <com_ashbysoft_wayland_Native.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -50,11 +51,45 @@ JNIEXPORT jobject JNICALL Java_com_ashbysoft_wayland_Native_mapSHM
  * Signature: (ILjava/nio/ByteBuffer;)V
  */
 JNIEXPORT void JNICALL Java_com_ashbysoft_wayland_Native_releaseSHM
-  (JNIEnv *env, jclass native, jint size, jobject bb) {
+  (JNIEnv *env, jclass native, jint fd, jobject bb) {
     void* addr = (*env)->GetDirectBufferAddress(env, bb);
+    jlong size = (*env)->GetDirectBufferCapacity(env, bb);
     if (addr) {
         munmap(addr, size);
     }
+    if (fd>=0)
+        close(fd);
+}
+
+static jint getSFD(JNIEnv* env, jclass sclass, jobject sock) {
+    // some fugly rummaging to get the  socket file descriptor out of Java..
+    jfieldID fdID = (*env)->GetFieldID(env, sclass, "fdVal", "I");
+    if (!fdID) {
+        fprintf(stderr, "Native: failed to find fdVal field in SocketChannel\n");
+        return -1;
+    }
+    jint sfd = (*env)->GetIntField(env, sock, fdID);
+    if (sfd<0) {
+        fprintf(stderr, "Native: failed to find valid file descriptor in SocketChannel\n");
+        return -1;
+    }
+    return sfd;
+}
+
+/*
+ * Class:     com_ashbysoft_wayland_Native
+ * Method:    available
+ * Signature: (Ljava/lang/Class;Ljava/nio/channels/SocketChannel;)I
+ */
+JNIEXPORT jint JNICALL Java_com_ashbysoft_wayland_Native_available
+  (JNIEnv *env, jclass native, jclass sclass, jobject sock) {
+    jint sfd = getSFD(env, sclass, sock);
+    jint rv = 0;
+    if (ioctl(sfd, FIONREAD, &rv)<0) {
+        perror("Native: reading available bytes");
+        return -1;
+    }
+    return rv;
 }
 
 /*
@@ -64,17 +99,9 @@ JNIEXPORT void JNICALL Java_com_ashbysoft_wayland_Native_releaseSHM
  */
 JNIEXPORT jboolean JNICALL Java_com_ashbysoft_wayland_Native_sendFD
   (JNIEnv *env, jclass native, jclass sclass, jobject sock, jobject msg, jint fd) {
-    // first some fugly rummaging to get the  socket file descriptor out of Java..
-    jfieldID fdID = (*env)->GetFieldID(env, sclass, "fdVal", "I");
-    if (!fdID) {
-        fprintf(stderr, "Native: failed to find fdVal field in SocketChannel\n");
+    jint sfd = getSFD(env, sclass, sock);
+    if (sfd<0)
         return JNI_FALSE;
-    }
-    jint sfd = (*env)->GetIntField(env, sock, fdID);
-    if (fd<0) {
-        fprintf(stderr, "Native: failed to find valid file descriptor in SocketChannel\n");
-        return JNI_FALSE;
-    }
     // now some sendmsg() wrangling to write the message with ancilliary data holding the fd
     jbyte *mb = (*env)->GetByteArrayElements(env, msg, NULL);
     jsize ml = (*env)->GetArrayLength(env, msg);

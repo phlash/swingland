@@ -19,7 +19,7 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
         boolean rv = true;
         if (EV_CONFIGURE == op) {
             int serial = b.getInt();
-            _log.info("configure: "+serial);
+            log(true, "configure:serial="+serial);
             for (Listener l : listeners())
                 if (!l.xdgSurfaceConfigure(serial))
                     rv = false;
@@ -29,11 +29,13 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
 
     public boolean destroy() {
         ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        log(false, "destroy");
         return _display.write(b);
     }
     public boolean getTopLevel(XdgToplevel t) {
         ByteBuffer b = newBuffer(12, RQ_GET_TOPLEVEL);
         b.putInt(t.getID());
+        log(false, "getTopLevel->"+t.getID());
         return _display.write(b);
     }
     public boolean getPopup(XdgPopup u, XdgSurface x, Positioner p) {
@@ -41,6 +43,7 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
         b.putInt(u.getID());
         b.putInt(x.getID());
         b.putInt(p.getID());
+        log(false, "getPopup->"+u.getID()+":xs="+x.getID()+" p="+p.getID());
         return _display.write(b);
     }
     public boolean setWindowGeometry(int x, int y, int w, int h) {
@@ -49,11 +52,13 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
         b.putInt(y);
         b.putInt(w);
         b.putInt(h);
-        return _display.write(b);
+       log(false, "setWindowGeometry:x="+x+" y="+y+" w="+w+" h="+h);
+         return _display.write(b);
     }
     public boolean ackConfigure(int serial) {
         ByteBuffer b = newBuffer(12, RQ_ACK_CONFIGURE);
         b.putInt(serial);
+        log(false, "ackConfigure:serial="+serial);
         return _display.write(b);
     }
 }
