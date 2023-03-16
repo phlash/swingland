@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
 
     public interface Listener {
-        boolean configure(int serial);
+        boolean xdgSurfaceConfigure(int serial);
     }
     public static final int RQ_DESTROY = 0;
     public static final int RQ_GET_TOPLEVEL = 1;
@@ -21,7 +21,7 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
             int serial = b.getInt();
             _log.info("configure: "+serial);
             for (Listener l : listeners())
-                if (!l.configure(serial))
+                if (!l.xdgSurfaceConfigure(serial))
                     rv = false;
         }
         return rv;

@@ -52,7 +52,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
     }
     public boolean attach(Buffer buf, int x, int y) {
         ByteBuffer b = newBuffer(20, RQ_ATTACH);
-        b.putInt(buf.getID());
+        b.putInt(buf!=null? buf.getID(): 0);
         b.putInt(x);
         b.putInt(y);
         return _display.write(b);
