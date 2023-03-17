@@ -71,7 +71,7 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         return _display.write(b);
     }
     public boolean setAppID(String app) {
-        ByteBuffer b = newBuffer(8+app.length()*2, RQ_SET_TITLE);
+        ByteBuffer b = newBuffer(8+app.length()*2, RQ_SET_APP_ID);
         putString(b, app);
         // adjust buffer limit now we know..
         b.limit(b.position());

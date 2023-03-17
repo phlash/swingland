@@ -23,7 +23,6 @@ public class Display extends WaylandObject<Display.Listener> {
     public static final int E_IMPLEMENTATION = 3;
 
     private Connection _conn;
-    private Callback _sync;
     public Display() {
         this(null);
     }
@@ -60,15 +59,12 @@ public class Display extends WaylandObject<Display.Listener> {
     // display synchronization helper
     public boolean roundtrip() {
         _log.detail("enter:roundtrip");
-        if (null == _sync)
-            _sync = new Callback();
-        else
-            Objects.reRegister(_sync);
-        sync(_sync);
+        Callback cb = new Callback();
+        sync(cb);
         boolean rv = false;
         while (!rv && dispatchOne()) {
             // we wait for the EV_DONE, and for the callback to be deleted
-            if (_sync.done() && Objects.get(_sync.getID())==null) {
+            if (cb.done() && Objects.get(cb.getID())==null) {
                 rv = true;
             }
         }
@@ -116,7 +112,6 @@ public class Display extends WaylandObject<Display.Listener> {
 
     // requests
     private boolean sync(Callback cb) {
-        cb.reset();
         ByteBuffer m = newBuffer(12, RQ_SYNC);
         m.putInt(cb.getID());
         log(false, "sync->"+cb.getID());

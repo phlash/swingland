@@ -69,7 +69,6 @@ public class Surface extends WaylandObject<Surface.Listener> {
         return _display.write(b);
     }
     public boolean frame(Callback cb) {
-        cb.reset();
         ByteBuffer b = newBuffer(12, RQ_FRAME);
         b.putInt(cb.getID());
         log(false, "frame->"+cb.getID());

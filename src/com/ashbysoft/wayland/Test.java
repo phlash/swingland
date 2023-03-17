@@ -4,18 +4,13 @@ import java.nio.ByteBuffer;
 import java.util.Random;
 
 public class Test implements
+    Callback.Listener,
     Display.Listener,
     Registry.Listener,
     Surface.Listener,
     XdgWmBase.Listener,
     XdgSurface.Listener,
     XdgToplevel.Listener {
-    public static void main(String[] args) {
-        String dbg = System.getenv("WAYLAND_DEBUG");
-        if (dbg != null)
-            System.setProperty("ashbysoft.log.level", dbg);
-        new Test().run();
-    }
     private Display _display;
     private Registry _registry;
     private Compositor _compositor;
@@ -28,6 +23,7 @@ public class Test implements
     private int _height;
     private int _poolsize;
     private ShmPool _shmpool;
+    private Callback _frame;
     private Buffer _buffer;
     private Random _rand;
     public void run() {
@@ -53,32 +49,24 @@ public class Test implements
         _xdgToplevel = new XdgToplevel(_display);
         _xdgToplevel.addListener(this);
         _xdgSurface.getTopLevel(_xdgToplevel);
-        _xdgToplevel.setTitle("Swingland!");
+        _xdgToplevel.setTitle("Java wayland API!");
+        _xdgToplevel.setAppID("com.ashbysoft.wayland.Test");
         _surface.commit();
         _display.roundtrip();
         _width = 640;
         _height = 480;
         _poolsize = 0;
-        Callback cb = null;
-        int cnt = 0;
+        done(0);
         long start = System.currentTimeMillis();
         while (_display.dispatch()) {
             try { Thread.currentThread().sleep(10); } catch (Exception e) {}
-            if (null == cb || cb.done()) {
-                if (null == cb)
-                    cb = new Callback();
-                else
-                    Objects.reRegister(cb);
-                _surface.frame(cb);
-                render(cnt++);
-            }
             long now = System.currentTimeMillis();
             if (now > start+5000)
                 break;
         }
         _display.close();
     }
-    private void render(int cnt) {
+    private void render() {
         // new buffer required?
         int nextsize = _width * _height * 4;
         if (nextsize != _poolsize) {
@@ -98,6 +86,13 @@ public class Test implements
         _surface.attach(_buffer, 0, 0);
         _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
         _surface.commit();
+    }
+    public boolean done(int serial) {
+        _frame = new Callback();
+        _frame.addListener(this);
+        _surface.frame(_frame);
+        render();
+        return true;
     }
     public void error(int id, int code, String msg) {
         System.err.println("OOPS: object="+id+" code="+code+" message="+msg);

@@ -2,19 +2,26 @@ package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
 
-public class Callback extends WaylandObject {
+public class Callback extends WaylandObject<Callback.Listener> {
+    public interface Listener {
+        boolean done(int serial);
+    }
     public static final int EV_DONE = 0;
 
     private boolean done = false;
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
+        boolean rv = true;
         if (EV_DONE == op) {
-            log(true, "done:serial="+b.getInt());
+            int serial = b.getInt();
             done = true;
+            log(true, "done:serial="+serial);
+            for (Listener l : listeners())
+                if (!l.done(serial))
+                    rv = false;
         } else {
-            return unknownOpcode(op);
+            rv = unknownOpcode(op);
         }
-        return true;
+        return rv;
     }
-    public boolean reset() { boolean old = done; done = false; return old; }
     public boolean done() { return done; }
 }
