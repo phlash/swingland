@@ -17,7 +17,7 @@ public class XdgWmBase extends WaylandObject<XdgWmBase.Listener> {
         boolean rv = true;
         if (EV_PING == op) {
             int serial = b.getInt();
-            _log.info("ping:serial="+serial);
+            log(true, "ping:serial="+serial);
             for (Listener l : listeners())
                 if (!l.ping(serial))
                     rv = false;

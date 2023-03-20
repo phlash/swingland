@@ -19,6 +19,8 @@ public abstract class Component {
     private int _height;
     private boolean _valid;
     private boolean _visible;
+    private Color _background;
+    private Color _foreground;
     private ArrayList<KeyListener> _keyListeners;
 
     protected Component() {
@@ -26,6 +28,8 @@ public abstract class Component {
         _log = new Logger("["+_name+"]:");
         _visible = true;
         _valid = false;
+        _background = Color.GRAY;
+        _foreground = Color.BLACK;
         _keyListeners = new ArrayList<KeyListener>();
     }
     public Container getParent() { return _parent; }
@@ -47,6 +51,10 @@ public abstract class Component {
         _log.info("setName("+n+")");
         _name = n;
     }
+    public Color getBackground() { return _background; }
+    public Color getForeground() { return _foreground; }
+    public void setBackground(Color c) { _background = c; }
+    public void setForeground(Color c) { _foreground = c; }
 
     public Dimension getPreferredSize() { return _prefSize != null ? _prefSize : _parent != null ? _parent.getSize() : getMinimumSize(); }
     public Dimension getMinimumSize() { return _minSize != null ? _minSize : new Dimension(_width, _height); }
@@ -120,7 +128,12 @@ public abstract class Component {
     }
 
     // Request a repaint later
-    public void repaint() {}
+    public void repaint() {
+        // delegate to container by default
+        Component p = getParent();
+        if (p != null)
+            p.repaint();
+    }
     // Do the painting thing
     public void paint(Graphics g) {}
 }

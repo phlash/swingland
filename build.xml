@@ -34,12 +34,14 @@
 	</target>
 
 	<target name="test" depends="compile">
-		<java jar="bin/swingland.jar" fork="true" output="bin/test.log">
+		<record name="bin/test.log" action="start"/>
+		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=1"/>
-			<arg value="wayland"/>
+			<!-- arg value="wayland"/ -->
 			<arg value="swingland"/>
 		</java>
+		<record name="bin/test.log" action="stop"/>
 	</target>
 
 </project>

@@ -58,11 +58,4 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
     public void remove(Component c) {
         getContentPane().remove(c);
     }
-
-    // intercept setVisible to force validation
-    public void setVisible(boolean v) {
-        if (v)
-            validate();
-        super.setVisible(v);
-    }
 }

@@ -19,5 +19,9 @@ public class Test extends Component implements KeyListener {
 	public void keyReleased(KeyEvent k) {}
 	public void keyTyped(KeyEvent k) {}
 
-    public void paint(Graphics g) {}
+    public void paint(Graphics g) {
+		_log.info("Test:paint");
+		g.setColor(getForeground());
+		g.drawRect(1, 1, getWidth()-2, getHeight()-2);
+	}
 }

@@ -112,4 +112,24 @@ public class JRootPane extends JComponent {
             }
         }
     }
+
+    private Rectangle offset(Rectangle base, Rectangle delta) {
+        return new Rectangle(
+            base._x + delta._x,
+            base._y + delta._y,
+            delta._w, delta._h
+        );
+    }
+    public void paint(Graphics g) {
+        _log.info("JRootPane:paint");
+        Rectangle r = g.getBounds();
+        g.setBounds(offset(r, _contentPane.getBounds()));
+        _contentPane.paint(g);
+        if (_menuBar != null) {
+            g.setBounds(offset(r, _menuBar.getBounds()));
+            _menuBar.paint(g);
+        }
+        g.setBounds(offset(r, _glassPane.getBounds()));
+        _glassPane.paint(g);
+    }
 }

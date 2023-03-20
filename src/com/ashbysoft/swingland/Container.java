@@ -109,6 +109,10 @@ public class Container extends Component {
         // invalidate out layout
         if (_layoutManager instanceof LayoutManager2)
             ((LayoutManager2)_layoutManager).invalidateLayout(this);
+        // drop cached sizes
+        _cachePrefSize = null;
+        _cacheMinSize = null;
+        _cacheMaxSize = null;
         // now invoke component behaviour
         super.invalidate();
     }
@@ -127,6 +131,17 @@ public class Container extends Component {
         // validate component tree
         for (Component c: _components) {
             c.validate();
+        }
+    }
+
+    public void paint(Graphics g) {
+        if (!isVisible())
+            return;
+        // iterate them components!
+        _log.info("Container:paint");
+        for (Component c: _components) {
+            g.setBounds(c.getBounds());
+            c.paint(g);
         }
     }
 }
