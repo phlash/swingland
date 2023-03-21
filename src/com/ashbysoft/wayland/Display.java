@@ -33,11 +33,13 @@ public class Display extends WaylandObject<Display.Listener> {
         _lock = new Object();
     }
     public void close() {
+        _log.info("close");
         synchronized(_lock) {
             if (_conn != null) {
                 _conn.close();
                 _conn = null;
             }
+            Objects.clear();
         }
     }
     // message receiver

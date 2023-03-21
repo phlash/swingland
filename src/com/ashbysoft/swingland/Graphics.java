@@ -13,6 +13,7 @@ public class Graphics {
     private int _height;
     private Rectangle _bounds;
     private Color _color;
+    private Font _font;
 
     Graphics(ByteBuffer b, int w, int h) {
         _log.info("<init>:b="+b.toString()+" w="+w+" h="+h);
@@ -20,6 +21,8 @@ public class Graphics {
         _width = w;
         _height = h;
         _bounds = new Rectangle(0, 0, _width, _height);
+        _color = Color.MAGENTA;
+        _font = Font.getFont(Font.MONOSPACED);
     }
     public Rectangle getBounds() { return _bounds; }
     public void setBounds(Rectangle r) {
@@ -27,33 +30,68 @@ public class Graphics {
         _bounds = r;
     }
     public void setColor(Color c) { _color = c; }
-    public void drawLine(int x1, int y1, int x2, int y2) {}
+    public void drawLine(int x1, int y1, int x2, int y2) {
+        _log.info("drawLine:("+x1+","+y1+")->("+x2+","+y2+")");
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        int sx = dx < 0 ? -1 : 1;
+        int sy = dy < 0 ? -1 : 1;
+        if (0 == dy) {
+            // horizontal
+            int x;
+            for (x = x1; x != x2; x += sx)
+                setPixel(x, y1);
+            setPixel(x, y1);
+        } else if (0 == dx) {
+            // vertical
+            int y;
+            for (y = y1; y != y2; y += sy)
+                setPixel(x1, y);
+            setPixel(x1, y);
+        } else if (0 == dy/dx) {
+            // low slope, iterate X
+            int x;
+            for (x = x1; x != x2; x += sx)
+                setPixel(x, y1 + ((x - x1) * dy) / dx);
+            setPixel(x, y1 + ((x - x1) * dy) / dx);
+        } else {
+            // high slope, iterate Y
+            int y;
+            for (y = y1; y != y2; y += sy)
+                setPixel(((y - y1) * dx) / dy, y);
+            setPixel(((y - y1) * dx) / dy, y);
+        }
+    }
     public void drawRect(int x, int y, int w, int h) {
-        int tx = _bounds._x + x;
-        int ty = _bounds._y + y;
-        _log.info("drawRect:tx="+tx+" ty="+ty+" w="+w+" h="+h);
+        _log.info("drawRect:("+w+"x"+h+")@("+x+","+y+")");
         for (int ox = 0; ox < w; ox += 1) {
-            setPixel(tx+ox, ty);
-            setPixel(tx+ox, ty+h);
+            setPixel(x+ox, y);
+            setPixel(x+ox, y+h);
         }
         for (int oy = 0; oy < h; oy += 1) {
-            setPixel(tx, ty+oy);
-            setPixel(tx+w, ty+oy);
+            setPixel(x, y+oy);
+            setPixel(x+w, y+oy);
         }
     }
     public void fillRect(int x, int y, int w, int h) {
-        int tx = _bounds._x + x;
-        int ty = _bounds._y + y;
-        _log.info("fillRect:tx="+tx+" ty="+ty+" w="+w+" h="+h);
+        _log.info("fillRect:("+w+"x"+h+")@("+x+","+y+")");
         for (int oy = 0; oy < h; oy += 1)
             for (int ox = 0; ox < w; ox += 1)
                 setPixel(ox, oy);
     }
-    public void drawString(String s, int x, int y) {}
-    private void setPixel(int x, int y) {
-        // we assume: width==stride, format==ARGB
-        int o = y * _width + x;
+    public void drawString(String s, int x, int y) {
+        _log.info("drawString:("+x+","+y+"):"+s);
+        _font.renderString(this, s, x, y);
+    }
+    // package-private pixel setter, not part of public API
+    void setPixel(int x, int y) {
+        // apply bounds offset
+        x += _bounds._x;
+        y += _bounds._y;
+        // calculate buffer position, assume: width==stride, format==ARGB
+        int o = (y * _width + x) * 4;
+        // convert color to ARGB pixel, always fully opaque
         int c = 0xff000000 | (_color._r << 16) | (_color._g << 8) | (_color._b);
-        _buffer.putInt(o * 4, c);
+        _buffer.putInt(o, c);
     }
 }

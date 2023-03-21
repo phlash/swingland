@@ -27,6 +27,7 @@ public class Test implements
     private Buffer _buffer;
     private Random _rand;
     public void run() {
+        System.out.println("---- Wayland test starts ----");
         _rand = new Random();
         _display = new Display();
         _display.addListener(this);
@@ -61,10 +62,11 @@ public class Test implements
         while (_display.dispatch()) {
             try { Thread.currentThread().sleep(10); } catch (Exception e) {}
             long now = System.currentTimeMillis();
-            if (now > start+5000)
+            if (now > start+2000)
                 break;
         }
         _display.close();
+        System.out.println("---- Wayland test done ----");
     }
     private void render() {
         // new buffer required?

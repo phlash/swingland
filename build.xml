@@ -4,8 +4,8 @@
 	</target>
 
 	<target name="compile">
-		<mkdir dir="bin"/>
-		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin" nativeheaderdir="bin/h" />
+		<mkdir dir="bin/classes"/>
+		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin/classes" nativeheaderdir="bin/h" />
 		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
 		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.Test"/>
 		<exec executable="jar" failonerror="true">
@@ -14,9 +14,13 @@
 			<arg value="src/MANIFEST.MF"/>
 			<arg value="com.ashbysoft.Test"/>
 			<arg value="-C"/>
-			<arg value="bin"/>
+			<arg value="bin/classes"/>
+			<arg value="."/>
+			<arg value="-C"/>
+			<arg value="res"/>
 			<arg value="."/>
 		</exec>
+		<echo message="[gcc] Compiling JNI library bin/libnative.so"/>
 		<exec executable="gcc" failonerror="true">
 			<arg value="-shared"/>
 			<arg value="-fPIC"/>
@@ -38,7 +42,7 @@
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=1"/>
-			<!-- arg value="wayland"/ -->
+			<arg value="wayland"/>
 			<arg value="swingland"/>
 		</java>
 		<record name="bin/test.log" action="stop"/>

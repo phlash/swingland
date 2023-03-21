@@ -23,5 +23,11 @@ public class Test extends Component implements KeyListener {
 		_log.info("Test:paint");
 		g.setColor(getForeground());
 		g.drawRect(1, 1, getWidth()-2, getHeight()-2);
+		g.setColor(Color.CYAN);
+		g.drawLine(1, 1, getWidth()-2, getHeight()-2);
+		g.setColor(Color.YELLOW);
+		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
+		g.setColor(Color.RED);
+		g.drawString("Swingland rocks!", 10, 20);
 	}
 }

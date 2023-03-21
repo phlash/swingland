@@ -148,6 +148,15 @@ public class Window extends Container implements
     }
     private void fromWayland() {
         // run away!
+        if (_buffer != null) {
+            _buffer.destroy();
+            _buffer = null;
+        }
+        if (_shmpool != null) {
+            _shmpool.destroy();
+            _shmpool = null;
+        }
+        _poolsize = 0;
         if (_xdgToplevel != null) {
             _xdgToplevel.destroy();
             _xdgToplevel = null;

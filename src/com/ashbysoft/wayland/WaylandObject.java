@@ -8,8 +8,9 @@ import java.nio.ByteOrder;
 
 // base class for all protocol objects
 public abstract class WaylandObject<T> {
+    protected String _name = "["+getClass().getSimpleName()+"@"+hashCode()+"]";
     // default logger with type ID
-    protected Logger _log = new Logger("["+getClass().getSimpleName()+"@"+hashCode()+"]:");
+    protected Logger _log = new Logger(_name+":");
     // connected display (if required in subtype)
     protected Display _display;
     // listener support (if required in subtype)
@@ -24,6 +25,7 @@ public abstract class WaylandObject<T> {
     protected void log(boolean inOut, String msg) {
         _log.info("@"+getID()+(inOut ? "<IN>:" : "<OUT>:")+msg);
     }
+    public String getName() { return _name; }
     // default message handler
     public boolean handle(int oid, int op, int sz, ByteBuffer b) {
         _log.error("No message handler in class!");
