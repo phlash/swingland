@@ -5,7 +5,9 @@ package com.ashbysoft.swingland;
 // and performing rendering operations.
 
 import com.ashbysoft.wayland.*;
+import com.ashbysoft.swingland.event.*;
 import java.util.LinkedList;
+import java.util.HashMap;
 
 public class Window extends Container implements
     Surface.Listener,
@@ -16,15 +18,23 @@ public class Window extends Container implements
     private class WaylandGlobals implements
         Runnable,
         Registry.Listener,
-        XdgWmBase.Listener {
+        XdgWmBase.Listener,
+        Seat.Listener,
+        Keyboard.Listener {
 
         private Display _display;
         private Registry _registry;
         private Compositor _compositor;
         private XdgWmBase _xdgWmBase;
         private Shm _shm;
+        private Seat _seat;
+        private String _seatName;
+        private Keyboard _keyboard;
         private Thread _uiThread;
         private LinkedList<Window> _repaints;
+        private HashMap<Integer, Window> _windows;
+        private int _keyboardWindow;
+        private int _windowCount;
         public WaylandGlobals() {
             _display = new Display();
             _registry = new Registry(_display);
@@ -38,15 +48,34 @@ public class Window extends Container implements
             }
             _xdgWmBase.addListener(this);
             _repaints = new LinkedList<Window>();
+            _windows = new HashMap<Integer, Window>();
+            _windowCount = 1;
             _uiThread = new Thread(this);
             // We hold the application active even if main exits
             _uiThread.setDaemon(false);
             _uiThread.start();
         }
+        public void incref() {
+            _windowCount += 1;
+        }
+        public void decref() {
+            _windowCount -= 1;
+        }
         public Display display() { return _display; }
         public Compositor compositor() { return _compositor; }
         public XdgWmBase xdgWmBase() { return _xdgWmBase; }
         public Shm shm() { return _shm; }
+        public void register(int id, Window w) {
+            synchronized(_windows) {
+                _windows.put(id, w);
+            }
+        }
+        public void unregister(int id) {
+            synchronized(_windows) {
+                _windows.remove(id);
+            }
+        }
+        // Registry.Listener
         public boolean global(int name, String iface, int version) {
             if (iface.equals("wl_compositor")) {
                 _compositor = new Compositor(_display);
@@ -57,13 +86,48 @@ public class Window extends Container implements
             } else if (iface.equals("xdg_wm_base")) {
                 _xdgWmBase = new XdgWmBase(_display);
                 _registry.bind(name, iface, version, _xdgWmBase);
+            } else if (iface.equals("wl_seat")) {
+                _seat = new Seat(_display);
+                _seat.addListener(this);
+                _registry.bind(name, iface, version, _seat);
             }
             return true;
         }
         public boolean remove(int name) { return true; }
+        // XdgWmBase.Listener
         public boolean ping(int serial) {
             return _xdgWmBase.pong(serial);
         }
+        // Seat.Listener
+        public boolean seatCapabilities(int caps) {
+            if ((caps & Seat.Listener.KEYBOARD) != 0) {
+                _keyboard = new Keyboard(_display);
+                _keyboard.addListener(this);
+                _seat.getKeyboard(_keyboard);
+            }
+            // XXX:TODO: pointer/touch objects
+            return true;
+        }
+        public boolean seatName(String name) { _seatName = name; return true; }
+        // Keyboard.Listener
+        public boolean keymap(int format, int fd, int size) { return true; }
+        public boolean keyboardEnter(int serial, int surface, int[] keys) { _keyboardWindow = surface; return true; }
+        public boolean keyboardLeave(int serial, int surface) { return true; }
+        public boolean key(int serial, int time, int keyCode, int state) {
+            // XXX:TODO: accumulate shift state into 'typed' events
+            Window w;
+            synchronized(_windows) {
+                w = _windows.get(_keyboardWindow);
+            }
+            if (w != null) {
+                KeyEvent e = new KeyEvent(this, state, keyCode);
+                w.dispatchEvent(e);
+            }
+            return true;
+        }
+        public boolean modifiers(int serial, int depressed, int latched, int locked, int group) { return true; }
+        public boolean repeat(int rate, int delay) { return true; }
+
         public void repaint(Window w) {
             synchronized(_repaints) {
                 // coalesce repaints for the same window
@@ -73,8 +137,8 @@ public class Window extends Container implements
         }
         public void run() 
         {
-            // process wayland responses, repaint requests
-            while (true) {
+            // process wayland responses, repaint requests until no more windows
+            while (_windowCount > 0) {
                 _display.dispatch();
                 while (_repaints.size() > 0) {
                     synchronized(_repaints) {
@@ -84,6 +148,7 @@ public class Window extends Container implements
                 }
                 try { Thread.sleep(10); } catch (InterruptedException e) {}
             }
+            _display.close();
         }
     }
     private static WaylandGlobals _globals;
@@ -130,6 +195,8 @@ public class Window extends Container implements
         // first time?
         if (null == _globals) {
             _globals = new WaylandGlobals();
+        } else {
+            _globals.incref();
         }
         // hook us up to the real world!
         _surface = new Surface(_globals.display());
@@ -143,6 +210,7 @@ public class Window extends Container implements
         _xdgSurface.getTopLevel(_xdgToplevel);
         _xdgToplevel.setTitle(getName());
         _surface.commit();
+        _globals.register(_surface.getID(), this);
         _globals.display().roundtrip();
         repaint();
     }
@@ -166,9 +234,12 @@ public class Window extends Container implements
             _xdgSurface = null;
         }
         if (_surface != null) {
+            _globals.unregister(_surface.getID());
             _surface.destroy();
             _surface = null;
         }
+        if (_globals != null)
+            _globals.decref();
     }
     public boolean enter(int outputID) { return true; }
     public boolean leave(int outputID) { return true; }
@@ -187,7 +258,9 @@ public class Window extends Container implements
     }
     public boolean done(int serial) { return true; }
 
-    public void dispose() {}
+    public void dispose() {
+        fromWayland();
+    }
 
     // intercept setVisible to force validation and Wayland I/O
     public void setVisible(boolean v) {

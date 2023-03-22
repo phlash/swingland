@@ -1,5 +1,6 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
 import java.util.ArrayList;
 
 public class Container extends Component {
@@ -132,6 +133,15 @@ public class Container extends Component {
         for (Component c: _components) {
             c.validate();
         }
+    }
+
+    public void dispatchEvent(AbstractEvent e) {
+        // push down to any components, then default behaviour
+        if (getComponentCount() > 0) {
+            for (int i = 0; i < getComponentCount(); i += 1)
+                getComponent(i).dispatchEvent(e);
+        }
+        super.dispatchEvent(e);
     }
 
     public void paint(Graphics g) {

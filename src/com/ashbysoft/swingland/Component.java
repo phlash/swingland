@@ -126,7 +126,20 @@ public abstract class Component {
         if (_keyListeners.contains(l))
             _keyListeners.remove(l);
     }
-
+    public void dispatchEvent(AbstractEvent e) {
+        // XXX:TODO other listener/event types
+        if (e instanceof KeyEvent) {
+            KeyEvent k = (KeyEvent)e;
+            for (KeyListener l : _keyListeners) {
+                if (KeyEvent.KEY_RELEASED == k.getID())
+                    l.keyReleased(k);
+                else if (KeyEvent.KEY_PRESSED == k.getID())
+                    l.keyPressed(k);
+                else
+                    l.keyTyped(k);
+            }
+        }
+    }
     // Request a repaint later
     public void repaint() {
         // delegate to container by default

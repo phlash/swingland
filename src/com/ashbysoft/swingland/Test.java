@@ -15,7 +15,12 @@ public class Test extends Component implements KeyListener {
 		_frame.setVisible(true);
     }
 
-	public void keyPressed(KeyEvent k) {}
+	public void keyPressed(KeyEvent k) {
+		if (k.getKeyCode() == KeyEvent.VK_ESC) {
+			_log.info("disposing");
+			_frame.dispose();
+		}
+	}
 	public void keyReleased(KeyEvent k) {}
 	public void keyTyped(KeyEvent k) {}
 
@@ -28,6 +33,6 @@ public class Test extends Component implements KeyListener {
 		g.setColor(Color.YELLOW);
 		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
 		g.setColor(Color.RED);
-		g.drawString("Swingland rocks!", 10, 20);
+		g.drawString("Swingland rocks! (press ESC to quit)", 10, 20);
 	}
 }
