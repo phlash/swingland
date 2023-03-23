@@ -20,7 +20,8 @@ public class Window extends Container implements
         Registry.Listener,
         XdgWmBase.Listener,
         Seat.Listener,
-        Keyboard.Listener {
+        Keyboard.Listener,
+        Pointer.Listener {
 
         private Display _display;
         private Registry _registry;
@@ -30,10 +31,12 @@ public class Window extends Container implements
         private Seat _seat;
         private String _seatName;
         private Keyboard _keyboard;
+        private Pointer _pointer;
         private Thread _uiThread;
         private LinkedList<Window> _repaints;
         private HashMap<Integer, Window> _windows;
         private int _keyboardWindow;
+        private int _pointerWindow;
         private int _windowCount;
         public WaylandGlobals() {
             _display = new Display();
@@ -105,16 +108,20 @@ public class Window extends Container implements
                 _keyboard.addListener(this);
                 _seat.getKeyboard(_keyboard);
             }
-            // XXX:TODO: pointer/touch objects
+            if ((caps & Seat.Listener.POINTER) != 0) {
+                _pointer = new Pointer(_display);
+                _pointer.addListener(this);
+                _seat.getPointer(_pointer);
+            }
             return true;
         }
         public boolean seatName(String name) { _seatName = name; return true; }
         // Keyboard.Listener
+        // XXX:TODO: accumulate shift state into 'typed' events
         public boolean keymap(int format, int fd, int size) { return true; }
         public boolean keyboardEnter(int serial, int surface, int[] keys) { _keyboardWindow = surface; return true; }
         public boolean keyboardLeave(int serial, int surface) { return true; }
         public boolean key(int serial, int time, int keyCode, int state) {
-            // XXX:TODO: accumulate shift state into 'typed' events
             Window w;
             synchronized(_windows) {
                 w = _windows.get(_keyboardWindow);
@@ -127,6 +134,32 @@ public class Window extends Container implements
         }
         public boolean modifiers(int serial, int depressed, int latched, int locked, int group) { return true; }
         public boolean repeat(int rate, int delay) { return true; }
+        // Pointer.Listener
+        // XXX:TODO: accumulate press/release state per button into 'clicked' events, save x/y for button events
+        public boolean pointerEnter(int serial, int surface, int x, int y) { _pointerWindow = surface; return true; }
+        public boolean pointerLeave(int serial, int surface) { return true; }
+        public boolean pointerMove(int time, int x, int y) {
+            Window w;
+            synchronized(_windows) {
+                w = _windows.get(_pointerWindow);
+            }
+            if (w != null) {
+                MouseEvent e = new MouseEvent(this, MouseEvent.MOUSE_MOVE, x>>8, y>>8, -1, -1);
+                w.dispatchEvent(e);
+            }
+            return true;
+        }
+        public boolean pointerButton(int serial, int time, int button, int state) {
+            Window w;
+            synchronized(_windows) {
+                w = _windows.get(_pointerWindow);
+            }
+            if (w != null) {
+                MouseEvent e = new MouseEvent(this, MouseEvent.MOUSE_BUTTON, -1, -1, button, state);
+                w.dispatchEvent(e);
+            }
+            return true;
+        }
 
         public void repaint(Window w) {
             synchronized(_repaints) {

@@ -2,8 +2,11 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
 
-public class Test extends Component implements KeyListener {
+public class Test extends Component implements KeyListener, MouseInputListener {
     private JFrame _frame;
+	private int _x = 0;
+	private int _y = 0;
+	private int _b = 0;
 
     public void run() {
         // Create a top level frame and put ourselves in it.
@@ -12,6 +15,7 @@ public class Test extends Component implements KeyListener {
 		_frame.setSize(800, 600);
 		_frame.add(this);
 		_frame.addKeyListener(this);
+		_frame.addMouseInputListener(this);
 		_frame.setVisible(true);
     }
 
@@ -24,6 +28,14 @@ public class Test extends Component implements KeyListener {
 	public void keyReleased(KeyEvent k) {}
 	public void keyTyped(KeyEvent k) {}
 
+	public void mouseDragged(MouseEvent m) {}
+	public void mouseMoved(MouseEvent m) { _x = m.getX(); _y = m.getY(); }
+	public void mouseClicked(MouseEvent m) {}
+	public void mouseEntered(MouseEvent m) {}
+	public void mouseExited(MouseEvent m) {}
+	public void mouseReleased(MouseEvent m) { _b = 0; repaint(); }
+	public void mousePressed(MouseEvent m) { _b = m.getButton(); repaint(); }
+
     public void paint(Graphics g) {
 		_log.info("Test:paint");
 		g.setColor(getForeground());
@@ -34,5 +46,7 @@ public class Test extends Component implements KeyListener {
 		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
 		g.setColor(Color.RED);
 		g.drawString("Swingland rocks! (press ESC to quit)", 10, 20);
+		String m = "Mouse("+_x+","+_y+")="+_b;
+		g.drawString(m, getWidth()-160, 20);
 	}
 }

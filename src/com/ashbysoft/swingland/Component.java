@@ -22,6 +22,7 @@ public abstract class Component {
     private Color _background;
     private Color _foreground;
     private ArrayList<KeyListener> _keyListeners;
+    private ArrayList<MouseInputListener> _mouseListeners;
 
     protected Component() {
         _name = getClass().getSimpleName()+"@"+hashCode();
@@ -31,6 +32,7 @@ public abstract class Component {
         _background = Color.GRAY;
         _foreground = Color.BLACK;
         _keyListeners = new ArrayList<KeyListener>();
+        _mouseListeners = new ArrayList<MouseInputListener>();
     }
     public Container getParent() { return _parent; }
     // package-private method for Container.addImpl use
@@ -126,6 +128,17 @@ public abstract class Component {
         if (_keyListeners.contains(l))
             _keyListeners.remove(l);
     }
+    public void addMouseInputListener(MouseInputListener l) {
+        _log.info("addMouseInputListener("+l.getClass().getSimpleName()+")");
+        if (!_mouseListeners.contains(l))
+            _mouseListeners.add(l);
+    }
+    public void removeMouseInputListener(MouseInputListener l) {
+        _log.info("removeMouseInputListener("+l.getClass().getSimpleName()+")");
+        if (_mouseListeners.contains(l))
+            _mouseListeners.remove(l);
+    }
+    // dispath to any listeners, so they can consume the event, before any local processing
     public void dispatchEvent(AbstractEvent e) {
         // XXX:TODO other listener/event types
         if (e instanceof KeyEvent) {
@@ -138,8 +151,26 @@ public abstract class Component {
                 else
                     l.keyTyped(k);
             }
+        } else if (e instanceof MouseEvent) {
+            MouseEvent m = (MouseEvent)e;
+            for (MouseInputListener l : _mouseListeners) {
+                if (MouseEvent.MOUSE_MOVE == m.getID())
+                    l.mouseMoved(m);
+                else if (MouseEvent.MOUSE_BUTTON == m.getID()) {
+                    if (MouseEvent.BUTTON_RELEASED == m.getState())
+                        l.mouseReleased(m);
+                    else
+                        l.mousePressed(m);
+                }
+            }
         }
+        // unless consumed, process locally
+        if (!e.isConsumed())
+            processEvent(e);
     }
+    // process an event locally (eg: button push)
+    public void processEvent(AbstractEvent e) {}
+
     // Request a repaint later
     public void repaint() {
         // delegate to container by default

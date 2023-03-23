@@ -1,6 +1,6 @@
 package com.ashbysoft.swingland;
 
-import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.*;
 import java.util.ArrayList;
 
 public class Container extends Component {
@@ -9,9 +9,11 @@ public class Container extends Component {
     private Dimension _cachePrefSize;
     private Dimension _cacheMinSize;
     private Dimension _cacheMaxSize;
+    private int _focusComponent;
     public Container() {
         _components = new ArrayList<Component>();
         _layoutManager = new BorderLayout();
+        _focusComponent = -1;
     }
     public int getComponentCount() { return _components.size(); }
     public Component getComponent(int n) { return _components.get(n); }
@@ -41,6 +43,9 @@ public class Container extends Component {
             ((LayoutManager2)_layoutManager).addLayoutComponent(c, s);
         else if (s instanceof String)
             _layoutManager.addLayoutComponent((String)s, c);
+        // set as focus component if first one
+        if (_focusComponent < 0)
+            _focusComponent = getComponentCount() - 1;
         invalidate();
     }
     private boolean isAncestor(Component c) {
@@ -76,6 +81,15 @@ public class Container extends Component {
         _log.info("setLayout("+lm.getClass().getSimpleName()+")");
         _layoutManager = lm;
         invalidate();
+    }
+    public Component getFocusComponent() { return _focusComponent < 0 ? null : getComponent(_focusComponent); }
+    public Component getComponentAt(int x, int y) {
+        for (Component c: _components) {
+            Rectangle b = c.getBounds();
+            if (x >= b._x && y >= b._y && x < (b._x + b._w) && y < (b._y + b._h))
+                return c;
+        }
+        return null;
     }
     public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
@@ -136,11 +150,22 @@ public class Container extends Component {
     }
 
     public void dispatchEvent(AbstractEvent e) {
-        // push down to any components, then default behaviour
-        if (getComponentCount() > 0) {
-            for (int i = 0; i < getComponentCount(); i += 1)
-                getComponent(i).dispatchEvent(e);
+        // KeyEvents go to the currently focused component (if any)
+        if (e instanceof KeyEvent) {
+            Component c = getFocusComponent();
+            if (c != null)
+                c.dispatchEvent(e);
+        // MouseEvents go to current component under pointer (if any)
+        } else if (e instanceof MouseEvent) {
+            MouseEvent m = (MouseEvent)e;
+            Component c = getComponentAt(m.getX(), m.getY());
+            if (c != null) {
+                // translate event co-ordinates to target component
+                Rectangle b = c.getBounds();
+                c.dispatchEvent(new MouseEvent(c, m.getID(), m.getX() - b._x, m.getY() - b._y, m.getButton(), m.getState()));
+            }
         }
+        // now we pass back for default behaviour
         super.dispatchEvent(e);
     }
 
