@@ -9,11 +9,11 @@ public class Container extends Component {
     private Dimension _cachePrefSize;
     private Dimension _cacheMinSize;
     private Dimension _cacheMaxSize;
-    private int _focusComponent;
+    private Component _mouseComponent;
     public Container() {
         _components = new ArrayList<Component>();
         _layoutManager = new BorderLayout();
-        _focusComponent = -1;
+        _mouseComponent = null;
     }
     public int getComponentCount() { return _components.size(); }
     public Component getComponent(int n) { return _components.get(n); }
@@ -43,9 +43,6 @@ public class Container extends Component {
             ((LayoutManager2)_layoutManager).addLayoutComponent(c, s);
         else if (s instanceof String)
             _layoutManager.addLayoutComponent((String)s, c);
-        // set as focus component if first one
-        if (_focusComponent < 0)
-            _focusComponent = getComponentCount() - 1;
         invalidate();
     }
     private boolean isAncestor(Component c) {
@@ -82,11 +79,19 @@ public class Container extends Component {
         _layoutManager = lm;
         invalidate();
     }
-    public Component getFocusComponent() { return _focusComponent < 0 ? null : getComponent(_focusComponent); }
+    public Component getFocusComponent() {
+        // XXX:TODO: keyboard focus management!
+        for (Component c: _components) {
+            if (c.isVisible())
+                return c;
+        }
+        return null;
+    }
     public Component getComponentAt(int x, int y) {
+        // find first visible component we are within
         for (Component c: _components) {
             Rectangle b = c.getBounds();
-            if (x >= b._x && y >= b._y && x < (b._x + b._w) && y < (b._y + b._h))
+            if (c.isVisible() && x >= b._x && y >= b._y && x < (b._x + b._w) && y < (b._y + b._h))
                 return c;
         }
         return null;
@@ -152,17 +157,35 @@ public class Container extends Component {
     public void dispatchEvent(AbstractEvent e) {
         // KeyEvents go to the currently focused component (if any)
         if (e instanceof KeyEvent) {
+            KeyEvent k = (KeyEvent)e;
             Component c = getFocusComponent();
-            if (c != null)
-                c.dispatchEvent(e);
-        // MouseEvents go to current component under pointer (if any)
+            if (c != null) {
+                _log.info("Container:focus="+c.getName());
+                c.dispatchEvent(new KeyEvent(c, k.getID(), k.getKeyCode(), k.getKeyChar()));
+            }
+        // MouseEvents go to current (visible) component under pointer (if any)
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             Component c = getComponentAt(m.getX(), m.getY());
             if (c != null) {
                 // translate event co-ordinates to target component
                 Rectangle b = c.getBounds();
-                c.dispatchEvent(new MouseEvent(c, m.getID(), m.getX() - b._x, m.getY() - b._y, m.getButton(), m.getState()));
+                int ex = m.getX() - b._x;
+                int ey = m.getY() - b._y;
+                if (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID()) {
+                    // has the component changed? synthesise entered
+                    if (c != _mouseComponent) {
+                        c.dispatchEvent(new MouseEvent(c, MouseEvent.MOUSE_ENTERED, ex, ey, m.getButton(), m.getState()));
+                        if (_mouseComponent != null)
+                            _mouseComponent.dispatchEvent(new MouseEvent(c, MouseEvent.MOUSE_EXITED, ex, ey, m.getButton(), m.getState()));
+                        _mouseComponent = c;
+                    }
+                } else if (MouseEvent.MOUSE_ENTERED == m.getID()) {
+                    _mouseComponent = c;
+                } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
+                    _mouseComponent = null;
+                }
+                c.dispatchEvent(new MouseEvent(c, m.getID(), ex, ey, m.getButton(), m.getState()));
             }
         }
         // now we pass back for default behaviour

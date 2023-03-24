@@ -2,7 +2,7 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
 
-public class Test extends Component implements KeyListener, MouseInputListener {
+public class Test extends Component {
     private JFrame _frame;
 	private int _x = 0;
 	private int _y = 0;
@@ -14,27 +14,16 @@ public class Test extends Component implements KeyListener, MouseInputListener {
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		_frame.setSize(800, 600);
 		_frame.add(this);
-		_frame.addKeyListener(this);
-		_frame.addMouseInputListener(this);
 		_frame.setVisible(true);
     }
 
-	public void keyPressed(KeyEvent k) {
-		if (k.getKeyCode() == KeyEvent.VK_ESC) {
+	public void processEvent(AbstractEvent e) {
+		_log.info(e.toString());
+		if (e instanceof KeyEvent && ((KeyEvent)e).getKeyCode() == KeyEvent.VK_ESC) {
 			_log.info("disposing");
 			_frame.dispose();
 		}
 	}
-	public void keyReleased(KeyEvent k) {}
-	public void keyTyped(KeyEvent k) { _log.info("typed:"+k.getKeyChar()); }
-
-	public void mouseDragged(MouseEvent m) {}
-	public void mouseMoved(MouseEvent m) { _x = m.getX(); _y = m.getY(); }
-	public void mouseClicked(MouseEvent m) {}
-	public void mouseEntered(MouseEvent m) {}
-	public void mouseExited(MouseEvent m) {}
-	public void mouseReleased(MouseEvent m) { _b = 0; repaint(); }
-	public void mousePressed(MouseEvent m) { _b = m.getButton(); repaint(); }
 
     public void paint(Graphics g) {
 		_log.info("Test:paint");

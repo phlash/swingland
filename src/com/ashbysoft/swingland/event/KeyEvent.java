@@ -123,4 +123,7 @@ public class KeyEvent extends AbstractEvent {
     public KeyEvent(Object source, int id, int code, char ch) { super(source, id); _code = code; _char = ch; }
     public int getKeyCode() { return _code; }
     public char getKeyChar() { return _char; }
+    public String toString() {
+        return pfxString()+",code="+_code+",char="+_char+")";
+    }
 }

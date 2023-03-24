@@ -156,13 +156,19 @@ public abstract class Component {
             MouseEvent m = (MouseEvent)e;
             m = new MouseEvent(this, m.getID(), m.getX(), m.getY(), m.getButton(), m.getState());
             for (MouseInputListener l : _mouseListeners) {
-                if (MouseEvent.MOUSE_MOVE == m.getID())
+                if (MouseEvent.MOUSE_MOVE == m.getID()) {
                     l.mouseMoved(m);
-                else if (MouseEvent.MOUSE_BUTTON == m.getID()) {
+                } else if (MouseEvent.MOUSE_BUTTON == m.getID()) {
                     if (MouseEvent.BUTTON_RELEASED == m.getState())
                         l.mouseReleased(m);
                     else
                         l.mousePressed(m);
+                } else if (MouseEvent.MOUSE_ENTERED == m.getID()) {
+                    l.mouseEntered(m);
+                } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
+                    l.mouseExited(m);
+                } else if (MouseEvent.MOUSE_CLICKED == m.getID()) {
+                    l.mouseClicked(m);
                 }
             }
         }

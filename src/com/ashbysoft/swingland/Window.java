@@ -153,32 +153,35 @@ public class Window extends Container implements
         }
         public boolean repeat(int rate, int delay) { return true; }
         // Pointer.Listener
-        // XXX:TODO: accumulate press/release state per button into 'clicked' events, save x/y for button events
-        public boolean pointerEnter(int serial, int surface, int x, int y) { _pointerWindow = surface; return true; }
-        public boolean pointerLeave(int serial, int surface) { return true; }
-        public boolean pointerMove(int time, int x, int y) {
+        private int _pointerX;
+        private int _pointerY;
+        private boolean pointerSend(MouseEvent m) {
             Window w;
             synchronized(_windows) {
                 w = _windows.get(_pointerWindow);
             }
             if (w != null) {
-                MouseEvent e = new MouseEvent(this, MouseEvent.MOUSE_MOVE, x>>8, y>>8, -1, -1);
-                w.dispatchEvent(e);
+                w.dispatchEvent(m);
             }
             return true;
+        }
+        public boolean pointerEnter(int serial, int surface, int x, int y) {
+            _pointerWindow = surface;
+            return pointerMove(0, x, y);
+        }
+        public boolean pointerLeave(int serial, int surface) {
+            return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_EXITED, _pointerX >> 8, _pointerY >> 8, -1, -1));
+        }
+        public boolean pointerMove(int time, int x, int y) {
+            _pointerX = x;
+            _pointerY = y;
+            return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _pointerX >> 8, _pointerY >> 8, -1, -1));
         }
         public boolean pointerButton(int serial, int time, int button, int state) {
-            Window w;
-            synchronized(_windows) {
-                w = _windows.get(_pointerWindow);
-            }
-            if (w != null) {
-                MouseEvent e = new MouseEvent(this, MouseEvent.MOUSE_BUTTON, -1, -1, button, state);
-                w.dispatchEvent(e);
-            }
-            return true;
+            return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, button, state));
         }
 
+        // repaint request queue
         public void repaint(Window w) {
             synchronized(_repaints) {
                 // coalesce repaints for the same window
@@ -186,6 +189,8 @@ public class Window extends Container implements
                     _repaints.add(w);
             }
         }
+
+        // UI thread
         public void run() 
         {
             // process wayland responses, repaint requests until no more windows

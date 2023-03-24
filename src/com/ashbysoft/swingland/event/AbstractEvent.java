@@ -13,4 +13,8 @@ public abstract class AbstractEvent {
     public Object getSource() { return _source; }
     public boolean isConsumed() { return _consumed; }
     public void consume() { _consumed = true; }
+    public abstract String toString();
+    protected String pfxString() {
+        return getClass().getSimpleName()+"(consumed="+_consumed+",source="+_source.getClass().getSimpleName()+",id="+_id;
+    }
 }
