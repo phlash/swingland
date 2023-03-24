@@ -26,7 +26,7 @@ public class Test extends Component implements KeyListener, MouseInputListener {
 		}
 	}
 	public void keyReleased(KeyEvent k) {}
-	public void keyTyped(KeyEvent k) {}
+	public void keyTyped(KeyEvent k) { _log.info("typed:"+k.getKeyChar()); }
 
 	public void mouseDragged(MouseEvent m) {}
 	public void mouseMoved(MouseEvent m) { _x = m.getX(); _y = m.getY(); }

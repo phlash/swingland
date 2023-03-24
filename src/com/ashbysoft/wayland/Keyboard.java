@@ -19,6 +19,18 @@ public class Keyboard extends WaylandObject<Keyboard.Listener> {
     public static final int EV_KEY = 3;
     public static final int EV_MODIFIERS = 4;
     public static final int EV_REPEAT_INFO = 5;
+    // key states
+    public static final int KEY_RELEASED = 0;
+    public static final int KEY_PRESSED = 1;
+    // modifiers
+    public static final int MOD_SHIFT = 1;
+    public static final int MOD_CAPSLOCK = 2;
+    public static final int MOD_CTRL = 4;
+    public static final int MOD_ALT = 8;
+    public static final int MOD_NUMLOCK = 16;
+    // what's 32?
+    public static final int MOD_SUPER = 64;
+    public static final int MOD_ALTGR = 128;
 
     public Keyboard(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
@@ -40,7 +52,7 @@ public class Keyboard extends WaylandObject<Keyboard.Listener> {
             int[] keys = new int[n];
             for (int i=0; i<n; i++)
                 keys[i] = ib.getInt();
-            log(true, "enter:serial="+serial+" surface="+surface+" states="+java.util.Arrays.toString(keys));
+            log(true, "enter:serial="+serial+" surface="+surface+" keys="+java.util.Arrays.toString(keys));
             for (Listener l : listeners())
                 if (!l.keyboardEnter(serial, surface, keys))
                     rv = false;

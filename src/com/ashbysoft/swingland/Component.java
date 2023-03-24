@@ -143,6 +143,7 @@ public abstract class Component {
         // XXX:TODO other listener/event types
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
+            k = new KeyEvent(this, k.getID(), k.getKeyCode(), k.getKeyChar());
             for (KeyListener l : _keyListeners) {
                 if (KeyEvent.KEY_RELEASED == k.getID())
                     l.keyReleased(k);
@@ -153,6 +154,7 @@ public abstract class Component {
             }
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
+            m = new MouseEvent(this, m.getID(), m.getX(), m.getY(), m.getButton(), m.getState());
             for (MouseInputListener l : _mouseListeners) {
                 if (MouseEvent.MOUSE_MOVE == m.getID())
                     l.mouseMoved(m);

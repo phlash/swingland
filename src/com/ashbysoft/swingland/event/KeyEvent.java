@@ -84,6 +84,7 @@ public class KeyEvent extends AbstractEvent {
     public static final int VK_KP3 = 81;
     public static final int VK_KP0 = 82;
     public static final int VK_KPDOT = 83;
+    public static final int VK_102ND = 86;
     public static final int VK_F11 = 87;
     public static final int VK_F12 = 88;
     public static final int VK_KPENTER = 96;
@@ -118,6 +119,8 @@ public class KeyEvent extends AbstractEvent {
     public static final int KEY_TYPED = 2;
 
     private int _code;
-    public KeyEvent(Object source, int id, int code) { super(source, id); _code = code; }
+    private char _char;
+    public KeyEvent(Object source, int id, int code, char ch) { super(source, id); _code = code; _char = ch; }
     public int getKeyCode() { return _code; }
+    public char getKeyChar() { return _char; }
 }

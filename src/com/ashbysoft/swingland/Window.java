@@ -38,6 +38,7 @@ public class Window extends Container implements
         private int _keyboardWindow;
         private int _pointerWindow;
         private int _windowCount;
+
         public WaylandGlobals() {
             _display = new Display();
             _registry = new Registry(_display);
@@ -117,9 +118,18 @@ public class Window extends Container implements
         }
         public boolean seatName(String name) { _seatName = name; return true; }
         // Keyboard.Listener
-        // XXX:TODO: accumulate shift state into 'typed' events
-        public boolean keymap(int format, int fd, int size) { return true; }
-        public boolean keyboardEnter(int serial, int surface, int[] keys) { _keyboardWindow = surface; return true; }
+        private Keymap _keymap;
+        public boolean keymap(int format, int fd, int size) {
+            // XXX:TODO: use a real keymap once we can read the fd..
+            _keymap = new DefaultKeymap();
+            return true;
+        }
+        public boolean keyboardEnter(int serial, int surface, int[] keys) {
+            _keyboardWindow = surface;
+            for (int k : keys)
+                key(serial, 0, k, KeyEvent.KEY_PRESSED);
+            return true;
+        }
         public boolean keyboardLeave(int serial, int surface) { return true; }
         public boolean key(int serial, int time, int keyCode, int state) {
             Window w;
@@ -127,12 +137,20 @@ public class Window extends Container implements
                 w = _windows.get(_keyboardWindow);
             }
             if (w != null) {
-                KeyEvent e = new KeyEvent(this, state, keyCode);
+                KeyEvent e = new KeyEvent(this, state, keyCode, '-');
                 w.dispatchEvent(e);
+                if (KeyEvent.KEY_PRESSED == state) {
+                    e = _keymap.mapCode(keyCode);
+                    if (e != null)
+                        w.dispatchEvent(e);
+                }
             }
             return true;
         }
-        public boolean modifiers(int serial, int depressed, int latched, int locked, int group) { return true; }
+        public boolean modifiers(int serial, int depressed, int latched, int locked, int group) {
+            _keymap.modifiers(depressed, latched, locked, group);
+            return true;
+        }
         public boolean repeat(int rate, int delay) { return true; }
         // Pointer.Listener
         // XXX:TODO: accumulate press/release state per button into 'clicked' events, save x/y for button events
