@@ -98,6 +98,12 @@ public abstract class Component {
         invalidate();
     }
 
+    protected Graphics getGraphics() {
+        Container p = getParent();
+        if (p != null)
+            return p.getGraphics();
+        return null;
+    }
     public boolean isValid() { return _valid; }
     public void invalidate() {
         // ignore if already invalid

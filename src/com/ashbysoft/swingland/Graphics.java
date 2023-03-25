@@ -29,6 +29,8 @@ public class Graphics {
         _log.info("bounds:x="+r._x+" y="+r._y+" w="+r._w+" h="+r._h);
         _bounds = r;
     }
+    public Font getFont() { return _font; }
+    public void setFont(Font font) { _font = font; }
     public void setColor(Color c) { _color = c; }
     public void drawLine(int x1, int y1, int x2, int y2) {
         _log.info("drawLine:("+x1+","+y1+")->("+x2+","+y2+")");

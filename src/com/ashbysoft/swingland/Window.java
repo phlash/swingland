@@ -197,10 +197,12 @@ public class Window extends Container implements
             while (_windowCount > 0) {
                 _display.dispatch();
                 while (_repaints.size() > 0) {
+                    Window w;
                     synchronized(_repaints) {
-                        Window w = _repaints.remove();
-                        w.render();
+                        w = _repaints.remove();
                     }
+                    if (w != null)
+                        w.render();
                 }
                 try { Thread.sleep(10); } catch (InterruptedException e) {}
             }
@@ -240,8 +242,7 @@ public class Window extends Container implements
         }
         if (_buffer != null) {
             validate();
-            Graphics g = new Graphics(_buffer.get(), getWidth(), getHeight());
-            paint(g);
+            paint(getGraphics());
             _surface.attach(_buffer, 0, 0);
             _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
         }
@@ -316,6 +317,12 @@ public class Window extends Container implements
 
     public void dispose() {
         fromWayland();
+    }
+
+    public Graphics getGraphics() {
+        if (_buffer != null)
+            return new Graphics(_buffer.get(), getWidth(), getHeight());
+        return null;
     }
 
     // intercept setVisible to force validation and Wayland I/O

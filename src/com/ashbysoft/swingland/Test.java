@@ -2,7 +2,7 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
 
-public class Test extends Component {
+public class Test extends Container {
     private JFrame _frame;
 	private int _x = 0;
 	private int _y = 0;
@@ -14,6 +14,7 @@ public class Test extends Component {
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		_frame.setSize(800, 600);
 		_frame.add(this);
+		add(new JLabel("Label.."));
 		_frame.setVisible(true);
     }
 
@@ -34,8 +35,9 @@ public class Test extends Component {
 		g.setColor(Color.YELLOW);
 		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
 		g.setColor(Color.RED);
-		g.drawString("Swingland rocks! (press ESC to quit)", 10, 20);
+		g.drawString("Swingland rocks! (press ESC to quit)", 10, getHeight()-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, 20);
+		super.paint(g);
 	}
 }

@@ -58,6 +58,9 @@ public class Font {
             cx += _width;
         }
     }
+    Point getStringSize(String s) {
+        return new Point(s.length() * _width, _height);
+    }
     // Lazy loader
     private synchronized boolean ensureLoaded() {
         if (_buffer != null)
@@ -73,7 +76,7 @@ public class Font {
             int gc = (int)hdr[3] & 0xff;
             if (0 == gc)
                 gc = 256;
-            int mg = ((int)hdr[4]) | ((int)hdr[5] << 8) | ((int)hdr[6] << 16) | ((int)hdr[7] << 24);
+            int mg = ((int)hdr[4] & 0xff) | (((int)hdr[5] & 0xff) << 8) | (((int)hdr[6] & 0xff) << 16) | (((int)hdr[7] & 0xff) << 24);
             // calculate byte size of a glyph, and load them into buffer
             int gb = (gw * gh) / 8;
             byte[] buf = new byte[gb * gc];

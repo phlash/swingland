@@ -5,7 +5,6 @@ package com.ashbysoft.swingland;
 public class JFrame extends Frame implements WindowConstants, RootPaneContainer {
     private String _title;
     private GraphicsConfiguration _graphicsConfig;
-    private Graphics _graphics;
     private JRootPane _rootPane;
     private TransferHandler _transferHandler;
     private int _defaultCloseOperation;
@@ -37,7 +36,6 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
     public void setDefaultCloseOperation(int op) { _defaultCloseOperation = op; }
     public Component getGlassPane() { return _rootPane.getGlassPane(); }
     public void setGlassPane(Component gp) { _rootPane.setGlassPane(gp); }
-    public Graphics getGraphics() { return _graphics; }
     public JMenuBar getJMenuBar() { return _rootPane.getJMenuBar(); }
     public void setJMenuBar(JMenuBar mb) { _rootPane.setJMenuBar(mb); }
     public JLayeredPane getLayeredPane() { return _rootPane.getLayeredPane(); }
