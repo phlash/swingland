@@ -14,7 +14,10 @@ public class Test extends Container {
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		_frame.setSize(800, 600);
 		_frame.add(this);
-		add(new JLabel("Label.."));
+		setLayout(new FlowLayout());
+		JLabel label = new JLabel("Label..");
+		label.setForeground(Color.BLACK);
+		add(label);
 		_frame.setVisible(true);
     }
 

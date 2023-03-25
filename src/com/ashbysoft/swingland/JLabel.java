@@ -19,7 +19,7 @@ public class JLabel extends JComponent {
             // not on screen yet or no text, default to smallish
             p = new Point(10,10);
         }
-        return new Dimension(p._x, p._y);
+        return new Dimension(p._x+10, p._y+10);
     }
     public Dimension getMinimumSize() { return getPreferredSize(); }
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
@@ -27,6 +27,7 @@ public class JLabel extends JComponent {
         String s = getText();
         if (s.length() > 0) {
             Point p = g.getFont().getStringSize(s);
+            g.setColor(getForeground());
             g.drawString(s, 5, p._y+5);
         }
     }
