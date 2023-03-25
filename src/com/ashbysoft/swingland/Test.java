@@ -23,6 +23,15 @@ public class Test extends Container {
 		if (e instanceof KeyEvent && ((KeyEvent)e).getKeyCode() == KeyEvent.VK_ESC) {
 			_log.info("disposing");
 			_frame.dispose();
+		} else if (e instanceof MouseEvent) {
+			MouseEvent m = (MouseEvent)e;
+			if (m.getID() == MouseEvent.MOUSE_MOVE) {
+				_x = m.getX();
+				_y = m.getY();
+			} else if (m.getID() == MouseEvent.MOUSE_BUTTON) {
+				_b = m.getButton();
+				repaint();
+			}
 		}
 	}
 
