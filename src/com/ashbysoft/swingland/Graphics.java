@@ -92,8 +92,8 @@ public class Graphics {
         y += _bounds._y;
         // calculate buffer position, assume: width==stride, format==ARGB
         int o = (y * _width + x) * 4;
-        // convert color to ARGB pixel, always fully opaque
-        int c = 0xff000000 | (_color._r << 16) | (_color._g << 8) | (_color._b);
+        // convert color to ARGB pixel
+        int c = (_color._a << 24) | (_color._r << 16) | (_color._g << 8) | (_color._b);
         _buffer.putInt(o, c);
     }
 }

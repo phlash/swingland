@@ -13,6 +13,7 @@ public class Test extends Container {
         _frame = new JFrame("Swingland lives!");
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		_frame.setSize(800, 600);
+		_frame.setBackground(new Color(64,64,64,128));
 		_frame.add(this);
 		setLayout(new FlowLayout());
 		JLabel label = new JLabel("Label..");
