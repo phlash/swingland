@@ -40,14 +40,12 @@ public class Test extends Container {
 
     public void paint(Graphics g) {
 		_log.info("Test:paint");
-		g.setColor(getForeground());
-		g.drawRect(1, 1, getWidth()-2, getHeight()-2);
 		g.setColor(Color.CYAN);
 		g.drawLine(1, 1, getWidth()-2, getHeight()-2);
 		g.setColor(Color.YELLOW);
 		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
 		g.setColor(Color.RED);
-		g.drawString("Swingland rocks! (press ESC to quit)", 10, getHeight()-5);
+		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit)", 10, getHeight()-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, 20);
 		super.paint(g);

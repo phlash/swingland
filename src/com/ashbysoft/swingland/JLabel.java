@@ -14,10 +14,10 @@ public class JLabel extends JComponent {
         Point p;
         Graphics g = getGraphics();
         if (g != null && _text.length() > 0) {
-            p = g.getFont().getStringSize(getText());
+            p = new Point(g.getFont().getFontMetrics().stringWidth(getText()), g.getFont().getFontMetrics().getHeight());
         } else {
             // not on screen yet or no text, default to smallish
-            p = new Point(10,10);
+            p = new Point(0,0);
         }
         return new Dimension(p._x+10, p._y+10);
     }
@@ -26,9 +26,9 @@ public class JLabel extends JComponent {
     public void paint(Graphics g) {
         String s = getText();
         if (s.length() > 0) {
-            Point p = g.getFont().getStringSize(s);
+            int h = g.getFont().getFontMetrics().getHeight();
             g.setColor(getForeground());
-            g.drawString(s, 5, p._y+5);
+            g.drawString(s, 5, h+5);
         }
     }
 }
