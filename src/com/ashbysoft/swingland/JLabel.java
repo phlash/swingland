@@ -23,7 +23,7 @@ public class JLabel extends JComponent {
     }
     public Dimension getMinimumSize() { return getPreferredSize(); }
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
-    public void paint(Graphics g) {
+    protected void paintComponent(Graphics g) {
         String s = getText();
         if (s.length() > 0) {
             int h = g.getFont().getFontMetrics().getHeight();

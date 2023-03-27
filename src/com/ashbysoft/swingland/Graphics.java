@@ -31,7 +31,7 @@ public class Graphics {
     }
     public Font getFont() { return _font; }
     public void setFont(Font font) { _font = font; }
-    public void setColor(Color c) { _color = c; }
+    public void setColor(Color c) { _log.info("setColor:"+c); _color = c; }
     public void drawLine(int x1, int y1, int x2, int y2) {
         _log.info("drawLine:("+x1+","+y1+")->("+x2+","+y2+")");
         int dx = x2 - x1;
@@ -68,18 +68,19 @@ public class Graphics {
         _log.info("drawRect:("+w+"x"+h+")@("+x+","+y+")");
         for (int ox = 0; ox < w; ox += 1) {
             setPixel(x+ox, y);
-            setPixel(x+ox, y+h);
+            setPixel(x+ox, y+h-1);
         }
+        _log.info("drawRect:part2");
         for (int oy = 0; oy < h; oy += 1) {
             setPixel(x, y+oy);
-            setPixel(x+w, y+oy);
+            setPixel(x+w-1, y+oy);
         }
     }
     public void fillRect(int x, int y, int w, int h) {
         _log.info("fillRect:("+w+"x"+h+")@("+x+","+y+")");
         for (int oy = 0; oy < h; oy += 1)
             for (int ox = 0; ox < w; ox += 1)
-                setPixel(ox, oy);
+                setPixel(x+ox, y+oy);
     }
     public void drawString(String s, int x, int y) {
         _log.info("drawString:("+x+","+y+"):"+s);

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Container extends Component {
     private ArrayList<Component> _components;
     private LayoutManager _layoutManager;
+    private Insets _insets;
     private Dimension _cachePrefSize;
     private Dimension _cacheMinSize;
     private Dimension _cacheMaxSize;
@@ -13,7 +14,6 @@ public class Container extends Component {
     public Container() {
         _components = new ArrayList<Component>();
         _layoutManager = new BorderLayout();
-        _mouseComponent = null;
     }
     public int getComponentCount() { return _components.size(); }
     public Component getComponent(int n) { return _components.get(n); }
@@ -77,6 +77,16 @@ public class Container extends Component {
     public void setLayout(LayoutManager lm) {
         _log.info("setLayout("+lm.getClass().getSimpleName()+")");
         _layoutManager = lm;
+        invalidate();
+    }
+    public Insets getInsets() {
+        if (null == _insets)
+            _insets = new Insets(0, 0, 0, 0);
+        return _insets;
+    }
+    protected void setInsets(Insets i) {
+        _log.info("setInsets("+i+")");
+        _insets = i;
         invalidate();
     }
     public Component getFocusComponent() {

@@ -2,7 +2,7 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
 
-public class Test extends Container {
+public class Test extends JComponent {
     private JFrame _frame;
 	private int _x = 0;
 	private int _y = 0;
@@ -16,6 +16,7 @@ public class Test extends Container {
 		_frame.setBackground(new Color(64,64,64,128));
 		_frame.add(this);
 		setLayout(new FlowLayout());
+		setBorder(new ColorBorder(10, 10, 10, 10, Color.GREEN));
 		JLabel label = new JLabel("Label..");
 		label.setForeground(Color.BLACK);
 		add(label);
@@ -39,16 +40,15 @@ public class Test extends Container {
 		}
 	}
 
-    public void paint(Graphics g) {
+    public void paintComponent(Graphics g) {
 		_log.info("Test:paint");
 		g.setColor(Color.CYAN);
-		g.drawLine(1, 1, getWidth()-2, getHeight()-2);
+		g.drawLine(1, 1, getWidth()-1, getHeight()-1);
 		g.setColor(Color.YELLOW);
-		g.drawLine(1, getHeight()-2, getWidth()-2, 1);
+		g.drawLine(1, getHeight()-1, getWidth()-1, 1);
 		g.setColor(Color.RED);
-		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit)", 10, getHeight()-5);
+		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit)", 20, getHeight()-15);
 		String m = "Mouse("+_x+","+_y+")="+_b;
-		g.drawString(m, getWidth()-160, 20);
-		super.paint(g);
+		g.drawString(m, getWidth()-160, 30);
 	}
 }

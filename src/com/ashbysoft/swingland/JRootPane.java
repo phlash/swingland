@@ -94,21 +94,24 @@ public class JRootPane extends JComponent {
         public void layoutContainer(Container parent) {
             _log.info("layoutContainer("+parent.getName()+")");
             Rectangle bounds = parent.getBounds();
+            Insets insets = parent.getInsets();
+            int wid = bounds._w - insets._r - insets._l;
+            int hgt = bounds._h - insets._b - insets._t;
             // are we laying out the root or layered panes?
             if (parent == _layeredPane) {
                 // menu bar at the top if we have one
-                int top = bounds._y;
+                int top = insets._t;
                 if (_menuBar != null) {
                     Dimension d = _menuBar.getPreferredSize();
                     top += d._h;
-                    _menuBar.setBounds(bounds._x, bounds._y, bounds._w, d._h);
+                    _menuBar.setBounds(insets._l, insets._t, wid, d._h);
                 }
                 // content pane occupies remainder
-                _contentPane.setBounds(bounds._x, top, bounds._w, bounds._h-top);
+                _contentPane.setBounds(insets._l, top, wid, bounds._h-insets._b-top);
             } else {
-                // size both underlying panes to match parent
-                _glassPane.setBounds(bounds._x, bounds._y, bounds._w, bounds._h);
-                _layeredPane.setBounds(bounds._x, bounds._y, bounds._w, bounds._h);
+                // size both underlying panes to match parent, minus insets
+                _glassPane.setBounds(insets._l, insets._t, wid, hgt);
+                _layeredPane.setBounds(insets._l, insets._t, wid, hgt);
             }
         }
     }
@@ -120,7 +123,7 @@ public class JRootPane extends JComponent {
             delta._w, delta._h
         );
     }
-    public void paint(Graphics g) {
+    protected void paintChildren(Graphics g) {
         _log.info("JRootPane:paint");
         Rectangle r = g.getBounds();
         g.setBounds(offset(r, _contentPane.getBounds()));

@@ -25,8 +25,10 @@ public class FlowLayout implements LayoutManager {
     public void addLayoutComponent(String name, Component c) {}
     private Dimension iterate(Container parent, boolean apply) {
         Rectangle bounds = parent.getBounds();
-        int curW = 0;
-        int curH = 0;
+        Insets insets = parent.getInsets();
+        int curW = insets._l;
+        int curH = insets._t;
+        int insW = bounds._w - insets._l - insets._r;
         int maxW = 0;
         int maxH = 0;
         for (int i = 0; i < parent.getComponentCount(); i++) {
@@ -34,18 +36,18 @@ public class FlowLayout implements LayoutManager {
             Dimension d = c.getPreferredSize();
             // current row?
             int newW = curW + (i > 0 ? _hgap : 0);
-            if (newW + d._w <= bounds._w) {
-                if (apply) c.setBounds(bounds._x + newW, bounds._y + curH, d._w, d._h);
+            if (newW + d._w <= insW) {
+                if (apply) c.setBounds(newW, curH, d._w, d._h);
                 curW = newW + d._w;
                 maxH = d._h > maxH ? d._h : maxH;
                 maxW = curW > maxW ? curW : maxW;
             // wrap to next row
             } else {
-                curW = d._w;
+                curW = insets._l + d._w;
                 curH += maxH + _vgap;
                 maxH = d._h;
                 maxW = curW > maxW ? curW : maxW;
-                if (apply) c.setBounds(bounds._x, bounds._y + curH, d._w, d._h);
+                if (apply) c.setBounds(insets._l, insets._t + curH, d._w, d._h);
             }
         }
         return new Dimension(maxW, curH + maxH);

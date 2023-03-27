@@ -41,33 +41,34 @@ public class BorderLayout extends NullLayout {
     public void layoutContainer(Container parent) {
         _log.info("layoutContainer("+parent.getName()+")");
         Rectangle bounds = parent.getBounds();
-        int top = 0;
-        int bot = bounds._h;
-        int left = 0;
-        int right = bounds._w;
+        Insets insets = parent.getInsets();
+        int top = insets._t;
+        int bot = bounds._h - insets._b;
+        int left = insets._l;
+        int right = bounds._w - insets._r;
         // North component at the top, preferred height, full width
         if (_components[0] != null) {
             Dimension d = _components[0].getPreferredSize();
+            _components[0].setBounds(left, top, right-left, d._h);
             top += d._h;
-            _components[0].setBounds(0, 0, bounds._w, top);
         }
         // South component at the bottom, preferred height, full width
         if (_components[1] != null) {
             Dimension d = _components[1].getPreferredSize();
+            _components[1].setBounds(left, bot-d._h, right-left, d._h);
             bot -= d._h;
-            _components[1].setBounds(0, bot, bounds._w, d._h);
         }
         // West component at the left, preferred width, remaining height
         if (_components[2] != null) {
             Dimension d = _components[2].getPreferredSize();
+            _components[2].setBounds(left, top, d._w, bot-top);
             left += d._w;
-            _components[2].setBounds(0, top, left, bot-top);
         }
         // East component at the right, preferred width, remaining height
         if (_components[3] != null) {
             Dimension d = _components[3].getPreferredSize();
+            _components[3].setBounds(right-d._w, top, d._w, bot-top);
             right -= d._w;
-            _components[3].setBounds(right, top, d._w, bot-top);
         }
         // Center component, remaining space
         if (_components[4] != null) {
