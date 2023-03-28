@@ -29,17 +29,17 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
         boolean rv = true;
         if (EV_CONFIGURE == op) {
-            int x = b.getInt();
-            int y = b.getInt();
+            int w = b.getInt();
+            int h = b.getInt();
             ByteBuffer ib = ByteBuffer.wrap(getArray(b));
             ib.order(ByteOrder.nativeOrder());
             int n = ib.limit()/4;
             int[] states = new int[n];
             for (int i=0; i<n; i++)
                 states[i] = ib.getInt();
-            log(true, "configure:x="+x+" y="+y+" states="+java.util.Arrays.toString(states));
+            log(true, "configure:w="+w+" h="+h+" states="+java.util.Arrays.toString(states));
             for (Listener l : listeners())
-                if (!l.xdgToplevelConfigure(x, y, states))
+                if (!l.xdgToplevelConfigure(w, h, states))
                     rv = false;
         } else if (EV_CLOSE == op) {
             log(true, "close");

@@ -1,4 +1,7 @@
 <project name="Swingland" default="compile">
+
+	<property name="ashbysoft.log.level" value="1"/>
+
 	<target name="clean">
 		<delete dir="bin"/>
 	</target>
@@ -43,7 +46,7 @@
 		<record name="bin/test-wayland.log" action="start"/>
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
-			<jvmarg value="-Dashbysoft.log.level=1"/>
+			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
 			<arg value="wayland"/>
 		</java>
 		<record name="bin/test-wayland.log" action="stop"/>
@@ -53,7 +56,7 @@
 		<record name="bin/test-swingland.log" action="start"/>
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
-			<jvmarg value="-Dashbysoft.log.level=1"/>
+			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
 			<arg value="swingland"/>
 		</java>
 		<record name="bin/test-swingland.log" action="stop"/>
