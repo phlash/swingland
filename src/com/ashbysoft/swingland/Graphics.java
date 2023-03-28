@@ -93,6 +93,9 @@ public class Graphics {
         y += _bounds._y;
         // calculate buffer position, assume: width==stride, format==ARGB
         int o = (y * _width + x) * 4;
+        // silently discard offsets outside the buffer!
+        if (o < 0 || o >= _buffer.limit())
+            return;
         // convert color to ARGB pixel
         int c = (_color._a << 24) | (_color._r << 16) | (_color._g << 8) | (_color._b);
         _buffer.putInt(o, c);

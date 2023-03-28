@@ -12,7 +12,8 @@ import java.util.HashMap;
 public class Window extends Container implements
     Surface.Listener,
     XdgSurface.Listener,
-    XdgToplevel.Listener {
+    XdgToplevel.Listener,
+    XdgPopup.Listener {
 
     // container for all Wayland global objects and UI thread holder
     private class WaylandGlobals implements
@@ -37,7 +38,6 @@ public class Window extends Container implements
         private HashMap<Integer, Window> _windows;
         private int _keyboardWindow;
         private int _pointerWindow;
-        private int _windowCount;
 
         public WaylandGlobals() {
             _display = new Display();
@@ -53,17 +53,10 @@ public class Window extends Container implements
             _xdgWmBase.addListener(this);
             _repaints = new LinkedList<Window>();
             _windows = new HashMap<Integer, Window>();
-            _windowCount = 1;
             _uiThread = new Thread(this);
             // We hold the application active even if main exits
             _uiThread.setDaemon(false);
             _uiThread.start();
-        }
-        public void incref() {
-            _windowCount += 1;
-        }
-        public void decref() {
-            _windowCount -= 1;
         }
         public Display display() { return _display; }
         public Compositor compositor() { return _compositor; }
@@ -151,7 +144,7 @@ public class Window extends Container implements
             _keymap.modifiers(depressed, latched, locked, group);
             return true;
         }
-        public boolean repeat(int rate, int delay) { return true; }
+        public boolean repeat(int rate, int delay) { return true; } // XXX:TODO: key repeats
         // Pointer.Listener
         private int _pointerX;
         private int _pointerY;
@@ -193,8 +186,11 @@ public class Window extends Container implements
         // UI thread
         public void run() 
         {
-            // process wayland responses, repaint requests until no more windows
-            while (_windowCount > 0) {
+            // we run until:
+            // - we have seen at least one window
+            // - there are now zero registered windows
+            boolean canExit = false;
+            while (true) {
                 _display.dispatch();
                 while (_repaints.size() > 0) {
                     Window w;
@@ -204,6 +200,14 @@ public class Window extends Container implements
                     if (w != null)
                         w.render();
                 }
+                int count;
+                synchronized(_windows) {
+                    count = _windows.size();
+                }
+                if (count > 0)
+                    canExit = true;
+                else if (canExit)
+                    break;
                 try { Thread.sleep(10); } catch (InterruptedException e) {}
             }
             _display.close();
@@ -215,6 +219,7 @@ public class Window extends Container implements
     private Surface _surface;
     private XdgSurface _xdgSurface;
     private XdgToplevel _xdgToplevel;
+    private XdgPopup _xdgPopup;
     private int _poolsize;
     private ShmPool _shmpool;
     private Buffer _buffer;
@@ -252,20 +257,35 @@ public class Window extends Container implements
         // first time?
         if (null == _globals) {
             _globals = new WaylandGlobals();
-        } else {
-            _globals.incref();
         }
         // hook us up to the real world!
+        Window owner = getOwner();
+        Positioner positioner = null;
+        if (owner != null) {
+            // NB: we do this /before/ any surface stuff, or Sway breaks :(
+            positioner = new Positioner(_globals.display());
+            _globals.xdgWmBase().createPositioner(positioner);
+            positioner.setSize(getWidth(), getHeight());
+            positioner.setAnchorRect(owner.getX(), owner.getY(), owner.getWidth(), owner.getHeight());
+        }
         _surface = new Surface(_globals.display());
         _surface.addListener(this);
         _globals.compositor().createSurface(_surface);
         _xdgSurface = new XdgSurface(_globals.display());
         _xdgSurface.addListener(this);
         _globals.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
-        _xdgToplevel = new XdgToplevel(_globals.display());
-        _xdgToplevel.addListener(this);
-        _xdgSurface.getTopLevel(_xdgToplevel);
-        _xdgToplevel.setTitle(getName());
+        // if we have an owner, create a popup rather than a top level window
+        if (owner != null) {
+            _xdgPopup = new XdgPopup(_globals.display());
+            _xdgPopup.addListener(this);
+            _xdgSurface.getPopup(_xdgPopup, owner._xdgSurface, positioner);
+            positioner.destroy();
+        } else {
+            _xdgToplevel = new XdgToplevel(_globals.display());
+            _xdgToplevel.addListener(this);
+            _xdgSurface.getTopLevel(_xdgToplevel);
+            _xdgToplevel.setTitle(getName());
+        }
         _surface.commit();
         _globals.register(_surface.getID(), this);
         _globals.display().roundtrip();
@@ -282,6 +302,10 @@ public class Window extends Container implements
             _shmpool = null;
         }
         _poolsize = 0;
+        if (_xdgPopup != null) {
+            _xdgPopup.destroy();
+            _xdgPopup = null;
+        }
         if (_xdgToplevel != null) {
             _xdgToplevel.destroy();
             _xdgToplevel = null;
@@ -295,12 +319,13 @@ public class Window extends Container implements
             _surface.destroy();
             _surface = null;
         }
-        if (_globals != null)
-            _globals.decref();
     }
+    // Surface listener
     public boolean enter(int outputID) { return true; }
     public boolean leave(int outputID) { return true; }
+    // XdgSurface listener
     public boolean xdgSurfaceConfigure(int serial) { return _xdgSurface.ackConfigure(serial); }
+    // XdgToplevel listener
     public boolean xdgToplevelConfigure(int w, int h, int[] states) {
         // ignore zero sizes
         if (w>0 && h>0) {
@@ -313,7 +338,21 @@ public class Window extends Container implements
         // XXX:TODO: process disposeOnClose setting..
         return true;
     }
-    public boolean done(int serial) { return true; }
+    // XdgPopup listener
+    public boolean xdgPopupConfigure(int x, int y, int w, int h) {
+        // ignore zero sizes
+        if (w>0 && h>0) {
+            setLocation(x, y);
+            setSize(w, h);
+            repaint();
+        }
+        return true;
+    }
+    public boolean xdgPopupDone() { return true; }
+    public boolean xdgPopupRepositioned(int token) { return true; }
+
+    // overload for ownable Windows
+    protected Window getOwner() { return null; }
 
     public void dispose() {
         fromWayland();

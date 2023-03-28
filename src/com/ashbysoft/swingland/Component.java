@@ -89,6 +89,13 @@ public abstract class Component {
         invalidate();
     }
     public void setSize(Dimension d) { setSize((int)d.getWidth(), (int)d.getHeight()); }
+    public void setLocation(int x, int y) {
+        _log.info("setLocation("+x+","+y+")");
+        _xrel = x;
+        _yrel = y;
+        invalidate();
+    }
+    public void setLocation(Point p) { setLocation(p._x, p._y); }
     public void setBounds(int x, int y, int w, int h) {
         _log.info("setBounds("+x+","+y+","+w+","+h+")");
         _xrel = x;
