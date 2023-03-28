@@ -1,4 +1,4 @@
-package com.ashbysoft;
+package com.ashbysoft.test;
 
 public class Test {
     public static void main(String[] args) {
@@ -7,9 +7,9 @@ public class Test {
             System.setProperty("ashbysoft.log.level", dbg);
         for (String arg : args) {
             if (arg.equalsIgnoreCase("wayland"))
-                new com.ashbysoft.wayland.Test().run();
+                new Wayland().run(args);
             else if (arg.equalsIgnoreCase("swingland"))
-                new com.ashbysoft.swingland.Test().run();
+                new Swingland().run(args);
             else
                 System.out.println("usage: Test [wayland|swingland] [...]");
         }

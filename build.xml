@@ -12,7 +12,7 @@
 			<arg value="cfme"/>
 			<arg value="bin/swingland.jar"/>
 			<arg value="src/MANIFEST.MF"/>
-			<arg value="com.ashbysoft.Test"/>
+			<arg value="com.ashbysoft.test.Test"/>
 			<arg value="-C"/>
 			<arg value="bin/classes"/>
 			<arg value="."/>
@@ -37,15 +37,25 @@
 		</exec>
 	</target>
 
-	<target name="test" depends="compile">
-		<record name="bin/test.log" action="start"/>
+	<target name="test" depends="test-wayland,test-swingland"/>
+
+	<target name="test-wayland" depends="compile">
+		<record name="bin/test-wayland.log" action="start"/>
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=1"/>
 			<arg value="wayland"/>
-			<arg value="swingland"/>
 		</java>
-		<record name="bin/test.log" action="stop"/>
+		<record name="bin/test-wayland.log" action="stop"/>
 	</target>
 
+	<target name="test-swingland" depends="compile">
+		<record name="bin/test-swingland.log" action="start"/>
+		<java jar="bin/swingland.jar" fork="true">
+			<jvmarg value="-Djava.library.path=bin"/>
+			<jvmarg value="-Dashbysoft.log.level=1"/>
+			<arg value="swingland"/>
+		</java>
+		<record name="bin/test-swingland.log" action="stop"/>
+	</target>
 </project>

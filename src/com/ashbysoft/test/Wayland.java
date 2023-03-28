@@ -1,9 +1,10 @@
-package com.ashbysoft.wayland;
+package com.ashbysoft.test;
 
+import com.ashbysoft.wayland.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-public class Test implements
+public class Wayland implements
     Callback.Listener,
     Display.Listener,
     Registry.Listener,
@@ -26,7 +27,7 @@ public class Test implements
     private Callback _frame;
     private Buffer _buffer;
     private Random _rand;
-    public void run() {
+    public void run(String[] args) {
         System.out.println("---- Wayland test starts ----");
         _rand = new Random();
         _display = new Display();

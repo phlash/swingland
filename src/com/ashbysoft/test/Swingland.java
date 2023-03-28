@@ -1,14 +1,15 @@
-package com.ashbysoft.swingland;
+package com.ashbysoft.test;
 
+import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
 
-public class Test extends JComponent {
+public class Swingland extends JComponent {
     private JFrame _frame;
 	private int _x = 0;
 	private int _y = 0;
 	private int _b = 0;
 
-    public void run() {
+    public void run(String[] args) {
         // Create a top level frame and put ourselves in it.
         _frame = new JFrame("Swingland lives!");
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
