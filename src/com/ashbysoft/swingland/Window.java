@@ -224,6 +224,15 @@ public class Window extends Container implements
     private ShmPool _shmpool;
     private Buffer _buffer;
     private Callback _frame;
+    // window ownership hierarchy, affects lifecycle / visibility methods
+    private Window _owner;
+    private LinkedList<Window> _owned = new LinkedList<Window>();
+
+    public Window() {}
+    protected Window(Window owner) {
+        _owner = owner;
+        _owner.addOwned(this);
+    }
 
     private void render() {
         // check Wayland is done with previous buffer (if any)
@@ -259,14 +268,13 @@ public class Window extends Container implements
             _globals = new WaylandGlobals();
         }
         // hook us up to the real world!
-        Window owner = getOwner();
         Positioner positioner = null;
-        if (owner != null) {
+        if (_owner != null) {
             // NB: we do this /before/ any surface stuff, or Sway breaks :(
             positioner = new Positioner(_globals.display());
             _globals.xdgWmBase().createPositioner(positioner);
             positioner.setSize(getWidth(), getHeight());
-            positioner.setAnchorRect(owner.getX(), owner.getY(), owner.getWidth(), owner.getHeight());
+            positioner.setAnchorRect(_owner.getX(), _owner.getY(), _owner.getWidth(), _owner.getHeight());
         }
         _surface = new Surface(_globals.display());
         _surface.addListener(this);
@@ -275,10 +283,10 @@ public class Window extends Container implements
         _xdgSurface.addListener(this);
         _globals.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
         // if we have an owner, create a popup rather than a top level window
-        if (owner != null) {
+        if (_owner != null) {
             _xdgPopup = new XdgPopup(_globals.display());
             _xdgPopup.addListener(this);
-            _xdgSurface.getPopup(_xdgPopup, owner._xdgSurface, positioner);
+            _xdgSurface.getPopup(_xdgPopup, _owner._xdgSurface, positioner);
             positioner.destroy();
         } else {
             _xdgToplevel = new XdgToplevel(_globals.display());
@@ -351,17 +359,29 @@ public class Window extends Container implements
     public boolean xdgPopupDone() { return true; }
     public boolean xdgPopupRepositioned(int token) { return true; }
 
-    // overload for ownable Windows
-    protected Window getOwner() { return null; }
-
-    public void dispose() {
-        fromWayland();
+    // ownership / lifecycle management
+    private void addOwned(Window w) {
+        synchronized(_owned) {
+            if (!_owned.contains(w))
+                _owned.add(w);
+        }
     }
-
-    public Graphics getGraphics() {
-        if (_buffer != null)
-            return new Graphics(_buffer.get(), getWidth(), getHeight());
-        return null;
+    private void remOwned(Window w) {
+        synchronized(_owned) {
+            _owned.remove(w);
+        }
+    }
+    public void dispose() {
+        _log.info("dispose");
+        if (_owner != null)
+            _owner.remOwned(this);
+        LinkedList<Window> copy;
+        synchronized(_owned) {
+            copy = new LinkedList<Window>(_owned);
+        }
+        for (Window w : copy)
+            w.dispose();
+        fromWayland();
     }
 
     // intercept setVisible to force validation and Wayland I/O
@@ -371,6 +391,11 @@ public class Window extends Container implements
             super.setVisible(v);
             toWayland();
         } else {
+            // hide all owned windows
+            synchronized(_owned) {
+                for (Window w : _owned)
+                    w.setVisible(v);
+            }
             super.setVisible(v);
             fromWayland();
         }
@@ -378,7 +403,15 @@ public class Window extends Container implements
 
     // intercept repaint calls, this is where we process them
     public void repaint() {
-        _globals.repaint(this);
+        if (isVisible())
+            _globals.repaint(this);
+    }
+
+    // get a Graphics context for drawing on this window
+    public Graphics getGraphics() {
+        if (_buffer != null)
+            return new Graphics(_buffer.get(), getWidth(), getHeight());
+        return null;
     }
 
     // paint ourselves (background), then delegate to container

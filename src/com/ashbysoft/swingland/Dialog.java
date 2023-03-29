@@ -1,7 +1,6 @@
 package com.ashbysoft.swingland;
 
 public class Dialog extends Window {
-    private Window _owner;
     private String _title;
     private boolean _modal;
     private boolean _resizable;
@@ -10,14 +9,13 @@ public class Dialog extends Window {
     public Dialog(Window owner) { this(owner, ""); }
     public Dialog(Window owner, String title) { this(owner, title, false); }
     public Dialog(Window owner, String title, boolean modal) {
+        super(owner);
         _log.info("<init>("+owner.getName()+",'"+title+"',"+modal+")");
         setVisible(false);
-        _owner = owner;
-        _title = title;
-        _modal = modal;
+        setTitle(title);
+        setModal(modal);
         setUndecorated(false);
     }
-    protected Window getOwner() { return _owner; }
     public String getTitle() { return _title; }
     public void setTitle(String title) { _title = title; repaint(); }
     public boolean isModal() { return _modal; }

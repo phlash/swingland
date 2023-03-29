@@ -17,7 +17,7 @@ public class Swingland extends JComponent {
 		_frame.setSize(800, 600);
 		_frame.setBackground(new Color(64,64,64,128));
 		_frame.add(this);
-		setBorder(new ColorBorder(10, 10, 10, 10, Color.GREEN));
+		setBorder(new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY));
 		_frame.setVisible(true);
     }
 
