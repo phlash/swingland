@@ -21,8 +21,8 @@ public class JComponent extends Container {
         if (!isVisible())
             return;
         _log.info("JComponent:paint");
-        paintBorder(g);
         paintComponent(g);
+        paintBorder(g);
         paintChildren(g);
     }
     protected void paintBorder(Graphics g) {

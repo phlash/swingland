@@ -273,6 +273,7 @@ public class Window extends Container implements
             // NB: we do this /before/ any surface stuff, or Sway breaks :(
             positioner = new Positioner(_globals.display());
             _globals.xdgWmBase().createPositioner(positioner);
+            // minimum positioner settings required..
             positioner.setSize(getWidth(), getHeight());
             positioner.setAnchorRect(_owner.getX(), _owner.getY(), _owner.getWidth(), _owner.getHeight());
         }
@@ -360,6 +361,7 @@ public class Window extends Container implements
     public boolean xdgPopupRepositioned(int token) { return true; }
 
     // ownership / lifecycle management
+    public Window getOwner() { return _owner; }
     private void addOwned(Window w) {
         synchronized(_owned) {
             if (!_owned.contains(w))
@@ -386,6 +388,9 @@ public class Window extends Container implements
 
     // intercept setVisible to force validation and Wayland I/O
     public void setVisible(boolean v) {
+        // no change?
+        if (isVisible() == v)
+            return;
         if (v) {
             validate();
             super.setVisible(v);
@@ -401,6 +406,12 @@ public class Window extends Container implements
         }
     }
 
+    // intercept invalidate calls, queue a repaint
+    public void invalidate() {
+        super.invalidate();
+        repaint();
+    }
+
     // intercept repaint calls, this is where we process them
     public void repaint() {
         if (isVisible())
@@ -412,15 +423,5 @@ public class Window extends Container implements
         if (_buffer != null)
             return new Graphics(_buffer.get(), getWidth(), getHeight());
         return null;
-    }
-
-    // paint ourselves (background), then delegate to container
-    public void paint(Graphics g) {
-        if (!isVisible())
-            return;
-        _log.info("Window:paint");
-        g.setColor(getBackground());
-        g.fillRect(0, 0, getWidth(), getHeight());
-        super.paint(g);
     }
 }

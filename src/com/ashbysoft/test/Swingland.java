@@ -6,6 +6,7 @@ import com.ashbysoft.swingland.event.*;
 public class Swingland extends JComponent {
     private JFrame _frame;
 	private Dialog _dialog;
+	private Border _border;
 	private int _x = 0;
 	private int _y = 0;
 	private int _b = 0;
@@ -17,8 +18,8 @@ public class Swingland extends JComponent {
 		_frame.setSize(800, 600);
 		_frame.setBackground(new Color(64,64,64,128));
 		_frame.add(this);
-		setBorder(new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY));
 		_frame.setVisible(true);
+		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
     }
 
 	public void processEvent(AbstractEvent e) {
@@ -33,6 +34,12 @@ public class Swingland extends JComponent {
 			} else if (k.getKeyCode() == KeyEvent.VK_D) {
 				_log.info("dialog");
 				toggleDialog();
+			} else if (k.getKeyCode() == KeyEvent.VK_B) {
+				_log.info("border");
+				if (getBorder() != null)
+					setBorder(null);
+				else
+					setBorder(_border);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;

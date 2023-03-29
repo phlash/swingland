@@ -1,6 +1,8 @@
 package com.ashbysoft.swingland;
 
 public class Dialog extends Window {
+    public static final int BORDER_WIDTH = 2;
+    public static final int TITLE_HEIGHT = 20;
     private String _title;
     private boolean _modal;
     private boolean _resizable;
@@ -28,21 +30,24 @@ public class Dialog extends Window {
         if (undecorated)
             setInsets(null);
         else
-            setInsets(new Insets(20, 2, 2, 2));  // make room for a simple border + title bar
-        repaint();
+            setInsets(new Insets(TITLE_HEIGHT, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+        invalidate();
     }
     public void paint(Graphics g) {
-        super.paint(g);
-        if (isUndecorated())
+        if (!isVisible())
             return;
-        // NB: need to restore our graphics bounds to draw outside our own insets ;)
-        g.setBounds(new Rectangle(0, 0, getWidth(), getHeight()));
-        g.setColor(getForeground());
-        g.fillRect(0, 0, getWidth(), 20);
-        g.fillRect(0, 20, 2, getHeight()-22);
-        g.fillRect(getWidth()-2, 20, 2, getHeight()-22);
-        g.fillRect(0, getHeight()-2, getWidth(), 2);
+        // paint our background, border (unless undecorated) then delegate to Window/Container
         g.setColor(getBackground());
-        g.drawString(getTitle(), 2, 18);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        if (!isUndecorated()) {
+            g.setColor(getForeground());
+            g.fillRect(0, 0, getWidth(), TITLE_HEIGHT);
+            g.fillRect(0, TITLE_HEIGHT, BORDER_WIDTH, getHeight()-TITLE_HEIGHT-BORDER_WIDTH);
+            g.fillRect(getWidth()-BORDER_WIDTH, TITLE_HEIGHT, BORDER_WIDTH, getHeight()-TITLE_HEIGHT-BORDER_WIDTH);
+            g.fillRect(0, getHeight()-BORDER_WIDTH, getWidth(), BORDER_WIDTH);
+            g.setColor(getBackground());
+            g.drawString(getTitle(), BORDER_WIDTH, TITLE_HEIGHT-BORDER_WIDTH);
+        }
+        super.paint(g);
     }
 }

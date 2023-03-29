@@ -3,22 +3,15 @@
 package com.ashbysoft.swingland;
 
 public class JFrame extends Frame implements WindowConstants, RootPaneContainer {
-    private String _title;
-    private GraphicsConfiguration _graphicsConfig;
     private JRootPane _rootPane;
     private TransferHandler _transferHandler;
     private int _defaultCloseOperation;
-    private static boolean _useDefaultLookAndFeel;
-    public JFrame() { this("", null); }
-    public JFrame(String title) { this(title, null); }
-    public JFrame(GraphicsConfiguration config) { this("", config); }
-    public JFrame(String title, GraphicsConfiguration config) {
+    public JFrame() { this(""); }
+    public JFrame(String title) {
+        super(title);
         _log.info("<init>("+title+")");
-        this._title = title;
-        this._graphicsConfig = config;
         this._transferHandler = new TransferHandler();
         _defaultCloseOperation = DO_NOTHING_ON_CLOSE;
-        _useDefaultLookAndFeel = true;
         _rootPane = createRootPane();
         super.addImpl(_rootPane, null, 0);
     }
@@ -43,10 +36,10 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
     public JRootPane getRootPane() { return _rootPane; }
     public TransferHandler getTransferHandler() { return _transferHandler; }
     public void setTransferHandler(TransferHandler th) { _transferHandler = th; }
-    public static boolean isDefaultLookAndFeelDecorated() { return _useDefaultLookAndFeel; }
-    public static void setDefaultLookAndFeelDecorated(boolean lf) { _useDefaultLookAndFeel = lf; }
-    public void setLayout(LayoutManager lm) { _rootPane.getContentPane().setLayout(lm); }
-    // forward add/remove stuff to content pane
+    // forward add/remove/layout stuff to content pane
+    public void setLayout(LayoutManager lm) {
+        getContentPane().setLayout(lm);
+    }
     protected void addImpl(Component c, Object s, int i) {
         getContentPane().add(c, s, i);
     }
