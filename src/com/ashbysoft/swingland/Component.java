@@ -23,6 +23,7 @@ public abstract class Component {
     private Color _foreground;
     private ArrayList<KeyListener> _keyListeners;
     private ArrayList<MouseInputListener> _mouseListeners;
+    private ArrayList<Integer> _mouseButtons;
 
     protected Component() {
         _name = getClass().getSimpleName()+"@"+hashCode();
@@ -33,6 +34,7 @@ public abstract class Component {
         _foreground = Color.BLACK;
         _keyListeners = new ArrayList<KeyListener>();
         _mouseListeners = new ArrayList<MouseInputListener>();
+        _mouseButtons = new ArrayList<Integer>();
     }
     public Container getParent() { return _parent; }
     // package-private method for Container.addImpl use
@@ -153,6 +155,9 @@ public abstract class Component {
     }
     // dispath to any listeners, so they can consume the event, before any local processing
     public void dispatchEvent(AbstractEvent e) {
+        dispatchEventImpl(e);
+    }
+    private void dispatchEventImpl(AbstractEvent e) {
         // XXX:TODO other listener/event types
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
@@ -183,6 +188,17 @@ public abstract class Component {
                 } else if (MouseEvent.MOUSE_CLICKED == m.getID()) {
                     l.mouseClicked(m);
                 }
+            }
+            // process button press/release into clicks and recursively dispatch
+            if (MouseEvent.MOUSE_BUTTON == m.getID()) {
+                if (MouseEvent.BUTTON_PRESSED == m.getState()) {
+                    _mouseButtons.add(m.getButton());
+                } else if (_mouseButtons.contains(m.getButton())) {
+                    _mouseButtons.remove((Integer)m.getButton());
+                    dispatchEventImpl(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, m.getX(), m.getY(), m.getButton(), 0));
+                }
+            } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
+                _mouseButtons.clear();
             }
         }
         // unless consumed, process locally

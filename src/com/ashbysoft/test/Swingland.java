@@ -3,7 +3,7 @@ package com.ashbysoft.test;
 import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
 
-public class Swingland extends JComponent {
+public class Swingland extends JComponent implements ActionListener {
     private JFrame _frame;
 	private Dialog _dialog;
 	private Border _border;
@@ -59,14 +59,23 @@ public class Swingland extends JComponent {
 			_dialog = null;
 		} else {
 			_dialog = new Dialog(_frame, "Test dialog");
-			_dialog.setBounds(getWidth()/2-100, getHeight()/2-50, 200, 100);
+			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
 			_dialog.setForeground(Color.WHITE);
 			_dialog.setBackground(Color.DARK_GRAY);
 			JLabel label = new JLabel("Label..");
 			label.setForeground(Color.WHITE);
-			_dialog.add(label);
+			_dialog.add(label, BorderLayout.NORTH);
+			JButton button = new JButton("Press me!");
+			button.setForeground(Color.WHITE);
+			button.setBackground(Color.GRAY);
+			button.addActionListener(this);
+			_dialog.add(button, BorderLayout.CENTER);
 			_dialog.setVisible(true);
 		}
+	}
+
+	public void actionPerformed(ActionEvent a) {
+		_log.info("action!");
 	}
 
     public void paintComponent(Graphics g) {

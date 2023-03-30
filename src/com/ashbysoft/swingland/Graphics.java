@@ -82,6 +82,85 @@ public class Graphics {
             for (int ox = 0; ox < w; ox += 1)
                 setPixel(x+ox, y+oy);
     }
+    public void drawRoundRect(int x, int y, int w, int h, int aw, int ah) {
+        _log.info("drawRoundRect("+w+"x"+h+")@("+x+","+x+"):aw="+aw+",ah="+ah);
+        int hw = aw/2;
+        int hh = ah/2;
+        drawLine(x+hw, y, x+w-hw, y);
+        drawLine(x+hw, y+h-1, x+w-hw, y+h-1);
+        drawLine(x, y+hh, x, y+h-hh);
+        drawLine(x+w-1, y+hh, x+w-1, y+h-hh);
+        oval(x+w/2-hw, y+h/2-hh, aw, ah, false, w-aw, h-ah);
+    }
+    public void fillRoundRect(int x, int y, int w, int h, int aw, int ah) {
+        _log.info("fillRoundRect("+w+"x"+h+")@("+x+","+x+"):aw="+aw+",ah="+ah);
+        int hw = aw/2;
+        int hh = ah/2;
+        fillRect(x+hw, y, w-aw, hh);
+        fillRect(x, hh, w, h-hh);
+        fillRect(x+hw, y+h-hh, x-aw, hh);
+        oval(x+w/2-hw, y+h/2-hh, aw, ah, true, w-aw, h-ah);
+    }
+    public void drawOval(int x, int y, int w, int h) {
+        oval(x, y, w, h, false, 0, 0);
+    }
+    public void fillOval(int x, int y, int w, int h) {
+        oval(x, y, w, h, true, 0, 0);
+    }
+    private void oval(int x, int y, int w, int h, boolean filled, int sw, int sh) {
+        _log.info("oval("+w+"x"+h+")@("+x+","+y+"):sw="+sw+",sh="+sh);
+        // pre-calculate ellipse axis radii
+        int a = w/2;
+        int b = h/2;
+        // pre-calculate origins for each quarter, including spread factors
+        int tlx = x+a-sw/2;
+        int tly = y+b-sh/2;
+        int trx = x+a+sw/2;
+        int trY = y+b-sh/2; // stupid reserved words ;-)
+        int blx = x+a-sw/2;
+        int bly = y+b+sh/2;
+        int brx = x+a+sw/2;
+        int bry = y+b+sh/2;
+        // apply standard equation: (x*x / a*a) + (y*y / b*b) == 1
+        // cross multiply: (x*x * b*b) + (y*y * a*a) == a*a * b*b
+        // - allows integer math, avoids division.
+        // - scan lower right quarter, plot at / within boundary
+        // - reflect into other three quarters
+        long a2 = a*a;
+        long b2 = b*b;
+        long d2 = a2*b2;
+        int lx = a-1;
+        for (int oy = 0; oy <= b; oy += 1) {
+            boolean in = true;
+            for (int ox = 0; ox <= a; ox += 1) {
+                long dt = (ox*ox * b2) + (oy*oy * a2);
+                if (dt >= d2) {
+                    // outside - skip plot unless not filled and still inside
+                    if (filled || !in)
+                        continue;
+                    in = false;
+                } else {
+                    // inside - skip plot unless filled
+                    if (!filled)
+                        continue;
+                }
+                if (!filled && (lx - ox) > 1) {
+                    // draw lines to fill out missing x points
+                    drawLine(tlx-ox, tly-oy, tlx-lx, tly-oy+1); // TL
+                    drawLine(trx+ox, trY-oy, trx+lx, trY-oy+1); // TR
+                    drawLine(blx-ox, bly+oy, blx-lx, bly+oy-1); // BL
+                    drawLine(brx+ox, bry+oy, brx+lx, bry+oy-1); // BR
+                } else {
+                    // plot 4 quarters
+                    setPixel(tlx-ox, tly-oy); // TL
+                    setPixel(trx+ox, trY-oy); // TR
+                    setPixel(blx-ox, bly+oy); // BL
+                    setPixel(brx+ox, bry+oy); // BR
+                }
+                lx = ox;
+            }
+        }
+    }
     public void drawString(String s, int x, int y) {
         _log.info("drawString:("+x+","+y+"):"+s);
         _font.renderString(this, s, x, y);
