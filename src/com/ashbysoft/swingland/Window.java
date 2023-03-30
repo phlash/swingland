@@ -192,7 +192,7 @@ public class Window extends Container implements
             boolean canExit = false;
             while (true) {
                 _display.dispatch();
-                while (_repaints.size() > 0) {
+                if (_repaints.size() > 0) {
                     Window w;
                     synchronized(_repaints) {
                         w = _repaints.remove();
