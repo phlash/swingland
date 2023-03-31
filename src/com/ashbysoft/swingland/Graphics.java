@@ -86,8 +86,8 @@ public class Graphics {
         int hh = ah/2;
         drawLine(x+hw, y, x+w-hw, y);
         drawLine(x+hw, y+h-1, x+w-hw, y+h-1);
-        drawLine(x, y+hh, x, y+h-hh);
-        drawLine(x+w-1, y+hh, x+w-1, y+h-hh);
+        drawLine(x, y+hh, x, y+h-hh-1);
+        drawLine(x+w-1, y+hh, x+w-1, y+h-hh-1);
         oval(x+w/2-hw, y+h/2-hh, aw, ah, false, w-aw, h-ah);
     }
     public void fillRoundRect(int x, int y, int w, int h, int aw, int ah) {
@@ -95,8 +95,8 @@ public class Graphics {
         int hw = aw/2;
         int hh = ah/2;
         fillRect(x+hw, y, w-aw, hh);
-        fillRect(x, hh, w, h-hh);
-        fillRect(x+hw, y+h-hh, x-aw, hh);
+        fillRect(x, y+hh, w, h-ah);
+        fillRect(x+hw, y+h-hh-1, w-aw, ah-hh);
         oval(x+w/2-hw, y+h/2-hh, aw, ah, true, w-aw, h-ah);
     }
     public void drawOval(int x, int y, int w, int h) {
@@ -105,20 +105,25 @@ public class Graphics {
     public void fillOval(int x, int y, int w, int h) {
         oval(x, y, w, h, true, 0, 0);
     }
+    private class Quarters {
+        public final Point _tl;
+        public final Point _tr;
+        public final Point _bl;
+        public final Point _br;
+        public Quarters(Point tl, Point tr, Point bl, Point br) { _tl=tl; _tr=tr; _bl=bl; _br=br; }
+    };
     private void oval(int x, int y, int w, int h, boolean filled, int sw, int sh) {
-        _log.info("oval("+w+"x"+h+")@("+x+","+y+"):sw="+sw+",sh="+sh);
+        _log.info("oval("+w+"x"+h+")@("+x+","+y+"):f="+filled+",sw="+sw+",sh="+sh);
         // pre-calculate ellipse axis radii
         int a = w/2;
         int b = h/2;
         // pre-calculate origins for each quarter, including spread factors
-        int tlx = x+a-sw/2;
-        int tly = y+b-sh/2;
-        int trx = x+a+sw/2;
-        int trY = y+b-sh/2; // stupid reserved words ;-)
-        int blx = x+a-sw/2;
-        int bly = y+b+sh/2;
-        int brx = x+a+sw/2;
-        int bry = y+b+sh/2;
+        Quarters q = new Quarters(
+            new Point(x+a-sw/2, y+b-sh/2),
+            new Point(x+a+sw/2, y+b-sh/2),
+            new Point(x+a-sw/2, y+b+sh/2),
+            new Point(x+a+sw/2, y+b+sh/2)
+        );
         // apply standard equation: (x*x / a*a) + (y*y / b*b) == 1
         // cross multiply: (x*x * b*b) + (y*y * a*a) == a*a * b*b
         // - allows integer math, avoids division.
@@ -127,37 +132,40 @@ public class Graphics {
         long a2 = a*a;
         long b2 = b*b;
         long d2 = a2*b2;
-        int lx = a-1;
+        int lx = a;
         for (int oy = 0; oy <= b; oy += 1) {
-            boolean in = true;
-            for (int ox = 0; ox <= a; ox += 1) {
-                long dt = (ox*ox * b2) + (oy*oy * a2);
-                if (dt >= d2) {
-                    // outside - skip plot unless not filled and still inside
-                    if (filled || !in)
-                        continue;
-                    in = false;
-                } else {
-                    // inside - skip plot unless filled
-                    if (!filled)
-                        continue;
+            long y2a2 = oy*oy * a2;
+            // scan right-to-left, from last x (lx) in line above, for efficiancy
+            for (int ox = lx; ox >= 0; ox -= 1) {
+                long dt = (ox*ox * b2) + y2a2;
+                // at or below boundary?
+                if (dt <= d2) {
+                    // draw line back to last x
+                    plotQuarters(q, ox, oy);
+                    int hd = (lx-ox)/2;
+                    for (int dx = 1; dx < hd; dx += 1) {
+                        plotQuarters(q, ox+dx, oy);
+                    }
+                    for (int dx = hd > 1 ? hd : 1; dx < (lx-ox); dx += 1) {
+                        plotQuarters(q, ox+dx, oy-1);
+                    }
+                    lx = ox;
+                    // filled - draw line back to zero
+                    if (filled)
+                        for (ox -= 1; ox >= 0; ox -= 1)
+                            plotQuarters(q, ox, oy);
+                    else
+                        ox = -1;
                 }
-                if (!filled && (lx - ox) > 1) {
-                    // draw lines to fill out missing x points
-                    drawLine(tlx-ox, tly-oy, tlx-lx, tly-oy+1); // TL
-                    drawLine(trx+ox, trY-oy, trx+lx, trY-oy+1); // TR
-                    drawLine(blx-ox, bly+oy, blx-lx, bly+oy-1); // BL
-                    drawLine(brx+ox, bry+oy, brx+lx, bry+oy-1); // BR
-                } else {
-                    // plot 4 quarters
-                    setPixel(tlx-ox, tly-oy); // TL
-                    setPixel(trx+ox, trY-oy); // TR
-                    setPixel(blx-ox, bly+oy); // BL
-                    setPixel(brx+ox, bry+oy); // BR
-                }
-                lx = ox;
             }
         }
+    }
+    private void plotQuarters(Quarters q, int ox, int oy) {
+        // plot 4 quarters
+        setPixel(q._tl._x-ox, q._tl._y-oy); // TL
+        setPixel(q._tr._x+ox, q._tr._y-oy); // TR
+        setPixel(q._bl._x-ox, q._bl._y+oy); // BL
+        setPixel(q._br._x+ox, q._br._y+oy); // BR
     }
     public void drawString(String s, int x, int y) {
         _log.info("drawString:("+x+","+y+"):"+s);
