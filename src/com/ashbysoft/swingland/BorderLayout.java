@@ -1,5 +1,3 @@
-// TODO
-
 package com.ashbysoft.swingland;
 
 public class BorderLayout extends NullLayout {

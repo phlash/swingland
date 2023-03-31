@@ -1,15 +1,15 @@
-// XXX:TODO
-
 package com.ashbysoft.swingland;
 
 public class Frame extends Window {
+    private String _title;
     public Frame() { this(""); }
     public Frame(String title) {
         setVisible(false);
         setTitle(title);
     }
+    public String getTitle() { return _title; }
     public void setTitle(String title) {
-        setName(title);
+        _title = title;
         repaint();
     }
     public void paint(Graphics g) {

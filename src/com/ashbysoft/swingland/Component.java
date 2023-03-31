@@ -1,5 +1,3 @@
-// XXX:TODO
-
 package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.*;
@@ -158,7 +156,6 @@ public abstract class Component {
         dispatchEventImpl(e);
     }
     private void dispatchEventImpl(AbstractEvent e) {
-        // XXX:TODO other listener/event types
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
             k = new KeyEvent(this, k.getID(), k.getKeyCode(), k.getKeyChar());

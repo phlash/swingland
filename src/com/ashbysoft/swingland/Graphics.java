@@ -1,5 +1,3 @@
-// XXX:TODO
-
 package com.ashbysoft.swingland;
 
 import com.ashbysoft.logger.Logger;

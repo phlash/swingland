@@ -20,8 +20,6 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
         rp.setWindowDecorationStyle(JRootPane.FRAME);
         return rp;
     }
-    // XXX:TODO
-    //public AccessibleContext getAccessibleContext();
 
     public Container getContentPane() { return _rootPane.getContentPane(); }
     public void setContentPane(Container cp) { _rootPane.setContentPane(cp); }

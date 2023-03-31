@@ -293,7 +293,8 @@ public class Window extends Container implements
             _xdgToplevel = new XdgToplevel(_globals.display());
             _xdgToplevel.addListener(this);
             _xdgSurface.getTopLevel(_xdgToplevel);
-            _xdgToplevel.setTitle(getName());
+            if (this instanceof Frame)
+                _xdgToplevel.setTitle(((Frame)this).getTitle());
         }
         _surface.commit();
         _globals.register(_surface.getID(), this);
