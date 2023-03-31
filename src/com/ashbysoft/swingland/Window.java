@@ -14,6 +14,8 @@ public class Window extends Container implements
     XdgSurface.Listener,
     XdgToplevel.Listener,
     XdgPopup.Listener {
+    public static final int DEFAULT_WIDTH = 640;
+    public static final int DEFAULT_HEIGHT= 480;
 
     // container for all Wayland global objects and UI thread holder
     private class WaylandGlobals implements
@@ -224,14 +226,24 @@ public class Window extends Container implements
     private ShmPool _shmpool;
     private Buffer _buffer;
     private Callback _frame;
+    // original size (if any), used during configure callback
+    private int _origWidth;
+    private int _origHeight;
     // window ownership hierarchy, affects lifecycle / visibility methods
     private Window _owner;
     private LinkedList<Window> _owned = new LinkedList<Window>();
+    // popup window (short-lived, eg: menus, tooltips)
+    private boolean _isPopup;
+    // title text - here as it's passed to Wayland
+    private String _title;
 
     public Window() {}
-    protected Window(Window owner) {
+    protected Window(Window owner) { this(owner, false); }
+    protected Window(Window owner, boolean isPopup) {
+        assert(owner != null);
         _owner = owner;
         _owner.addOwned(this);
+        _isPopup = isPopup;
     }
 
     private void render() {
@@ -267,9 +279,12 @@ public class Window extends Container implements
         if (null == _globals) {
             _globals = new WaylandGlobals();
         }
+        // save original size..
+        _origWidth = getWidth();
+        _origHeight= getHeight();
         // hook us up to the real world!
         Positioner positioner = null;
-        if (_owner != null) {
+        if (_isPopup) {
             // NB: we do this /before/ any surface stuff, or Sway breaks :(
             positioner = new Positioner(_globals.display());
             _globals.xdgWmBase().createPositioner(positioner);
@@ -283,8 +298,8 @@ public class Window extends Container implements
         _xdgSurface = new XdgSurface(_globals.display());
         _xdgSurface.addListener(this);
         _globals.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
-        // if we have an owner, create a popup rather than a top level window
-        if (_owner != null) {
+        // if requested, create a popup rather than a top level window
+        if (_isPopup) {
             _xdgPopup = new XdgPopup(_globals.display());
             _xdgPopup.addListener(this);
             _xdgSurface.getPopup(_xdgPopup, _owner._xdgSurface, positioner);
@@ -293,8 +308,15 @@ public class Window extends Container implements
             _xdgToplevel = new XdgToplevel(_globals.display());
             _xdgToplevel.addListener(this);
             _xdgSurface.getTopLevel(_xdgToplevel);
-            if (this instanceof Frame)
-                _xdgToplevel.setTitle(((Frame)this).getTitle());
+            if (_owner != null)
+                _xdgToplevel.setParent(_owner._xdgToplevel);
+            if (_title != null)
+                _xdgToplevel.setTitle(_title);
+            if (getWidth() > 0 && getHeight() > 0) {
+                // fix size - this also makes it float in Sway
+                _xdgToplevel.setMaxSize(getWidth(), getHeight());
+                _xdgToplevel.setMinSize(getWidth(), getHeight());
+            }
         }
         _surface.commit();
         _globals.register(_surface.getID(), this);
@@ -334,14 +356,22 @@ public class Window extends Container implements
     public boolean enter(int outputID) { return true; }
     public boolean leave(int outputID) { return true; }
     // XdgSurface listener
-    public boolean xdgSurfaceConfigure(int serial) { return _xdgSurface.ackConfigure(serial); }
+    public boolean xdgSurfaceConfigure(int serial) {
+        return _xdgSurface.ackConfigure(serial);
+    }
     // XdgToplevel listener
     public boolean xdgToplevelConfigure(int w, int h, int[] states) {
-        // ignore zero sizes
-        if (w>0 && h>0) {
+        // adjust to actual size..
+        if (w > 0 && h > 0) {
             setSize(w, h);
-            repaint();
+        // ..or set original size (if any)..
+        } else if (_origWidth > 0 && _origHeight > 0) {
+            setSize(_origWidth, _origHeight);
+        // ..or use a default.
+        } else {
+            setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
+        repaint();
         return true;
     }
     public boolean xdgToplevelClose() {
@@ -387,6 +417,13 @@ public class Window extends Container implements
         fromWayland();
     }
 
+    protected String getTitle() { return _title; }
+    protected void setTitle(String title) {
+        _log.info("setTitle:"+title);
+        _title = title;
+        repaint();
+    }
+
     // intercept setVisible to force validation and Wayland I/O
     public void setVisible(boolean v) {
         // no change?
@@ -407,7 +444,7 @@ public class Window extends Container implements
         }
     }
 
-    // intercept invalidate calls, queue a repaint
+    // intercept invalidate calls to queue a repaint
     public void invalidate() {
         super.invalidate();
         repaint();

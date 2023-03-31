@@ -3,7 +3,6 @@ package com.ashbysoft.swingland;
 public class Dialog extends Window {
     public static final int BORDER_WIDTH = 2;
     public static final int TITLE_HEIGHT = 20;
-    private String _title;
     private boolean _modal;
     private boolean _resizable;
     private boolean _undecorated;
@@ -18,8 +17,8 @@ public class Dialog extends Window {
         setModal(modal);
         setUndecorated(false);
     }
-    public String getTitle() { return _title; }
-    public void setTitle(String title) { _title = title; repaint(); }
+    public String getTitle() { return super.getTitle(); }
+    public void setTitle(String title) { super.setTitle(title); }
     public boolean isModal() { return _modal; }
     public void setModal(boolean modal) { _modal = modal; }     // XXX:TODO: work out how to pass down to Wayland grab call.
     public boolean isResizable() { return _resizable; }

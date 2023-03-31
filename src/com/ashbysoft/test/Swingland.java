@@ -15,7 +15,8 @@ public class Swingland extends JComponent implements ActionListener {
         // Create a top level frame and put ourselves in it.
         _frame = new JFrame("Swingland lives!");
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		_frame.setSize(800, 600);
+		// not setting a size gives us a default resizable window (Sway tiles us)
+		//_frame.setSize(800, 600);
 		_frame.setBackground(new Color(64,64,64,128));
 		_frame.add(this);
 		_frame.setVisible(true);
@@ -40,6 +41,9 @@ public class Swingland extends JComponent implements ActionListener {
 					setBorder(null);
 				else
 					setBorder(_border);
+			} else if (k.getKeyCode() == KeyEvent.VK_R) {
+				if (_dialog != null)
+					_dialog.setLocation(0, 0);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
@@ -85,7 +89,7 @@ public class Swingland extends JComponent implements ActionListener {
 		g.setColor(Color.YELLOW);
 		g.drawLine(1, getHeight()-1, getWidth()-1, 1);
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test)", 20, getHeight()-15);
+		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", 20, getHeight()-15);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, 30);
 	}
