@@ -24,13 +24,13 @@ public class DefaultKeymap implements Keymap {
         KeyEvent.VK_LEFTBRACE, KeyEvent.VK_RIGHTBRACE, KeyEvent.VK_SEMICOLON, KeyEvent.VK_APOSTROPHE,
         KeyEvent.VK_BACKSLASH, KeyEvent.VK_ENTER, KeyEvent.VK_COMMA, KeyEvent.VK_DOT, KeyEvent.VK_SLASH,
         KeyEvent.VK_BACKSPACE, KeyEvent.VK_KPSLASH, KeyEvent.VK_KPASTERISK, KeyEvent.VK_KPMINUS,
-        KeyEvent.VK_KPPLUS, KeyEvent.VK_KPENTER
+        KeyEvent.VK_KPPLUS, KeyEvent.VK_KPENTER, KeyEvent.VK_SPACE
     );
     private List<Character> _PuncTo = List.of(
-        '`', '\t', '\\', '-', '=', '[', ']', ';', '\'', '#', '\r', ',', '.', '/', '\b', '/', '*', '-', '+', '\r'
+        '`', '\t', '\\', '-', '=', '[', ']', ';', '\'', '#', '\r', ',', '.', '/', '\b', '/', '*', '-', '+', '\r', ' '
     );
     private List<Character> _PuncShift = List.of(
-        '¬', '\t', '|', '_', '+', '{', '}', ':', '@', '~', '\r', '<', '>', '?', '\b', '/', '*', '-', '+', '\r'
+        '¬', '\t', '|', '_', '+', '{', '}', ':', '@', '~', '\r', '<', '>', '?', '\b', '/', '*', '-', '+', '\r', ' '
     );
     private List<Integer> _KPNums = List.of(
         KeyEvent.VK_KP0, KeyEvent.VK_KP1, KeyEvent.VK_KP2, KeyEvent.VK_KP3, KeyEvent.VK_KP4,

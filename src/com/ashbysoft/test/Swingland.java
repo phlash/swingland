@@ -74,6 +74,7 @@ public class Swingland extends JComponent implements ActionListener {
 			button.setBackground(Color.GRAY);
 			button.addActionListener(this);
 			_dialog.add(button, BorderLayout.CENTER);
+			_dialog.setFocus(button);
 			_dialog.setVisible(true);
 		}
 	}

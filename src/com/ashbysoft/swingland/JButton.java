@@ -53,15 +53,24 @@ public class JButton extends JComponent {
                 _hold = (m.getState() == MouseEvent.BUTTON_PRESSED);
                 repaint();
             } else if (m.getID() == MouseEvent.MOUSE_CLICKED) {
+                fireActionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, getActionCommand()));
                 // directly dispatch action event to listeners
-                ActionEvent a = new ActionEvent(this, ActionEvent.ACTION_FIRED, getActionCommand());
-                for (EventListener l: _listeners)
-                    ((ActionListener)l).actionPerformed(a);
             }
         } else if (e instanceof KeyEvent) {
             KeyEvent k =(KeyEvent)e;
-            // XXX:TODO: keyboard activation..(space?)
+            if (KeyEvent.KEY_PRESSED == k.getID() && KeyEvent.VK_SPACE == k.getKeyCode()) {
+                _hold = true;
+                repaint();
+            } else if (KeyEvent.KEY_RELEASED == k.getID() && KeyEvent.VK_SPACE == k.getKeyCode()) {
+                _hold = false;
+                repaint();
+            } else if (KeyEvent.KEY_TYPED == k.getID() && ' ' == k.getKeyChar())
+                fireActionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, getActionCommand()));
         }
+    }
+    protected void fireActionPerformed(ActionEvent a) {
+        for (EventListener l: _listeners)
+            ((ActionListener)l).actionPerformed(a);
     }
     // paint a button!
     public void paintComponent(Graphics g) {
@@ -70,10 +79,12 @@ public class JButton extends JComponent {
             g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
             g.setColor(getBackground());
         } else {
-            g.setColor(getBackground());
-            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
             g.setColor(getForeground());
-            g.drawRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
+            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
+            g.setColor(getBackground());
+            int o = hasFocus() ? 2 : 1;
+            g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, getWidth()/10, getHeight()/10);
+            g.setColor(getForeground());
         }
         int w = g.getFont().getFontMetrics().stringWidth(getText());
         int h = g.getFont().getFontMetrics().getHeight();

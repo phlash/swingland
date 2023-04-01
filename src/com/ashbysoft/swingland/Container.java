@@ -7,16 +7,18 @@ public class Container extends Component {
     private ArrayList<Component> _components;
     private LayoutManager _layoutManager;
     private Insets _insets;
+    private int _focus;
     private Dimension _cachePrefSize;
     private Dimension _cacheMinSize;
     private Dimension _cacheMaxSize;
-    private Component _mouseComponent;
     public Container() {
         _components = new ArrayList<Component>();
         _layoutManager = new BorderLayout();
+        _focus = -1;
     }
     public int getComponentCount() { return _components.size(); }
     public Component getComponent(int n) { return _components.get(n); }
+    public int findComponent(Component c) { return _components.indexOf(c); }
     public Component add(Component c) { addImpl(c, null, -1); return c; }
     public Component add(Component c, int i) { addImpl(c, null, i); return c; }
     public void add(Component c, Object s) { addImpl(c, s, -1); }
@@ -63,6 +65,8 @@ public class Container extends Component {
         _layoutManager.removeLayoutComponent(c);
         // notify component
         c.setParent(null);
+        // drop focus
+        _focus = -1;
         invalidate();
     }
     public void remove(Component c) {
@@ -90,12 +94,27 @@ public class Container extends Component {
         invalidate();
     }
     public Component getFocusComponent() {
-        // XXX:TODO: keyboard focus management!
+        Component f = null;
+        if (_focus >= 0)
+            f = getComponent(_focus);
+        if (f != null && f.isVisible())
+            return f;
         for (Component c: _components) {
             if (c.isVisible())
                 return c;
         }
         return null;
+    }
+    public boolean hasFocus(Component c) {
+        return c == getFocusComponent();
+    }
+    public int getFocus() { return _focus; }
+    public void setFocus(int i) {
+        if (i >= 0 && i < getComponentCount())
+            _focus = i;
+    }
+    public void setFocus(Component c) {
+        setFocus(findComponent(c));
     }
     public Component getComponentAt(int x, int y) {
         // find first visible component we are within
@@ -171,9 +190,9 @@ public class Container extends Component {
             Component c = getFocusComponent();
             if (c != null) {
                 _log.info("Container:focus="+c.getName());
-                c.dispatchEvent(new KeyEvent(c, k.getID(), k.getKeyCode(), k.getKeyChar()));
+                c.dispatchEvent(k);
             }
-        // MouseEvents go to current (visible) component under pointer (if any)
+        // MouseEvents go to current component under pointer (if any)
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             Component c = getComponentAt(m.getX(), m.getY());
@@ -182,23 +201,15 @@ public class Container extends Component {
                 Rectangle b = c.getBounds();
                 int ex = m.getX() - b._x;
                 int ey = m.getY() - b._y;
-                if (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID()) {
-                    // has the component changed? synthesise entered
-                    if (c != _mouseComponent) {
-                        c.dispatchEvent(new MouseEvent(c, MouseEvent.MOUSE_ENTERED, ex, ey, m.getButton(), m.getState()));
-                        if (_mouseComponent != null)
-                            _mouseComponent.dispatchEvent(new MouseEvent(c, MouseEvent.MOUSE_EXITED, ex, ey, m.getButton(), m.getState()));
-                        _mouseComponent = c;
-                    }
-                } else if (MouseEvent.MOUSE_ENTERED == m.getID()) {
-                    _mouseComponent = c;
-                } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
-                    _mouseComponent = null;
-                }
-                c.dispatchEvent(new MouseEvent(c, m.getID(), ex, ey, m.getButton(), m.getState()));
+                m = new MouseEvent(m.getSource(), m.getID(), ex, ey, m.getButton(), m.getState());
+                // copy down event internal state
+                m.copyState(e);
+                c.dispatchEvent(m);
+                // copy back event internal state
+                e.copyState(m);
             }
         }
-        // now we pass back for default behaviour
+        // now we invoke local Component behaviour
         super.dispatchEvent(e);
     }
 

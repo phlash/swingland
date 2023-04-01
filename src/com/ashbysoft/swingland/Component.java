@@ -22,6 +22,8 @@ public abstract class Component {
     private ArrayList<KeyListener> _keyListeners;
     private ArrayList<MouseInputListener> _mouseListeners;
     private ArrayList<Integer> _mouseButtons;
+    private boolean _seenMouse;
+    private static Component s_lastEntered;
 
     protected Component() {
         _name = getClass().getSimpleName()+"@"+hashCode();
@@ -33,6 +35,7 @@ public abstract class Component {
         _keyListeners = new ArrayList<KeyListener>();
         _mouseListeners = new ArrayList<MouseInputListener>();
         _mouseButtons = new ArrayList<Integer>();
+        _seenMouse = false;
     }
     public Container getParent() { return _parent; }
     // package-private method for Container.addImpl use
@@ -104,6 +107,12 @@ public abstract class Component {
         _height = h;
         invalidate();
     }
+    public boolean hasFocus() {
+        Container p = getParent();
+        if (p != null)
+            return p.hasFocus(this);
+        return false;
+    }
 
     protected Graphics getGraphics() {
         Container p = getParent();
@@ -151,14 +160,19 @@ public abstract class Component {
         if (_mouseListeners.contains(l))
             _mouseListeners.remove(l);
     }
-    // dispath to any listeners, so they can consume the event, before any local processing
+    // separate public method so we can recurse internally via a private method without
+    // invoking overridden public methods
     public void dispatchEvent(AbstractEvent e) {
         dispatchEventImpl(e);
     }
     private void dispatchEventImpl(AbstractEvent e) {
+        // dispatch to any listeners, so they can consume the event, before any local processing
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
+            // ensure we are the event source when transitioning from dispatch flow to handlers
             k = new KeyEvent(this, k.getID(), k.getKeyCode(), k.getKeyChar());
+            // copy down event internal state
+            k.copyState(e);
             for (KeyListener l : _keyListeners) {
                 if (KeyEvent.KEY_RELEASED == k.getID())
                     l.keyReleased(k);
@@ -167,9 +181,32 @@ public abstract class Component {
                 else
                     l.keyTyped(k);
             }
+            // pass back event internal state
+            e.copyState(k);
+            // now use local event for local processing
+            e = k;
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
+            // ensure we are the event source when transitioning from dispatch flow to handlers
             m = new MouseEvent(this, m.getID(), m.getX(), m.getY(), m.getButton(), m.getState());
+            // copy down event internal state
+            m.copyState(e);
+            // first mouse event? might need to synthesize MOUSE_ENTERED..
+            if (!_seenMouse) {
+                _seenMouse = true;
+                // if we are processing an Enter/Exit, or the event has been marked, then someone else has done synthesis. we skip it.
+                if (MouseEvent.MOUSE_ENTERED != m.getID() && MouseEvent.MOUSE_EXITED != m.getID() && m.getCanSynthesize()) {
+                    // notify the previously entered Component that the mouse has left the building..
+                    if (s_lastEntered != null)
+                        s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                    // mark ourselves as the last notified Component
+                    s_lastEntered = this;
+                    // recursively notify ourselves of mouse entry
+                    dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                    // mark the event object to prevent further synthesis
+                    m.setCanSynthesize(false);
+                }
+            }
             for (MouseInputListener l : _mouseListeners) {
                 if (MouseEvent.MOUSE_MOVE == m.getID()) {
                     l.mouseMoved(m);
@@ -196,7 +233,12 @@ public abstract class Component {
                 }
             } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
                 _mouseButtons.clear();
+                _seenMouse = false;
             }
+            // copy back event internal state
+            e.copyState(m);
+            // now use local event for processing
+            e = m;
         }
         // unless consumed, process locally
         if (!e.isConsumed())
