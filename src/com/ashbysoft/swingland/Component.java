@@ -166,6 +166,7 @@ public abstract class Component {
         dispatchEventImpl(e);
     }
     private void dispatchEventImpl(AbstractEvent e) {
+        _log.info("Component:dispatch:"+e.toString());
         // dispatch to any listeners, so they can consume the event, before any local processing
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;

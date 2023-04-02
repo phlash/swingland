@@ -225,7 +225,6 @@ public class Window extends Container implements
     private int _poolsize;
     private ShmPool _shmpool;
     private Buffer _buffer;
-    private Callback _frame;
     // original size (if any), used during configure callback
     private int _origWidth;
     private int _origHeight;
@@ -248,12 +247,12 @@ public class Window extends Container implements
 
     private void render() {
         // check Wayland is done with previous buffer (if any)
-        if (_frame != null && !_frame.done()) {
+        if (_buffer != null && _buffer.isBusy()) {
             _log.error("render overrun");
+            // pop ourselves back on the queue for later
+            repaint();
             return;
         }
-        _frame = new Callback();
-        _surface.frame(_frame);
         // buffer size changed?
         int psize = getWidth() * getHeight() * 4;
         if (psize != _poolsize) {

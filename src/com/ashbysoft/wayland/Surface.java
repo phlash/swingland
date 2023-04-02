@@ -57,6 +57,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
         b.putInt(x);
         b.putInt(y);
         log(false, "attach:"+buf.getID());
+        buf.setBusy();
         return _display.write(b);
     }
     public boolean damage(int x, int y, int w, int h) {

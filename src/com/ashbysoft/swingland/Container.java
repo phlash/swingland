@@ -184,6 +184,7 @@ public class Container extends Component {
     }
 
     public void dispatchEvent(AbstractEvent e) {
+        _log.info("Container:dispatch:"+e.toString());
         // KeyEvents go to the currently focused component (if any)
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
