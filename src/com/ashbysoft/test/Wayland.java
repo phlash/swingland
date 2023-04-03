@@ -45,7 +45,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         public boolean enter(int outputID) { return true; }
         public boolean leave(int outputID) { return true; }
         public boolean done(int serial) {
-            _frame = new Callback();
+            _frame = new Callback(_display);
             _frame.addListener(this);
             _surface.frame(_frame);
             render();
@@ -75,12 +75,18 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
             _surface.commit();
         }
+        public void destroy() {
+            if (_buffer != null) _buffer.destroy();
+            if (_shmpool != null) _shmpool.destroy();
+            _xdgToplevel.destroy();
+            _xdgSurface.destroy();
+            _surface.destroy();
+        }
     }
     private class Popup implements Callback.Listener, XdgSurface.Listener, XdgPopup.Listener {
         private Surface _surface;
         private XdgSurface _xdgSurface;
         private XdgPopup _xdgPopup;
-        private Positioner _positioner;
         private ShmPool _shmpool;
         private Buffer _buffer;
         private Callback _frame;
@@ -93,10 +99,10 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _height = 100;
             _count = 0;
             // MUST set at least size and anchor rect
-            _positioner = new Positioner(_display);
-            _xdgWmBase.createPositioner(_positioner);
-            _positioner.setSize(_width, _height);
-            _positioner.setAnchorRect(50, 50, _width, _height);
+            Positioner positioner = new Positioner(_display);
+            _xdgWmBase.createPositioner(positioner);
+            positioner.setSize(_width, _height);
+            positioner.setAnchorRect(50, 50, _width, _height);
             _surface = new Surface(_display);
             _compositor.createSurface(_surface);
             _xdgSurface = new XdgSurface(_display);
@@ -104,14 +110,15 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _xdgWmBase.getXdgSurface(_xdgSurface, _surface);
             _xdgPopup = new XdgPopup(_display);
             _xdgPopup.addListener(this);
-            _xdgSurface.getPopup(_xdgPopup, parent, _positioner);
+            _xdgSurface.getPopup(_xdgPopup, parent, positioner);
             _surface.commit();
             _display.roundtrip();
+            positioner.destroy();
             _poolsize = 0;
             done(0);
         }
         public boolean done(int serial) {
-            _frame = new Callback();
+            _frame = new Callback(_display);
             _frame.addListener(this);
             _surface.frame(_frame);
             render();
@@ -142,6 +149,13 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
             _surface.commit();
         }
+        public void destroy() {
+            if (_buffer != null) _buffer.destroy();
+            if (_shmpool != null) _shmpool.destroy();
+            _xdgPopup.destroy();
+            _xdgSurface.destroy();
+            _surface.destroy();
+        }
     }
 
     private Display _display;
@@ -170,11 +184,13 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         Popup popup = new Popup(toplevel.getXdgSurface());
         long start = System.currentTimeMillis();
         while (_display.dispatch()) {
-            try { Thread.currentThread().sleep(10); } catch (Exception e) {}
+            try { Thread.sleep(10); } catch (Exception e) {}
             long now = System.currentTimeMillis();
             if (now > start+2000)
                 break;
         }
+        popup.destroy();
+        toplevel.destroy();
         _display.close();
         System.out.println("---- Wayland test done ----");
     }

@@ -2,7 +2,7 @@ package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
 
-public class Compositor extends WaylandObject {
+public class Compositor extends WaylandObject<Void> {
     public static final int RQ_CREATE_SURFACE = 0;
     public static final int RQ_CREATE_REGION = 1;
 

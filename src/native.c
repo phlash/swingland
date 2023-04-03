@@ -61,9 +61,10 @@ JNIEXPORT void JNICALL Java_com_ashbysoft_wayland_Native_releaseSHM
         close(fd);
 }
 
-static jint getSFD(JNIEnv* env, jclass sclass, jobject sock) {
+static jint getSFD(JNIEnv* env, jobject sock) {
     // some fugly rummaging to get the  socket file descriptor out of Java..
-    jfieldID fdID = (*env)->GetFieldID(env, sclass, "fdVal", "I");
+    jclass cls = (*env)->GetObjectClass(env, sock);
+    jfieldID fdID = (*env)->GetFieldID(env, cls, "fdVal", "I");
     if (!fdID) {
         fprintf(stderr, "Native: failed to find fdVal field in SocketChannel\n");
         return -1;
@@ -79,11 +80,11 @@ static jint getSFD(JNIEnv* env, jclass sclass, jobject sock) {
 /*
  * Class:     com_ashbysoft_wayland_Native
  * Method:    available
- * Signature: (Ljava/lang/Class;Ljava/nio/channels/SocketChannel;)I
+ * Signature: (Ljava/nio/channels/SocketChannel;)I
  */
 JNIEXPORT jint JNICALL Java_com_ashbysoft_wayland_Native_available
-  (JNIEnv *env, jclass native, jclass sclass, jobject sock) {
-    jint sfd = getSFD(env, sclass, sock);
+  (JNIEnv *env, jclass native, jobject sock) {
+    jint sfd = getSFD(env, sock);
     jint rv = 0;
     if (ioctl(sfd, FIONREAD, &rv)<0) {
         perror("Native: reading available bytes");
@@ -95,11 +96,11 @@ JNIEXPORT jint JNICALL Java_com_ashbysoft_wayland_Native_available
 /*
  * Class:     com_ashbysoft_wayland_Native
  * Method:    sendFD
- * Signature: (Ljava/nio/channels/SocketChannel;I)Z
+ * Signature: (Ljava/nio/channels/SocketChannel;[BI)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_ashbysoft_wayland_Native_sendFD
-  (JNIEnv *env, jclass native, jclass sclass, jobject sock, jobject msg, jint fd) {
-    jint sfd = getSFD(env, sclass, sock);
+  (JNIEnv *env, jclass native, jobject sock, jobject msg, jint fd) {
+    jint sfd = getSFD(env, sock);
     if (sfd<0)
         return JNI_FALSE;
     // now some sendmsg() wrangling to write the message with ancilliary data holding the fd

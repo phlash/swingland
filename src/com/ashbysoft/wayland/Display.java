@@ -1,6 +1,5 @@
 package com.ashbysoft.wayland;
 
-import com.ashbysoft.logger.Logger;
 import java.nio.ByteBuffer;
 
 public class Display extends WaylandObject<Display.Listener> {
@@ -24,13 +23,17 @@ public class Display extends WaylandObject<Display.Listener> {
     // synchronization lock for all network I/O
     private Object _lock;
     private Connection _conn;
+    // object registry
+    private Objects _objects;
     public Display() {
         this(null);
     }
     public Display(String path) {
+        super(ID);
         // connect or die..
         _conn = new Connection(path);
         _lock = new Object();
+        _objects = new Objects(this);
     }
     public void close() {
         _log.info("close");
@@ -39,9 +42,9 @@ public class Display extends WaylandObject<Display.Listener> {
                 _conn.close();
                 _conn = null;
             }
-            Objects.clear();
         }
     }
+    public int register(WaylandBase o) { return _objects.register(o); }
     // message receiver
     public boolean handle(int oid, int op, int sz, ByteBuffer b) {
         if (EV_ERROR == op) {
@@ -55,7 +58,7 @@ public class Display extends WaylandObject<Display.Listener> {
         } else if (EV_DELETE_ID == op) {
             int dobj = b.getInt();
             log(true, "delete:"+dobj);
-            Objects.unregister(dobj);
+            _objects.unregister(dobj);
         } else {
             return unknownOpcode(op);
         }
@@ -66,12 +69,12 @@ public class Display extends WaylandObject<Display.Listener> {
     public boolean roundtrip() {
         synchronized(_lock) {
             _log.detail("enter:roundtrip");
-            Callback cb = new Callback();
+            Callback cb = new Callback(this);
             sync(cb);
             boolean rv = false;
             while (!rv && dispatchOne()) {
                 // we wait for the EV_DONE, and for the callback to be deleted
-                if (cb.done() && Objects.get(cb.getID())==null) {
+                if (cb.done() && _objects.get(cb.getID())==null) {
                     rv = true;
                 }
             }
@@ -101,7 +104,7 @@ public class Display extends WaylandObject<Display.Listener> {
         ByteBuffer b = _conn.read();
         int oid = b.getInt();
         int szop = b.getInt();
-        WaylandObject o = Objects.get(oid);
+        WaylandBase o = _objects.get(oid);
         if (o != null) {
             if (!o.handle(oid, szop & 0xffff, (szop >> 16) & 0xffff, b))
                 rv = false;

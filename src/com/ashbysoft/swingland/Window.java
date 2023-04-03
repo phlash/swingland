@@ -32,7 +32,6 @@ public class Window extends Container implements
         private XdgWmBase _xdgWmBase;
         private Shm _shm;
         private Seat _seat;
-        private String _seatName;
         private Keyboard _keyboard;
         private Pointer _pointer;
         private Thread _uiThread;
@@ -111,7 +110,7 @@ public class Window extends Container implements
             }
             return true;
         }
-        public boolean seatName(String name) { _seatName = name; return true; }
+        public boolean seatName(String name) { return true; }
         // Keyboard.Listener
         private Keymap _keymap;
         public boolean keymap(int format, int fd, int size) {

@@ -9,6 +9,7 @@ public class Callback extends WaylandObject<Callback.Listener> {
     public static final int EV_DONE = 0;
 
     private boolean done = false;
+    public Callback(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
         boolean rv = true;
         if (EV_DONE == op) {

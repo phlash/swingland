@@ -7,34 +7,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 // base class for all protocol objects
-public abstract class WaylandObject<T> {
-    protected String _name = "["+getClass().getSimpleName()+"@"+hashCode()+"]";
-    // default logger with type ID
-    protected Logger _log = new Logger(_name+":");
-    // connected display (if required in subtype)
-    protected Display _display;
+public abstract class WaylandObject<T> extends WaylandBase {
     // listener support (if required in subtype)
     private ArrayList<T> _listeners;
-    // protocol objectID
-    private final int id = Objects.register(this);
 
-    protected WaylandObject() {}
-    protected WaylandObject(Display d) { _display = d; }
-    public int getID() { return id; }
+    protected WaylandObject(int id) { super(id); }
+    protected WaylandObject(Display d) {
+        super(d);
+    }
     // logging helper
     protected void log(boolean inOut, String msg) {
         _log.info("@"+getID()+(inOut ? "<IN>:" : "<OUT>:")+msg);
-    }
-    public String getName() { return _name; }
-    // default message handler
-    public boolean handle(int oid, int op, int sz, ByteBuffer b) {
-        _log.error("No message handler in class!");
-        return false;
-    }
-    // default invalid opcode handler
-    protected boolean unknownOpcode(int op) {
-        _log.error("Unknown opcode: "+op);
-        return false;
     }
     protected Iterable<T> listeners() {
         if (null == _listeners)

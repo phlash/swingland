@@ -67,12 +67,12 @@ public class Connection {
         b.putInt(4, op | b.limit() << 16);
         // rewind the position and send it..
         b.rewind();
-        boolean rv = Native.sendFD(_channel.getClass(), _channel, b.array(), fd);
+        boolean rv = Native.sendFD(_channel, b.array(), fd);
         logBuffer("Tx(fd="+fd+"):", b);
         return rv;
     }
     public boolean available() {
-        int rv = Native.available(_channel.getClass(), _channel);
+        int rv = Native.available(_channel);
         _log.detail("available:"+rv);
         if (rv<=0)
             return false;

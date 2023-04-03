@@ -14,10 +14,12 @@ public class FlowLayout implements LayoutManager {
     private int _align;
     private int _hgap;
     private int _vgap;
-    public FlowLayout() { this(CENTER); }
+    public FlowLayout() { this(LEFT); }
     public FlowLayout(int align) { this(align, 5, 5); }
     public FlowLayout(int align, int hgap, int vgap) {
         _log.info("<init>("+align+","+hgap+","+vgap+")");
+        if (LEFT != align)
+            _log.error("warning: FlowLayout only supports LEFT align at the moment..");
         _align = align;
         _hgap = hgap;
         _vgap = vgap;

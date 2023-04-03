@@ -15,7 +15,7 @@ public class Native {
     public static native void releaseSHM(int fd, java.nio.ByteBuffer buffer);
     // reads the number of bytes available on the unix socket.
     // NB: I previously tried Selector stuff, but it simply doesn't work :-(
-    public static native int available(Class sclass, SocketChannel sock);
+    public static native int available(SocketChannel sock);
     // sends the file descriptor across the unix socket along with the message bytes
-    public static native boolean sendFD(Class sclass, SocketChannel sock, byte[] msg, int fd);
+    public static native boolean sendFD(SocketChannel sock, byte[] msg, int fd);
 }
