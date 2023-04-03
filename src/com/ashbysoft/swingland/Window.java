@@ -57,6 +57,7 @@ public class Window extends Container implements
             _uiThread = new Thread(this);
             // We hold the application active even if main exits
             _uiThread.setDaemon(false);
+            _uiThread.setName("SwinglandUI");
             _uiThread.start();
         }
         public Display display() { return _display; }
