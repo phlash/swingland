@@ -79,6 +79,7 @@ public class Container extends Component {
     }
     public LayoutManager getLayout() { return _layoutManager; }
     public void setLayout(LayoutManager lm) {
+        assert(lm != null);
         _log.info("setLayout("+lm.getClass().getSimpleName()+")");
         _layoutManager = lm;
         invalidate();
