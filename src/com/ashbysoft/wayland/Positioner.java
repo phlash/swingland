@@ -2,7 +2,7 @@ package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
 
-public class Positioner extends WaylandObject {
+public class Positioner extends WaylandObject<Void> {
     public static final int RQ_DESTROY = 0;
     public static final int RQ_SET_SIZE = 1;
     public static final int RQ_SET_ANCHOR_RECT = 2;

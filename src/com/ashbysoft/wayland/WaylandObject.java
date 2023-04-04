@@ -1,7 +1,5 @@
 package com.ashbysoft.wayland;
 
-import com.ashbysoft.logger.Logger;
-
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

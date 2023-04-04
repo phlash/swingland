@@ -3,7 +3,7 @@ package com.ashbysoft.wayland;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class ShmPool extends WaylandObject {
+public class ShmPool extends WaylandObject<Void> {
     public static final int RQ_CREATE_BUFFER = 0;
     public static final int RQ_DESTROY = 1;
     public static final int RQ_RESIZE = 2;

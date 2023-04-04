@@ -2,7 +2,7 @@ package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
 
-public class Region extends WaylandObject {
+public class Region extends WaylandObject<Void> {
     public static final int RQ_DESTROY = 0;
     public static final int RQ_ADD = 1;
     public static final int RQ_SUBTRACT = 2;

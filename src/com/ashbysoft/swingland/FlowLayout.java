@@ -11,7 +11,6 @@ public class FlowLayout implements LayoutManager {
     public static final int TRAILING = 4;
 
     private Logger _log = new Logger("["+getClass().getSimpleName()+"@"+hashCode()+"]:");
-    private int _align;
     private int _hgap;
     private int _vgap;
     public FlowLayout() { this(LEFT); }
@@ -20,7 +19,6 @@ public class FlowLayout implements LayoutManager {
         _log.info("<init>("+align+","+hgap+","+vgap+")");
         if (LEFT != align)
             _log.error("warning: FlowLayout only supports LEFT align at the moment..");
-        _align = align;
         _hgap = hgap;
         _vgap = vgap;
     }
