@@ -4,8 +4,72 @@ import com.ashbysoft.wayland.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.Listener {
+public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.Listener, Pointer.Listener {
 
+    private class Cursor {
+        // fixed cursor, 16x16 left arrow, hotspot at 0,0
+        private static final short[] _cursor = {
+            (short)0b1111111111000000,
+            (short)0b1111111100000000,
+            (short)0b1111111000000000,
+            (short)0b1111110000000000,
+            (short)0b1111111000000000,
+            (short)0b1111001100000000,
+            (short)0b1110000110000000,
+            (short)0b1100000011000000,
+            (short)0b1000000001100000,
+            (short)0b1000000000110000,
+            (short)0b0000000000011000,
+            (short)0b0000000000001100,
+            (short)0b0000000000000110,
+            (short)0b0000000000000011,
+            (short)0b0000000000000001,
+            (short)0b0000000000000000,
+        };
+        private static final int _hx = 0;
+        private static final int _hy = 0;
+        private Surface _surface;
+        private ShmPool _shmpool;
+        private Buffer _buffer;
+        public Cursor() {
+            // create a cursor and attach to our pointer..
+            _surface = new Surface(_display);
+            _compositor.createSurface(_surface);
+            _shmpool = _shm.createPool(_cursor.length*16*4);
+            _buffer = _shmpool.createBuffer(0, 16, 16, 16*4, 0);
+            ByteBuffer pixels = _buffer.get();
+            pixels.rewind();
+            for (int y=0; y < _cursor.length; y += 1) {
+                for (int x=0; x < 16; x+= 1) {
+                    short m = (short)(1 << (15-x));
+                    if ((_cursor[y] & m) > 0)
+                        pixels.putInt(0xffffffff);
+                    else
+                        pixels.putInt(0);
+                }
+            }
+        }
+        public void attach(Pointer pointer, int serial) {
+            pointer.setCursor(serial, _surface, _hx, _hy);
+            _surface.attach(_buffer, 0, 0);
+            _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            _surface.commit();
+        }
+        public void destroy() {
+            if (_buffer != null) {
+                _buffer.destroy();
+                _buffer = null;
+            }
+            if (_shmpool != null) {
+                _shmpool.destroy();
+                _shmpool = null;
+            }
+            if (_surface != null) {
+                _surface.destroy();
+                _surface = null;
+            }
+        }
+    }
     private class XdgCommon implements
         Callback.Listener,
         Surface.Listener,
@@ -139,8 +203,17 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     private Compositor _compositor;
     private XdgWmBase _xdgWmBase;
     private Shm _shm;
+    private Seat _seat;
+    private Pointer _pointer;
+    private Cursor _cursor;
     public void run(String[] args) {
-        System.out.println("---- Wayland test starts ----");
+        int timeout = 2000;
+        for (String arg : args) {
+            if (arg.startsWith("t:")) {
+                try { timeout = Integer.parseInt(arg.substring(2)); } catch (NumberFormatException e) {}
+            }
+        }
+        System.out.println("---- Wayland test starts ("+timeout+"ms) ----");
         _display = new Display();
         _display.addListener(this);
         _registry = new Registry(_display);
@@ -154,6 +227,12 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         if (null == _xdgWmBase)
             throw new RuntimeException("oops: did not see an xdg_wm_base");
         _xdgWmBase.addListener(this);
+        if (_seat != null) {
+            _cursor = new Cursor();
+            _pointer = new Pointer(_display);
+            _pointer.addListener(this);
+            _seat.getPointer(_pointer);
+        }
         _display.roundtrip();
         Toplevel toplevel = new Toplevel();
         _display.roundtrip();
@@ -163,11 +242,13 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         while (_display.dispatch()) {
             try { Thread.sleep(10); } catch (Exception e) {}
             now = System.currentTimeMillis();
-            if (now > start+2000)
+            if (now > start+timeout)
                 break;
         }
         int f2 = (popup.destroy()*1000)/(int)(now-start);
         int f1 = (toplevel.destroy()*1000)/(int)(now-start);
+        if (_pointer != null) _pointer.release();
+        if (_cursor != null) _cursor.destroy();;
         _display.close();
         System.out.println("---- Wayland test done (fps:"+f1+"/"+f2+") ----");
     }
@@ -181,6 +262,9 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         } else if (iface.equals("wl_shm")) {
             _shm = new Shm(_display);
             _registry.bind(name, iface, version, _shm);
+        } else if (iface.equals("wl_seat")) {
+            _seat = new Seat(_display);
+            _registry.bind(name, iface, version, _seat);
         } else if (iface.equals("xdg_wm_base")) {
             _xdgWmBase = new XdgWmBase(_display);
             _registry.bind(name, iface, version, _xdgWmBase);
@@ -191,7 +275,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         return true;
     }
     public boolean ping(int serial) { return _xdgWmBase.pong(serial); }
-    public boolean popupConfigure(int x, int y, int w, int h) { return true; }
-    public boolean popupDone() { return true; }
-    public boolean popupRepositioned(int token) { return true; }
+    public boolean pointerEnter(int serial, int surface, int x, int y) { _cursor.attach(_pointer, serial); return true; }
+    public boolean pointerLeave(int serial, int surface) { return true; }
+    public boolean pointerMove(int time, int x, int y) { return true; }
+    public boolean pointerButton(int serial, int time, int button, int state) { return true; }
 }
