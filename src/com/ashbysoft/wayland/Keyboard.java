@@ -96,7 +96,7 @@ public class Keyboard extends WaylandObject<Keyboard.Listener> {
     }
 
     public boolean release() {
-        ByteBuffer b = newBuffer(8, RQ_RELEASE);
+        ByteBuffer b = newBuffer(0, RQ_RELEASE);
         log(false, "release");
         return _display.write(b);
     }

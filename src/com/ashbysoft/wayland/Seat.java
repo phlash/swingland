@@ -39,25 +39,25 @@ public class Seat extends WaylandObject<Seat.Listener> {
     }
 
     public boolean getPointer(Pointer p) {
-        ByteBuffer b = newBuffer(12, RQ_GET_POINTER);
+        ByteBuffer b = newBuffer(4, RQ_GET_POINTER);
         b.putInt(p.getID());
         log(false, "getPointer:obj="+p.getID());
         return _display.write(b);
     }
     public boolean getKeyboard(Keyboard k) {
-        ByteBuffer b = newBuffer(12, RQ_GET_KEYBOARD);
+        ByteBuffer b = newBuffer(4, RQ_GET_KEYBOARD);
         b.putInt(k.getID());
         log(false, "getKeyboard:obj="+k.getID());
         return _display.write(b);
     }
     public boolean getTouch(Touch t) {
-        ByteBuffer b = newBuffer(12, RQ_GET_TOUCH);
+        ByteBuffer b = newBuffer(4, RQ_GET_TOUCH);
         b.putInt(t.getID());
         log(false, "getTouch:obj="+t.getID());
         return _display.write(b);
     }
     public boolean release() {
-        ByteBuffer b = newBuffer(8, RQ_RELEASE);
+        ByteBuffer b = newBuffer(0, RQ_RELEASE);
         log(false, "release");
         return _display.write(b);
     }

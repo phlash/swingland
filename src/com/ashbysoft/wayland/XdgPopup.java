@@ -46,19 +46,19 @@ public class XdgPopup extends WaylandObject<XdgPopup.Listener> {
 
     public boolean destroy() {
         log(false, "destroy");
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         return _display.write(b);
     }
     public boolean grab(Seat seat, int serial) {
         log(false, "grab:seat="+seat.getID()+",serial="+serial);
-        ByteBuffer b = newBuffer(16, RQ_GRAB);
+        ByteBuffer b = newBuffer(8, RQ_GRAB);
         b.putInt(seat.getID());
         b.putInt(serial);
         return _display.write(b);
     }
     public boolean reposition(Positioner p, int token) {
         log(false, "reposition:pos="+p.getID()+",token="+token);
-        ByteBuffer b = newBuffer(16, RQ_REPOSITION);
+        ByteBuffer b = newBuffer(8, RQ_REPOSITION);
         b.putInt(p.getID());
         b.putInt(token);
         return _display.write(b);
