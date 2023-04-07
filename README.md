@@ -1,10 +1,14 @@
 # Java Swing re-implemented for Wayland
 
+![Duke sporting a Wayland logo](res/swingland-duke-wayland.png)
+
 Yes, I'm completely mad.
 
-Yes, I know about Wakefield, and Caciocavallo, both have been in progress(ish) for years... nothing has arrived in mainline JDK that fixes the
-internal JDK bugs that prevent a proper Wayland AWT Toolkit. There is [a horrid fix](https://github.com/CaciocavalloSilano/caciocavallo/blob/master/cacio-tta/src/main/java/com/github/caciocavallosilano/cacio/ctc/junit/CacioExtension.java) which uses reflection to monkey about inside the JDK, and needs
-many command line switches to circumvent security controls...
+Yes, I know about [Wakefield](https://wiki.openjdk.org/display/wakefield/OpenJDK+Project+Wakefield+-+Wayland+desktop+support+for+JDK+on+Linux),
+and [Caciocavallo](https://github.com/CaciocavalloSilano/caciocavallo), both have been in progress(ish) for years... nothing has arrived in
+mainline JDK to fix the internal JDK bugs that prevent a proper Wayland AWT Toolkit. There is
+[a horrid fix in Caciocavallo](https://github.com/CaciocavalloSilano/caciocavallo/blob/master/cacio-tta/src/main/java/com/github/caciocavallosilano/cacio/ctc/junit/CacioExtension.java)
+which uses reflection to monkey about inside the JDK, and needs *many* command line switches to circumvent security controls...
 
 Yes, I know about XWayland - it's horribly broken for Swing applications (try one!) and is intended as a stop gap, not a long term solution.
 
