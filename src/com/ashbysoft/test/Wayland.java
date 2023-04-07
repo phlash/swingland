@@ -1,14 +1,16 @@
 package com.ashbysoft.test;
 
+import com.ashbysoft.logger.Logger;
 import com.ashbysoft.wayland.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
 public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.Listener, Pointer.Listener {
 
+    private Logger _log = new Logger("[Wayland]:");
     private class Cursor {
         // fixed cursor, 16x16 left arrow, hotspot at 0,0
-        private static final short[] _cursor = {
+        private static final short[] _cursor1 = {
             (short)0b1111111111000000,
             (short)0b1111111100000000,
             (short)0b1111111000000000,
@@ -26,47 +28,56 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             (short)0b0000000000000001,
             (short)0b0000000000000000,
         };
-        private static final int _hx = 0;
-        private static final int _hy = 0;
-        private Surface _surface;
-        private ShmPool _shmpool;
-        private Buffer _buffer;
-        public Cursor() {
+        private static final short[] _cursor2 = {
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b1111111111111111,
+            (short)0b1111111111111111,
+            (short)0b1000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+            (short)0b0000000110000000,
+        };
+        private ShmPool _cursorShmpool;
+        private Buffer _cursorBuffer;
+        public Cursor(int which) {
             // create a cursor and attach to our pointer..
-            _surface = new Surface(_display);
-            _compositor.createSurface(_surface);
-            _shmpool = _shm.createPool(_cursor.length*16*4);
-            _buffer = _shmpool.createBuffer(0, 16, 16, 16*4, 0);
-            ByteBuffer pixels = _buffer.get();
+            short[] bits = which>0 ? _cursor2 : _cursor1;
+            _cursorShmpool = _shm.createPool(bits.length*16*4);
+            _cursorBuffer = _cursorShmpool.createBuffer(0, 16, 16, 16*4, 0);
+            ByteBuffer pixels = _cursorBuffer.get();
             pixels.rewind();
-            for (int y=0; y < _cursor.length; y += 1) {
+            for (int y=0; y < bits.length; y += 1) {
                 for (int x=0; x < 16; x+= 1) {
                     short m = (short)(1 << (15-x));
-                    if ((_cursor[y] & m) > 0)
+                    if ((bits[y] & m) > 0)
                         pixels.putInt(0xffffffff);
                     else
                         pixels.putInt(0);
                 }
             }
         }
-        public void attach(Pointer pointer, int serial) {
-            pointer.setCursor(serial, _surface, _hx, _hy);
-            _surface.attach(_buffer, 0, 0);
-            _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-            _surface.commit();
+        public void attach(Surface surface) {
+            surface.attach(_cursorBuffer, 0, 0);
+            surface.damageBuffer(0, 0, 16, 16);
+            surface.commit();
         }
         public void destroy() {
-            if (_buffer != null) {
-                _buffer.destroy();
-                _buffer = null;
+            if (_cursorBuffer != null) {
+                _cursorBuffer.destroy();
+                _cursorBuffer = null;
             }
-            if (_shmpool != null) {
-                _shmpool.destroy();
-                _shmpool = null;
-            }
-            if (_surface != null) {
-                _surface.destroy();
-                _surface = null;
+            if (_cursorShmpool != null) {
+                _cursorShmpool.destroy();
+                _cursorShmpool = null;
             }
         }
     }
@@ -84,7 +95,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         protected int _poolsize;
         protected int _frames;
 
-        protected XdgCommon(int w, int h) {
+        protected XdgCommon(int w, int h, int which) {
             _surface = new Surface(_display);
             _surface.addListener(this);
             _compositor.createSurface(_surface);
@@ -123,18 +134,23 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             pixels.rewind();
             for (int y=0; y<_height; y++)
                 for (int x=0; x<_width; x++)
-                    pixels.putInt(getPixel());
+                    pixels.putInt(getPixel(x, y));
             _surface.attach(_buffer, 0, 0);
-            _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            _surface.damageBuffer(0, 0, _width, _height);
             _surface.commit();
         }
-        protected int getPixel() { return 0xff000000; }
+        protected int getPixel(int x, int y) { return 0xff000000; }
     }
     private class Toplevel extends XdgCommon implements XdgToplevel.Listener {
         private Random _rand;
         private XdgToplevel _xdgToplevel;
+        protected Surface _cursorSurface;
+        private Cursor _cursorOut;
+        private Cursor _cursorIn;
+        private final int _boxWidth  = 100;
+        private final int _boxHeight = 100;
         public Toplevel() {
-            super(640, 480);
+            super(640, 480, 0);
             _xdgToplevel = new XdgToplevel(_display);
             _xdgToplevel.addListener(this);
             _xdgSurface.getTopLevel(_xdgToplevel);
@@ -143,59 +159,56 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _rand = new Random();
             _surface.commit();
             _display.roundtrip();
+            _cursorOut = new Cursor(0);
+            _cursorIn = new Cursor(1);
             done(0);
         }
-        public XdgSurface getXdgSurface() { return _xdgSurface; }
         public boolean xdgToplevelConfigure(int w, int h, int[] states) { if (w>0 && h>0) { _width = w; _height = h; } return true; }
         public boolean xdgToplevelClose() { return true; }
         public int destroy() {
             if (_buffer != null) _buffer.destroy();
             if (_shmpool != null) _shmpool.destroy();
+            _cursorIn.destroy();
+            _cursorOut.destroy();
             _xdgToplevel.destroy();
             _xdgSurface.destroy();
             _surface.destroy();
             return _frames;
         }
-        protected int getPixel() { return (_rand.nextInt() & 0x00ffffff) | 0xff000000; }
-    }
-    private class Popup extends XdgCommon implements XdgPopup.Listener {
-        private XdgPopup _xdgPopup;
-        private int _count;
-        private static final int _w = 200;
-        private static final int _h = 100;
-        private Positioner _positioner = createPositioner(_w, _h);
-
-        public Popup(XdgSurface parent) {
-            super(_w, _h);
-            _xdgPopup = new XdgPopup(_display);
-            _xdgPopup.addListener(this);
-            _xdgSurface.getPopup(_xdgPopup, parent, _positioner);
-            _surface.commit();
-            _display.roundtrip();
-            _positioner.destroy();
-            _count = 0;
-            done(0);
+        protected int getPixel(int x, int y) {
+            // box boundary where cursor changes..
+            int bxl = (_width-_boxWidth)/2;
+            int bxr = (_width+_boxWidth)/2;
+            int bxt = (_height-_boxHeight)/2;
+            int bxb = (_height+_boxHeight)/2;
+            if (y == bxt || y == bxb) {
+                if (x >= bxl && x <= bxr)
+                    return 0xffffffff;
+            } else if (y > bxt && y < bxb) {
+                if (x == bxl || x == bxr)
+                    return 0xffffffff;
+                else if (x > bxl && x < bxr)
+                    return 0xff000000;
+            }
+            return (_rand.nextInt() & 0x00ffffff) | 0xff000000;
         }
-        private Positioner createPositioner(int w, int h) {
-            // MUST set at least size and anchor rect
-            Positioner p = new Positioner(_display);
-            _xdgWmBase.createPositioner(p);
-            p.setSize(_width, _height);
-            p.setAnchorRect(50, 50, _width, _height);
-            return p;
+        protected Surface getCursorSurface() {
+            if (null == _cursorSurface) {
+                _cursorSurface = new Surface(_display);
+                _compositor.createSurface(_cursorSurface);
+            }
+            return _cursorSurface;
         }
-        public boolean xdgPopupConfigure(int x, int y, int w, int h) { if (w>0 && h>0) { _width = w; _height = h; } return true; }
-        public boolean xdgPopupDone() { return true; }
-        public boolean xdgPopupRepositioned(int token) { return true; }
-        public int destroy() {
-            if (_buffer != null) _buffer.destroy();
-            if (_shmpool != null) _shmpool.destroy();
-            _xdgPopup.destroy();
-            _xdgSurface.destroy();
-            _surface.destroy();
-            return _frames;
+        protected Cursor getCursor(int x, int y) {
+            // box boundary where cursor changes..
+            int bxl = (_width-_boxWidth)/2;
+            int bxr = (_width+_boxWidth)/2;
+            int bxt = (_height-_boxHeight)/2;
+            int bxb = (_height+_boxHeight)/2;
+            if (y >= bxt && y <= bxb && x >= bxl && x <= bxr)
+                return _cursorIn;
+            return _cursorOut;
         }
-        protected int getPixel() { return 0xff000000 | (_count++ & 0x00ffffff); }
     }
 
     private Display _display;
@@ -205,7 +218,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     private Shm _shm;
     private Seat _seat;
     private Pointer _pointer;
-    private Cursor _cursor;
+    private Toplevel _toplevel;
+    private Cursor _lastCursor;
     public void run(String[] args) {
         int timeout = 2000;
         for (String arg : args) {
@@ -227,16 +241,14 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         if (null == _xdgWmBase)
             throw new RuntimeException("oops: did not see an xdg_wm_base");
         _xdgWmBase.addListener(this);
+        _toplevel = new Toplevel();
+        _display.roundtrip();
         if (_seat != null) {
-            _cursor = new Cursor();
             _pointer = new Pointer(_display);
             _pointer.addListener(this);
             _seat.getPointer(_pointer);
         }
         _display.roundtrip();
-        Toplevel toplevel = new Toplevel();
-        _display.roundtrip();
-        Popup popup = new Popup(toplevel.getXdgSurface());
         long start = System.currentTimeMillis();
         long now = 0;
         while (_display.dispatch()) {
@@ -245,15 +257,13 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             if (now > start+timeout)
                 break;
         }
-        int f2 = (popup.destroy()*1000)/(int)(now-start);
-        int f1 = (toplevel.destroy()*1000)/(int)(now-start);
+        int fps = (_toplevel.destroy()*1000)/(int)(now-start);
         if (_pointer != null) _pointer.release();
-        if (_cursor != null) _cursor.destroy();;
         _display.close();
-        System.out.println("---- Wayland test done (fps:"+f1+"/"+f2+") ----");
+        _log.error("---- Wayland test done (fps:"+fps+") ----");
     }
     public void error(int id, int code, String msg) {
-        System.err.println("OOPS: object="+id+" code="+code+" message="+msg);
+        _log.error("OOPS: object="+id+" code="+code+" message="+msg);
     }
     public boolean global(int name, String iface, int version) {
         if (iface.equals("wl_compositor")) {
@@ -275,8 +285,22 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         return true;
     }
     public boolean ping(int serial) { return _xdgWmBase.pong(serial); }
-    public boolean pointerEnter(int serial, int surface, int x, int y) { _cursor.attach(_pointer, serial); return true; }
+    public boolean pointerEnter(int serial, int surface, int x, int y) {
+        _log.error("pointerEnter()");
+        _pointer.setCursor(serial, _toplevel.getCursorSurface(), 0, 0);
+        return pointerMove(0, x, y);
+    }
     public boolean pointerLeave(int serial, int surface) { return true; }
-    public boolean pointerMove(int time, int x, int y) { return true; }
+    public boolean pointerMove(int time, int x, int y) {
+        x >>= 8;
+        y >>= 8;
+        Cursor c = _toplevel.getCursor(x, y);
+        if (c != _lastCursor) {
+            _log.error("pointerMove("+x+","+y+"):new cursor");
+            _lastCursor = c;
+            c.attach(_toplevel.getCursorSurface());
+        }
+        return true;
+    }
     public boolean pointerButton(int serial, int time, int button, int state) { return true; }
 }

@@ -135,7 +135,7 @@ public class Window extends Container implements
         c.drawCursor(new Graphics(_cursorBuffer.get(), d._w, d._h, c.getColor(), c.getFont()));
         _cursorType = c.getType();
         // push to Wayland
-        _cursorSurface.attach(_buffer, 0, 0);
+        _cursorSurface.attach(_cursorBuffer, 0, 0);
         _cursorSurface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
         _cursorSurface.commit();
     }

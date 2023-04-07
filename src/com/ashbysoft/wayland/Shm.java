@@ -29,7 +29,7 @@ public class Shm extends WaylandObject<Shm.Listener> {
         ByteBuffer b = newBuffer(16, RQ_CREATE_POOL);
         b.putInt(p.getID());
         b.putInt(sz);
-        log(false, "createPool->"+p.getID());
+        log(false, "createPool->"+p.getID()+":sz="+sz);
         // ask ShmPool to add the file descriptor and write
         if (!p.writeFD(b)) {
             p = null;

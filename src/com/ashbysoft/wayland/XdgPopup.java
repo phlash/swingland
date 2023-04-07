@@ -1,5 +1,7 @@
 package com.ashbysoft.wayland;
 
+// IMPORTANT: XdgPopup windows can cause a fatal assertion failure in SwayWM / Wlroots prior to v0.12.0
+
 import java.nio.ByteBuffer;
 
 public class XdgPopup extends WaylandObject<XdgPopup.Listener> {

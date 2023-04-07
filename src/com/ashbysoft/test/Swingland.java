@@ -16,6 +16,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 	}
 	public void run() {
 		_log.info("-->run()");
+		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         // Create a top level frame and put ourselves in it.
         _frame = new JFrame("Swingland lives!");
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

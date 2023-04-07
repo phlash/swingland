@@ -38,12 +38,12 @@ public class XdgSurface extends WaylandObject<XdgSurface.Listener> {
         log(false, "getTopLevel->"+t.getID());
         return _display.write(b);
     }
-    public boolean getPopup(XdgPopup u, XdgSurface x, Positioner p) {
+    public boolean getPopup(XdgPopup pop, XdgSurface par, Positioner pos) {
         ByteBuffer b = newBuffer(20, RQ_GET_POPUP);
-        b.putInt(u.getID());
-        b.putInt(x.getID());
-        b.putInt(p.getID());
-        log(false, "getPopup->"+u.getID()+":xs="+x.getID()+" p="+p.getID());
+        b.putInt(pop.getID());
+        b.putInt(par.getID());
+        b.putInt(pos.getID());
+        log(false, "getPopup->"+pop.getID()+":par="+par.getID()+" pos="+pos.getID());
         return _display.write(b);
     }
     public boolean setWindowGeometry(int x, int y, int w, int h) {
