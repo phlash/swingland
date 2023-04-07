@@ -43,19 +43,19 @@ public class Positioner extends WaylandObject<Void> {
     public Positioner(Display d) { super(d); }
     public boolean destroy() {
         log(false, "destroy");
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         return _display.write(b);
     }
     public boolean setSize(int w, int h) {
         log(false, "setSize:w="+w+",h="+h);
-        ByteBuffer b = newBuffer(16, RQ_SET_SIZE);
+        ByteBuffer b = newBuffer(8, RQ_SET_SIZE);
         b.putInt(w);
         b.putInt(h);
         return _display.write(b);
     }
     public boolean setAnchorRect(int x, int y, int w, int h) {
         log(false, "setAnchorRect:x="+x+",y="+y+",w="+w+",h="+h);
-        ByteBuffer b = newBuffer(24, RQ_SET_ANCHOR_RECT);
+        ByteBuffer b = newBuffer(16, RQ_SET_ANCHOR_RECT);
         b.putInt(x);
         b.putInt(y);
         b.putInt(w);
@@ -64,44 +64,44 @@ public class Positioner extends WaylandObject<Void> {
     }
     public boolean setAnchor(int a) {
         log(false, "setAnchor:a="+a);
-        ByteBuffer b = newBuffer(12, RQ_SET_ANCHOR);
+        ByteBuffer b = newBuffer(4, RQ_SET_ANCHOR);
         b.putInt(a);
         return _display.write(b);
     }
     public boolean setGravity(int g) {
         log(false, "setGravity:g="+g);
-        ByteBuffer b = newBuffer(12, RQ_SET_GRAVITY);
+        ByteBuffer b = newBuffer(4, RQ_SET_GRAVITY);
         b.putInt(g);
         return _display.write(b);
     }
     public boolean setConstraintAdjustment(int a) {
         log(false, "setConstraintAdjustment:a="+Integer.toHexString(a));
-        ByteBuffer b = newBuffer(12, RQ_SET_CONADJ);
+        ByteBuffer b = newBuffer(4, RQ_SET_CONADJ);
         b.putInt(a);
         return _display.write(b);
     }
     public boolean setOffset(int x, int y) {
         log(false, "setOffset:x="+x+",y="+y);
-        ByteBuffer b = newBuffer(16, RQ_SET_OFFSET);
+        ByteBuffer b = newBuffer(8, RQ_SET_OFFSET);
         b.putInt(x);
         b.putInt(y);
         return _display.write(b);
     }
     public boolean setReactive() {
         log(false, "setReactive");
-        ByteBuffer b = newBuffer(8, RQ_SET_REACTIVE);
+        ByteBuffer b = newBuffer(0, RQ_SET_REACTIVE);
         return _display.write(b);
     }
     public boolean setParentSize(int w, int h) {
         log(false, "setParentSize:w="+w+",h="+h);
-        ByteBuffer b = newBuffer(16, RQ_SET_PARENT_SIZE);
+        ByteBuffer b = newBuffer(8, RQ_SET_PARENT_SIZE);
         b.putInt(w);
         b.putInt(h);
         return _display.write(b);
     }
     public boolean setParentConfig(int serial) {
         log(false, "setParentConfig:serial="+serial);
-        ByteBuffer b = newBuffer(12, RQ_SET_PARENT_CONFIG);
+        ByteBuffer b = newBuffer(4, RQ_SET_PARENT_CONFIG);
         b.putInt(serial);
         return _display.write(b);
     }

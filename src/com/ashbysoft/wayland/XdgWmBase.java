@@ -28,25 +28,25 @@ public class XdgWmBase extends WaylandObject<XdgWmBase.Listener> {
     }
 
     public boolean destroy() {
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         log(false, "destroy");
         return _display.write(b);
     }
     public boolean createPositioner(Positioner p) {
-        ByteBuffer b = newBuffer(12, RQ_CREATE_POSITIONER);
+        ByteBuffer b = newBuffer(4, RQ_CREATE_POSITIONER);
         b.putInt(p.getID());
         log(false, "createPositioner->"+p.getID());
         return _display.write(b);
     }
     public boolean getXdgSurface(XdgSurface x, Surface s) {
-        ByteBuffer b = newBuffer(16, RQ_GET_XDG_SURFACE);
+        ByteBuffer b = newBuffer(8, RQ_GET_XDG_SURFACE);
         b.putInt(x.getID());
         b.putInt(s.getID());
         log(false, "getXdgSurface->"+x.getID()+" s="+s.getID());
         return _display.write(b);
     }
     public boolean pong(int serial) {
-        ByteBuffer b = newBuffer(12, RQ_PONG);
+        ByteBuffer b = newBuffer(4, RQ_PONG);
         b.putInt(serial);
         log(false, "pong:serial="+serial);
         return _display.write(b);

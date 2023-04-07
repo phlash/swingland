@@ -35,15 +35,12 @@ public class Registry extends WaylandObject<Registry.Listener> {
     }
 
     public boolean bind(int name, String iface, int version, WaylandBase obj) {
-        // [over]estimate buffer size from string length..
-        ByteBuffer b = newBuffer(24+iface.length()*2, RQ_BIND);
+        ByteBuffer b = newBuffer(12+strLen(iface), RQ_BIND);
         b.putInt(name);
         // https://www.mail-archive.com/wayland-devel@lists.freedesktop.org/msg40960.html
         putString(b, iface);
         b.putInt(version);
         b.putInt(obj.getID());
-        // adjust buffer limit now we have actual size
-        b.limit(b.position());
         log(false, "bind:name="+name+"->"+obj.getID());
         return _display.write(b);
     }

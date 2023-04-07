@@ -129,14 +129,14 @@ public class Display extends WaylandObject<Display.Listener> {
 
     // requests
     private boolean sync(Callback cb) {
-        ByteBuffer m = newBuffer(12, RQ_SYNC);
+        ByteBuffer m = newBuffer(4, RQ_SYNC);
         m.putInt(cb.getID());
         log(false, "sync->"+cb.getID());
         return _conn.write(m);
     }
 
     public boolean getRegistry(Registry r) {
-        ByteBuffer m = newBuffer(12, RQ_GET_REGISTRY);
+        ByteBuffer m = newBuffer(4, RQ_GET_REGISTRY);
         m.putInt(r.getID());
         log(false, "getRegistry->"+r.getID());
         return write(m);

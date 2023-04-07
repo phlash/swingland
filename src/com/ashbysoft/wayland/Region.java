@@ -9,12 +9,12 @@ public class Region extends WaylandObject<Void> {
 
     public Region(Display d) { super(d); }
     public boolean destroy() {
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         log(false, "destroy");
         return _display.write(b);
     }
     public boolean add(int x, int y, int w, int h) {
-        ByteBuffer b = newBuffer(24, RQ_ADD);
+        ByteBuffer b = newBuffer(16, RQ_ADD);
         b.putInt(x);
         b.putInt(y);
         b.putInt(w);
@@ -23,7 +23,7 @@ public class Region extends WaylandObject<Void> {
         return _display.write(b);
     }
     public boolean subtract(int x, int y, int w, int h) {
-        ByteBuffer b = newBuffer(24, RQ_SUBTRACT);
+        ByteBuffer b = newBuffer(16, RQ_SUBTRACT);
         b.putInt(x);
         b.putInt(y);
         b.putInt(w);

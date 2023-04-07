@@ -35,7 +35,7 @@ public class ShmPool extends WaylandObject<Void> {
         v.order(ByteOrder.LITTLE_ENDIAN);
         // now associate that view with a buffer object
         Buffer buf = new Buffer(_display, v);
-        ByteBuffer b = newBuffer(32, RQ_CREATE_BUFFER);
+        ByteBuffer b = newBuffer(24, RQ_CREATE_BUFFER);
         b.putInt(buf.getID());
         b.putInt(off);
         b.putInt(w);
@@ -50,7 +50,7 @@ public class ShmPool extends WaylandObject<Void> {
         return buf;
     }
     public boolean destroy() {
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         log(false, "destroy");
         boolean rv = _display.write(b);
         // now destroy the local resources
@@ -58,7 +58,7 @@ public class ShmPool extends WaylandObject<Void> {
         return rv;
     }
     public boolean resize(int s) {
-        ByteBuffer b = newBuffer(12, RQ_RESIZE);
+        ByteBuffer b = newBuffer(4, RQ_RESIZE);
         b.putInt(s);
         log(false, "resize:size="+s);
         return _display.write(b);

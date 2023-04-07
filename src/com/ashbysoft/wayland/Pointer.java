@@ -68,7 +68,7 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
     }
 
     public boolean setCursor(int serial, Surface surface, int x, int y) {
-        ByteBuffer b = newBuffer(24, RQ_SET_CURSOR);
+        ByteBuffer b = newBuffer(16, RQ_SET_CURSOR);
         b.putInt(serial);
         b.putInt(surface.getID());
         b.putInt(x);
@@ -77,7 +77,7 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
         return _display.write(b);
     }
     public boolean release() {
-        ByteBuffer b = newBuffer(8, RQ_RELEASE);
+        ByteBuffer b = newBuffer(0, RQ_RELEASE);
         log(false, "release");
         return _display.write(b);
     }

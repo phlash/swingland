@@ -47,12 +47,12 @@ public class Surface extends WaylandObject<Surface.Listener> {
         return rv;
     }
     public boolean destroy() {
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         log(false, "destroy");
         return _display.write(b);
     }
     public boolean attach(Buffer buf, int x, int y) {
-        ByteBuffer b = newBuffer(20, RQ_ATTACH);
+        ByteBuffer b = newBuffer(12, RQ_ATTACH);
         b.putInt(buf!=null? buf.getID(): 0);
         b.putInt(x);
         b.putInt(y);
@@ -61,7 +61,7 @@ public class Surface extends WaylandObject<Surface.Listener> {
         return _display.write(b);
     }
     public boolean damage(int x, int y, int w, int h) {
-        ByteBuffer b = newBuffer(24, RQ_DAMAGE);
+        ByteBuffer b = newBuffer(16, RQ_DAMAGE);
         b.putInt(x);
         b.putInt(y);
         b.putInt(w);
@@ -70,42 +70,42 @@ public class Surface extends WaylandObject<Surface.Listener> {
         return _display.write(b);
     }
     public boolean frame(Callback cb) {
-        ByteBuffer b = newBuffer(12, RQ_FRAME);
+        ByteBuffer b = newBuffer(4, RQ_FRAME);
         b.putInt(cb.getID());
         log(false, "frame->"+cb.getID());
         return _display.write(b);
     }
     public boolean setOpaqueRegion(Region r) {
-        ByteBuffer b = newBuffer(12, RQ_SET_OPAQUE_REGION);
+        ByteBuffer b = newBuffer(4, RQ_SET_OPAQUE_REGION);
         b.putInt(r.getID());
         log(false, "setOpaqueRegion<-"+r.getID());
         return _display.write(b);
     }
     public boolean setInputRegion(Region r) {
-        ByteBuffer b = newBuffer(12, RQ_SET_INPUT_REGION);
+        ByteBuffer b = newBuffer(4, RQ_SET_INPUT_REGION);
         b.putInt(r.getID());
         log(false, "setInputRegion<-"+r.getID());
         return _display.write(b);
     }
     public boolean commit() {
-        ByteBuffer b = newBuffer(8, RQ_COMMIT);
+        ByteBuffer b = newBuffer(0, RQ_COMMIT);
         log(false, "commit");
         return _display.write(b);
     }
     public boolean setBufferTransform(int tr) {
-        ByteBuffer b = newBuffer(12, RQ_SET_BUFFER_TRANSFORM);
+        ByteBuffer b = newBuffer(4, RQ_SET_BUFFER_TRANSFORM);
         b.putInt(tr);
         log(false, "setBufferTransform:"+tr);
         return _display.write(b);
     }
     public boolean setBufferScale(int sc) {
-        ByteBuffer b = newBuffer(12, RQ_SET_BUFFER_SCALE);
+        ByteBuffer b = newBuffer(4, RQ_SET_BUFFER_SCALE);
         b.putInt(sc);
         log(false, "setBufferScale:"+sc);
         return _display.write(b);
     }
     public boolean damageBuffer(int x, int y, int w, int h) {
-        ByteBuffer b = newBuffer(24, RQ_DAMAGE_BUFFER);
+        ByteBuffer b = newBuffer(16, RQ_DAMAGE_BUFFER);
         b.putInt(x);
         b.putInt(y);
         b.putInt(w);

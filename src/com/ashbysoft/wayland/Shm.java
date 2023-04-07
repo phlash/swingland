@@ -26,7 +26,7 @@ public class Shm extends WaylandObject<Shm.Listener> {
 
     public ShmPool createPool(int sz) {
         ShmPool p = new ShmPool(_display, sz);
-        ByteBuffer b = newBuffer(16, RQ_CREATE_POOL);
+        ByteBuffer b = newBuffer(8, RQ_CREATE_POOL);
         b.putInt(p.getID());
         b.putInt(sz);
         log(false, "createPool->"+p.getID()+":sz="+sz);

@@ -30,7 +30,7 @@ public class Buffer extends WaylandObject<Buffer.Listener> {
     public boolean isBusy() { return _busy; }
 
     public boolean destroy() {
-        ByteBuffer b = newBuffer(8, RQ_DESTROY);
+        ByteBuffer b = newBuffer(0, RQ_DESTROY);
         log(false, "destroy");
         return _display.write(b);
     }
