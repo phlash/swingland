@@ -3,7 +3,7 @@ package com.ashbysoft.test;
 import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
 
-public class Swingland extends JComponent implements ActionListener {
+public class Swingland extends JComponent implements ActionListener, Runnable {
     private JFrame _frame;
 	private Dialog _dialog;
 	private Border _border;
@@ -12,6 +12,10 @@ public class Swingland extends JComponent implements ActionListener {
 	private int _b = 0;
 
     public void run(String[] args) {
+		SwingUtilities.invokeLater(this);
+	}
+	public void run() {
+		_log.info("-->run()");
         // Create a top level frame and put ourselves in it.
         _frame = new JFrame("Swingland lives!");
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -21,6 +25,7 @@ public class Swingland extends JComponent implements ActionListener {
 		_frame.add(this);
 		_frame.setVisible(true);
 		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
+		_log.info("<--run()");
     }
 
 	public void processEvent(AbstractEvent e) {

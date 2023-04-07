@@ -5,7 +5,26 @@ import java.util.HashMap;
 import java.io.InputStream;
 import java.io.IOException;
 
-// Lazy loaded fonts - currently just fixed size bitmap fonts from internal resources
+/*
+ * Bitmap fonts - lazy loaded, also used to hold cursor themes.
+ * File format (offset and size in bytes):
+ * +----------------------------------------------------------+
+ * | offset |  size  |  name  | description                   |
+ * +----------------------------------------------------------+
+ * |      0 |      1 | gwidth | glyph width in pixels/bits    |
+ * |      1 |      1 | gheight| glyph height in pixels/bits   |
+ * |      2 |      1 | gbase  | glyph baseline (pixels up)    |
+ * |      3 |      1 | glead  | glyph leading (pixels apart)  |
+ * |      4 |      4 | goffset| unicode offset of first glyph |
+ * |      8 |      4 | gcount | count of glyphs in file       |
+ * |     12 |      4 |gmissing| codepoint for missing glyphs  |
+ * |     16 |see down|dataSize| glyph bitmaps, byte aligned   |
+ * +----------------------------------------------------------+
+ * each glyph occupies a whole number of bytes, calculated as:
+ * bytesPerGlyph = (gwidth * gheight + 7) / 8;
+ * dataSize in the table above is calculate as:
+ * dataSize = bytesPerGlyph * gcount;
+ */
 public class Font implements FontMetrics {
     public static final String FONT_PATH = "/fonts/";
     public static final String MONOSPACED = "MONOSPACED";
@@ -25,7 +44,11 @@ public class Font implements FontMetrics {
 
     protected Font(String name) { _name = name; }
     public String getFontName() { return _name; }
-    public int getMissingGlyphCode() { return _missing; }
+    public int getMissingGlyphCode() {
+        if (!ensureLoaded())
+            return -1;
+        return _missing;
+    }
     public boolean canDisplay(char c) {
         return canDisplay((int)c);
     }
@@ -36,51 +59,64 @@ public class Font implements FontMetrics {
             return true;
         return false;
     }
+    public String toString() { return "Font("+_name+")"; }
+
     // package-private bitmap renderer, not the formal scalable fonts API in the JDK..which is *huge*
     void renderString(Graphics g, String s, int x, int y) {
+        if (!ensureLoaded())
+            return;
         int cx = 0;
         for (int i = 0; i < s.length(); i += 1) {
-            int cp = s.codePointAt(i);
-            if (!canDisplay(cp))
-                cp = getMissingGlyphCode();
-            cp -= _offset;
-            int o = cp * _glyphBytes;
-            int p = 7;
-            for (int gy = 0; gy < _height; gy += 1) {
-                for (int gx = 0; gx < _width; gx += 1) {
-                    if ((_buffer[o] & (1 << p)) != 0)
-                        g.setPixel(x+gx+cx, y+gy-_height);
-                    p -= 1;
-                    if (p < 0) {
-                        p = 7;
-                        o += 1;
-                    }
+            renderCodePoint(g, s.codePointAt(i), x+cx, y);
+            cx += _width;
+        }
+    }
+    void renderCodePoint(Graphics g, int cp, int x, int y) {
+        if (!ensureLoaded())
+            return;
+        if (!canDisplay(cp))
+            cp = getMissingGlyphCode();
+        cp -= _offset;
+        int o = cp * _glyphBytes;
+        int p = 7;
+        for (int gy = 0; gy < _height; gy += 1) {
+            for (int gx = 0; gx < _width; gx += 1) {
+                if ((_buffer[o] & (1 << p)) != 0)
+                    g.setPixel(x+gx, y+gy-_height);
+                p -= 1;
+                if (p < 0) {
+                    p = 7;
+                    o += 1;
                 }
             }
-            cx += _width;
         }
     }
 
     // FontMetrics API
     // NB: getAscent()+getDescent()+getLeading() == getHeight()
-    public FontMetrics getFontMetrics() { return this; }
+    public FontMetrics getFontMetrics() {
+        if (!ensureLoaded())
+            return null;
+        return this;
+    }
     public Font getFont() { return this; }
     public int getAscent() { return _height - _leading - _baseline; }
     public int getDescent() { return _baseline; }
     public int getHeight() { return _height; }
     public int getLeading() { return _leading; }
     public int stringWidth(String s) { return s.length() * _width; }
+    public int charWidth(int c) { return _width; }
 
     // Lazy loader
     private synchronized boolean ensureLoaded() {
         if (_buffer != null)
             return true;
-        try (InputStream in = getClass().getResourceAsStream(FONT_PATH + _name)) {
-            // font header is four bytes, specifying: glyph dimensions (w x h), ASCII offset and glyph count (0=256)
+        String fullPath = _name.startsWith("/") ? _name : FONT_PATH + _name;
+        try (InputStream in = getClass().getResourceAsStream(fullPath)) {
+            // see above for header definition
             byte[] hdr = new byte[16];
             if (in.read(hdr) != 16)
                 throw new IOException("font resource < 16 bytes");
-            // font data is prefixed with a header containing..
             int gw = (int)hdr[0] & 0xff;    // glyph width
             int gh = (int)hdr[1] & 0xff;    // glyph height
             int gb = (int)hdr[2] & 0xff;    // glyph baseline position
@@ -92,7 +128,7 @@ public class Font implements FontMetrics {
             // missing glyph code (unicode value)
             int mg = ((int)hdr[12] & 0xff) | (((int)hdr[13] & 0xff) << 8) | (((int)hdr[14] & 0xff) << 16) | (((int)hdr[15] & 0xff) << 24);
             // calculate byte size of a glyph, and load them into buffer
-            int bpg = (gw * gh) / 8;
+            int bpg = (gw*gh+7) / 8;
             byte[] buf = new byte[bpg * gc];
             if (in.read(buf) != (bpg * gc))
                 throw new IOException("font resource shorter than declared size: ("+gw+"x"+gh+"x"+gc+")");

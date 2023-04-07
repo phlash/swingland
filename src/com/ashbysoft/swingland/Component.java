@@ -19,6 +19,8 @@ public abstract class Component {
     private boolean _visible;
     private Color _background;
     private Color _foreground;
+    private Font _font;
+    private Cursor _cursor;
     private ArrayList<KeyListener> _keyListeners;
     private ArrayList<MouseInputListener> _mouseListeners;
     private ArrayList<Integer> _mouseButtons;
@@ -28,6 +30,7 @@ public abstract class Component {
     protected Component() {
         _name = getClass().getSimpleName()+"@"+hashCode();
         _log = new Logger("["+_name+"]:");
+        _log.info("Component:<init>()");
         _visible = true;
         _valid = false;
         _background = Color.GRAY;
@@ -40,42 +43,88 @@ public abstract class Component {
     public Container getParent() { return _parent; }
     // package-private method for Container.addImpl use
     void setParent(Container p) {
-        _log.info("setParent("+(p!=null?p.getName():"null")+")");
+        _log.info("Component:setParent("+(p!=null?p.getName():"null")+")");
         _parent = p;
         invalidate();
     }
-    // just-enough-to-compile methods..
+    // are we visible (provided all parent objects are visible)?
     public boolean isVisible() { return _visible; }
     public void setVisible(boolean v) {
-        _log.info("setVisible("+v+")");
+        _log.info("Component:setVisible("+v+")");
         _visible = v;
     }
-
+    // what's this instance called (mostly affects logging)?
     public String getName() { return _name; }
     public void setName(String n) {
-        _log.info("setName("+n+")");
+        _log.info("Component:setName("+n+")");
+        _log.setPfx(n);
         _name = n;
     }
-    public Color getBackground() { return _background; }
-    public Color getForeground() { return _foreground; }
-    public void setBackground(Color c) { _background = c; }
-    public void setForeground(Color c) { _foreground = c; }
+    // all renderable components have basic colours, a font, a cursor.. or their parent might!
+    public Color getBackground() {
+        if (_background != null)
+            return _background;
+        Container p = getParent();
+        if (p != null)
+            return p.getBackground();
+        return null;
+    }
+    public Color getForeground() {
+        if (_foreground != null)
+            return _foreground;
+        Container p = getParent();
+        if (p != null)
+            return p.getForeground();
+        return null;
+    }
+    public Font getFont() {
+        if (_font != null)
+            return _font;
+        Container p = getParent();
+        if (p != null)
+            return p.getFont();
+        return null;
+    }
+    public Cursor getCursor() {
+        if (_cursor != null)
+            return _cursor;
+        Container p = getParent();
+        if (p != null)
+            return p.getCursor();
+        return null;
+    }
+    public void setBackground(Color c) {
+        _log.info("Component:setBackground("+c+")");
+        _background = c;
+    }
+    public void setForeground(Color c) {
+        _log.info("Component:setForeground("+c+")");
+        _foreground = c;
+    }
+    public void setFont(Font f) {
+        _log.info("Component:setFont("+f+")");
+        _font = f;
+    }
+    public void setCursor(Cursor c) {
+        _log.info("Component:setCursor("+c+")");
+        _cursor = c;
+    }
 
     public Dimension getPreferredSize() { return _prefSize != null ? _prefSize : _parent != null ? _parent.getSize() : getMinimumSize(); }
     public Dimension getMinimumSize() { return _minSize != null ? _minSize : new Dimension(_width, _height); }
     public Dimension getMaximumSize() { return _maxSize != null ? _maxSize : new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
     public void setPreferredSize(Dimension d) {
-        _log.info("setPreferredSize("+d+")");
+        _log.info("Component:setPreferredSize("+d+")");
         _prefSize = d;
         invalidate();
     }
     public void setMinimumSize(Dimension d) {
-        _log.info("setMinimumSize("+d+")");
+        _log.info("Component:setMinimumSize("+d+")");
         _minSize = d;
         invalidate();
     }
     public void setMaximumSize(Dimension d) {
-        _log.info("setMaximumSize("+d+")");
+        _log.info("Component:setMaximumSize("+d+")");
         _maxSize = d;
         invalidate();
     }
@@ -83,24 +132,24 @@ public abstract class Component {
     public int getY() { return _yrel; }
     public int getWidth() { return _width; }
     public int getHeight() { return _height; }
-    public Dimension getSize() { return new Dimension(_width,_height); }
+    public Dimension getSize() { return new Dimension(_width, _height); }
     public Point getLocation() { return new Point(_xrel, _yrel); }
     public Rectangle getBounds() { return new Rectangle(_xrel, _yrel, _width, _height); }
     public void setSize(int w, int h) {
-        _log.info("setSize("+w+","+h+")");
+        _log.info("Component:setSize("+w+","+h+")");
         _width = w; _height = h;
         invalidate();
     }
-    public void setSize(Dimension d) { setSize((int)d.getWidth(), (int)d.getHeight()); }
+    public void setSize(Dimension d) { setSize(d._w, d._h); }
     public void setLocation(int x, int y) {
-        _log.info("setLocation("+x+","+y+")");
+        _log.info("Component:setLocation("+x+","+y+")");
         _xrel = x;
         _yrel = y;
         invalidate();
     }
     public void setLocation(Point p) { setLocation(p._x, p._y); }
     public void setBounds(int x, int y, int w, int h) {
-        _log.info("setBounds("+x+","+y+","+w+","+h+")");
+        _log.info("Component:setBounds("+x+","+y+","+w+","+h+")");
         _xrel = x;
         _yrel = y;
         _width = w;
@@ -126,7 +175,7 @@ public abstract class Component {
         if (!_valid)
             return;
         // if we are part of a component tree, invalidate upwards
-        _log.info("invalidate()");
+        _log.info("Component:invalidate()");
         Component p = getParent();
         if (p!=null)
             p.invalidate();
@@ -136,27 +185,27 @@ public abstract class Component {
     public void validate() {
         // if we were invalid, simply mark ourselves as valid
         if (!_valid) {
-            _log.info("validate()");
+            _log.info("Component:validate()");
             _valid = true;
         }
     }
     public void addKeyListener(KeyListener l) {
-        _log.info("addKeyListener("+l.getClass().getSimpleName()+")");
+        _log.info("Component:addKeyListener("+l.getClass().getSimpleName()+")");
         if (!_keyListeners.contains(l))
             _keyListeners.add(l);
     }
     public void removeKeyListener(KeyListener l) {
-        _log.info("removeKeyListener("+l.getClass().getSimpleName()+")");
+        _log.info("Component:removeKeyListener("+l.getClass().getSimpleName()+")");
         if (_keyListeners.contains(l))
             _keyListeners.remove(l);
     }
     public void addMouseInputListener(MouseInputListener l) {
-        _log.info("addMouseInputListener("+l.getClass().getSimpleName()+")");
+        _log.info("Component:addMouseInputListener("+l.getClass().getSimpleName()+")");
         if (!_mouseListeners.contains(l))
             _mouseListeners.add(l);
     }
     public void removeMouseInputListener(MouseInputListener l) {
-        _log.info("removeMouseInputListener("+l.getClass().getSimpleName()+")");
+        _log.info("Component:removeMouseInputListener("+l.getClass().getSimpleName()+")");
         if (_mouseListeners.contains(l))
             _mouseListeners.remove(l);
     }
@@ -166,7 +215,7 @@ public abstract class Component {
         dispatchEventImpl(e);
     }
     private void dispatchEventImpl(AbstractEvent e) {
-        _log.info("Component:dispatch:"+e.toString());
+        _log.info("Component:dispatchEvent:"+e.toString());
         // dispatch to any listeners, so they can consume the event, before any local processing
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
@@ -182,9 +231,9 @@ public abstract class Component {
                 else
                     l.keyTyped(k);
             }
-            // pass back event internal state
+            // copy out internal state for caller
             e.copyState(k);
-            // now use local event for local processing
+            // now use dispatched/modified event for local processing
             e = k;
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
@@ -206,6 +255,8 @@ public abstract class Component {
                     dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
                     // mark the event object to prevent further synthesis
                     m.setCanSynthesize(false);
+                    // update the cursor if required
+                    drawCursor(this);
                 }
             }
             for (MouseInputListener l : _mouseListeners) {
@@ -236,9 +287,9 @@ public abstract class Component {
                 _mouseButtons.clear();
                 _seenMouse = false;
             }
-            // copy back event internal state
+            // copy out internal state for caller
             e.copyState(m);
-            // now use local event for processing
+            // now use dispatched/modified event for processing
             e = m;
         }
         // unless consumed, process locally
@@ -251,10 +302,17 @@ public abstract class Component {
     // Request a repaint later
     public void repaint() {
         // delegate to container by default
-        Component p = getParent();
+        Container p = getParent();
         if (p != null)
             p.repaint();
     }
     // Do the painting thing
     public void paint(Graphics g) {}
+
+    // Package-private cursor update
+    void drawCursor(Component src) {
+        Container p = getParent();
+        if (p != null)
+            p.drawCursor(src);
+    }
 }

@@ -13,14 +13,14 @@ public class Graphics {
     private Color _color;
     private Font _font;
 
-    Graphics(ByteBuffer b, int w, int h) {
+    Graphics(ByteBuffer b, int w, int h, Color c, Font f) {
         _log.info("<init>:b="+b.toString()+" w="+w+" h="+h);
         _buffer = b;
         _width = w;
         _height = h;
         _bounds = new Rectangle(0, 0, _width, _height);
-        _color = Color.MAGENTA;
-        _font = Font.getFont(Font.MONOSPACED);
+        _color = c != null ? c : Color.MAGENTA;
+        _font = f != null ? f : Font.getFont(Font.MONOSPACED);
     }
     public Rectangle getBounds() { return _bounds; }
     public void setBounds(Rectangle r) {

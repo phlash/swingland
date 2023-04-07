@@ -4,6 +4,8 @@ public class Logger {
     private static final Output _out = new Output();
     private String _pfx;
     public Logger(String pfx) { _pfx = pfx; }
+    public String getPfx() { return _pfx; }
+    public void setPfx(String pfx) { _pfx = pfx; }
     public void log(int level, String msg) {
         _out.write(level, _pfx, msg);
     }

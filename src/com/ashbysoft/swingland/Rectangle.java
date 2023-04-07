@@ -11,4 +11,5 @@ public class Rectangle {
         _w = w;
         _h = h;
     }
+    public String toString() { return "Rect("+_x+","+_y+","+_w+","+_h+")"; }
 }

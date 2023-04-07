@@ -18,13 +18,14 @@ public class JComponent extends Container {
     public void paint(Graphics g) {
         if (!isVisible())
             return;
-        _log.info("JComponent:paint");
+        _log.info("JComponent:paint()");
         paintComponent(g);
         paintBorder(g);
         paintChildren(g);
     }
     protected void paintBorder(Graphics g) {
         if (_border != null) {
+            _log.info("JComponent:paintBorder()");
             Rectangle bounds = getBounds();
             _border.paintBorder(this, g, bounds._x, bounds._y, bounds._w, bounds._h);
         }

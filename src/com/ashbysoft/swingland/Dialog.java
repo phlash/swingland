@@ -11,7 +11,7 @@ public class Dialog extends Window {
     public Dialog(Window owner, String title) { this(owner, title, false); }
     public Dialog(Window owner, String title, boolean modal) {
         super(owner);
-        _log.info("<init>("+owner.getName()+",'"+title+"',"+modal+")");
+        _log.info("Dialog:<init>("+owner.getName()+",'"+title+"',"+modal+")");
         setVisible(false);
         setTitle(title);
         setModal(modal);
@@ -20,11 +20,18 @@ public class Dialog extends Window {
     public String getTitle() { return super.getTitle(); }
     public void setTitle(String title) { super.setTitle(title); }
     public boolean isModal() { return _modal; }
-    public void setModal(boolean modal) { _modal = modal; }     // XXX:TODO: work out how to pass down to Wayland grab call.
+    public void setModal(boolean modal) {     // XXX:TODO: work out how to pass down to Wayland grab call.
+        _log.info("Dialog:setModal("+modal+")");
+        _modal = modal;
+    }
     public boolean isResizable() { return _resizable; }
-    public void setResizable(boolean resizable) { _resizable = resizable; }
+    public void setResizable(boolean resizable) {
+        _log.info("Dialog:setResizeable("+resizable+")");
+        _resizable = resizable;
+    }
     public boolean isUndecorated() { return _undecorated; }
     public void setUndecorated(boolean undecorated) {
+        _log.info("Dialog:setUndecorated("+undecorated+")");
         _undecorated = undecorated;
         if (undecorated)
             setInsets(null);
@@ -35,6 +42,7 @@ public class Dialog extends Window {
     public void paint(Graphics g) {
         if (!isVisible())
             return;
+        _log.info("Dialog:paint()");
         // paint our background, border (unless undecorated) then delegate to Window/Container
         g.setColor(getBackground());
         g.fillRect(0, 0, getWidth(), getHeight());

@@ -12,6 +12,7 @@ public class Container extends Component {
     private Dimension _cacheMinSize;
     private Dimension _cacheMaxSize;
     public Container() {
+        _log.info("Container:<init>()");
         _components = new ArrayList<Component>();
         _layoutManager = new BorderLayout();
         _focus = -1;
@@ -26,7 +27,7 @@ public class Container extends Component {
     public Component add(String n, Component c) { addImpl(c, n, -1); return c; }
     protected void addImpl(Component c, Object s, int i) {
         // cannot add an ancestor, it would create a loop in the hierarchy!
-        _log.info("add("+c.getName()+","+s+","+i+")");
+        _log.info("Container:add("+c.getName()+","+s+","+i+")");
         if (isAncestor(c))
             throw new IllegalArgumentException("Attempt to add an ancestor component to a container");
         // remove from elsewhere
@@ -58,7 +59,7 @@ public class Container extends Component {
         return false;
     }
     public void remove(int i) {
-        _log.info("remove("+i+")");
+        _log.info("Container:remove("+i+")");
         // remove from component list
         Component c = _components.remove(i);
         // notify layout manager
@@ -72,7 +73,7 @@ public class Container extends Component {
     public void remove(Component c) {
         if (null==c)
             return;
-        _log.info("remove("+c.getName()+")");
+        _log.info("Container:remove("+c.getName()+")");
         int i = _components.indexOf(c);
         if (i >= 0)
             remove(i);
@@ -80,7 +81,7 @@ public class Container extends Component {
     public LayoutManager getLayout() { return _layoutManager; }
     public void setLayout(LayoutManager lm) {
         assert(lm != null);
-        _log.info("setLayout("+lm.getClass().getSimpleName()+")");
+        _log.info("Container:setLayout("+lm.getClass().getSimpleName()+")");
         _layoutManager = lm;
         invalidate();
     }
@@ -90,7 +91,7 @@ public class Container extends Component {
         return _insets;
     }
     protected void setInsets(Insets i) {
-        _log.info("setInsets("+i+")");
+        _log.info("Container:setInsets("+i+")");
         _insets = i;
         invalidate();
     }
@@ -111,6 +112,7 @@ public class Container extends Component {
     }
     public int getFocus() { return _focus; }
     public void setFocus(int i) {
+        _log.info("Container:setFocus("+i+")");
         if (i >= 0 && i < getComponentCount())
             _focus = i;
     }
@@ -156,6 +158,7 @@ public class Container extends Component {
         // ignore if we are already invalid
         if (!isValid())
             return;
+        _log.info("Container:invalidate()");
         // invalidate out layout
         if (_layoutManager instanceof LayoutManager2)
             ((LayoutManager2)_layoutManager).invalidateLayout(this);
@@ -169,13 +172,14 @@ public class Container extends Component {
     public void validate() {
         // if we are not valid, validate down the component tree
         if (!isValid()) {
+            _log.info("Container:validate()");
             validateTree();
             // now invoke component behaviour
             super.validate();
         }
     }
     protected void validateTree() {
-        _log.info("validateTree()");
+        _log.info("Container:validateTree()");
         // layout our components first..
         _layoutManager.layoutContainer(this);
         // validate component tree
@@ -185,13 +189,13 @@ public class Container extends Component {
     }
 
     public void dispatchEvent(AbstractEvent e) {
-        _log.info("Container:dispatch:"+e.toString());
+        _log.info("Container:dispatchEvent("+e.toString()+")");
         // KeyEvents go to the currently focused component (if any)
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
             Component c = getFocusComponent();
             if (c != null) {
-                _log.info("Container:focus="+c.getName());
+                _log.info("-KeyEvent:focus="+c.getName());
                 c.dispatchEvent(k);
             }
         // MouseEvents go to current component under pointer (if any)
@@ -199,6 +203,7 @@ public class Container extends Component {
             MouseEvent m = (MouseEvent)e;
             Component c = getComponentAt(m.getX(), m.getY());
             if (c != null) {
+                _log.info("-MouseEvent:component="+c.getName());
                 // translate event co-ordinates to target component
                 Rectangle b = c.getBounds();
                 int ex = m.getX() - b._x;
@@ -219,7 +224,7 @@ public class Container extends Component {
         if (!isVisible())
             return;
         // iterate them components!
-        _log.info("Container:paint");
+        _log.info("Container:paint()");
         for (Component c: _components) {
             g.setBounds(c.getBounds());
             c.paint(g);

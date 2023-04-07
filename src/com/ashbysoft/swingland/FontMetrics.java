@@ -7,4 +7,5 @@ public interface FontMetrics {
     int getHeight();
     int getLeading();
     int stringWidth(String s);
+    int charWidth(int c);
 }

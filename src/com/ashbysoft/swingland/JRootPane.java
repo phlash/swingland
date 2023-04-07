@@ -124,7 +124,7 @@ public class JRootPane extends JComponent {
         );
     }
     protected void paintChildren(Graphics g) {
-        _log.info("JRootPane:paint");
+        _log.info("JRootPane:paintChildren()");
         Rectangle r = g.getBounds();
         g.setBounds(offset(r, _contentPane.getBounds()));
         _contentPane.paint(g);

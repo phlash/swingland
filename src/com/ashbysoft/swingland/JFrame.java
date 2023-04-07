@@ -9,7 +9,7 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
     public JFrame() { this(""); }
     public JFrame(String title) {
         super(title);
-        _log.info("<init>("+title+")");
+        _log.info("JFrame:<init>("+title+")");
         this._transferHandler = new TransferHandler();
         _defaultCloseOperation = DO_NOTHING_ON_CLOSE;
         _rootPane = createRootPane();

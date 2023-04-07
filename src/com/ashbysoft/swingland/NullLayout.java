@@ -7,7 +7,7 @@ public class NullLayout implements LayoutManager2 {
     // LayoutManager
     public void addLayoutComponent(String name, Component c) {}
     public void layoutContainer(Container parent) {
-        _log.info("layoutContainer("+parent.getName()+")");
+        _log.info("NullLayout:layoutContainer("+parent.getName()+")");
     }
     public Dimension minimumLayoutSize(Container parent) { return new Dimension(0,0); }
     public Dimension preferredLayoutSize(Container parent) { return minimumLayoutSize(parent); }

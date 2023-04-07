@@ -7,4 +7,5 @@ public class Point {
         _x = x;
         _y = y;
     }
+    public String toString() { return "Point("+_x+","+_y+")"; }
 }

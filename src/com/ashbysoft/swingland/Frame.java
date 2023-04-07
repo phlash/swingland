@@ -6,22 +6,26 @@ public class Frame extends Window {
     private boolean _undecorated;
     public Frame() { this(""); }
     public Frame(String title) {
+        _log.info("Frame:<init>("+title+")");
         setVisible(false);
         setTitle(title);
         setUndecorated(false);
     }
     public Frame(Window owner, String title) {
         super(owner);
+        _log.info("Frame:<init>("+owner.getName()+","+title+")");
         setVisible(false);
         setTitle(title);
         setUndecorated(false);
     }
     public String getTitle() { return super.getTitle(); }
     public void setTitle(String title) {
+        _log.info("Frame:setTitle("+title+")");
         super.setTitle(title);
     }
     public boolean isUndecorated() { return _undecorated; }
     public void setUndecorated(boolean undecorated) {
+        _log.info("Frame:setUndecorated("+undecorated+")");
         _undecorated = undecorated;
         if (undecorated)
             setInsets(null);
@@ -32,6 +36,7 @@ public class Frame extends Window {
     public void paint(Graphics g) {
         if (!isVisible())
             return;
+        _log.info("Frame:paint()");
         // paint our background, decoration (if required) then delegate to Window/Container
         g.setColor(getBackground());
         g.fillRect(0, 0, getWidth(), getHeight());
