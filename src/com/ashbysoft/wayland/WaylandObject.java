@@ -58,8 +58,8 @@ public abstract class WaylandObject<T> extends WaylandBase {
         byte[] r = getArray(b);
         // clean up trailing NUL if present
         if (0 == r[r.length-1])
-            return new String(r, 0, r.length-1);
-        return new String(r);
+            return new String(r, 0, r.length-1, StandardCharsets.UTF_8);
+        return new String(r, StandardCharsets.UTF_8);
     }
     // Pads to 32 bit boundary 
     // https://wayland-book.com/protocol-design/wire-protocol.html
@@ -82,7 +82,7 @@ public abstract class WaylandObject<T> extends WaylandBase {
     // which is the format required by wayland
     // https://wayland-book.com/protocol-design/wire-protocol.html
     // https://github.com/phlash/swingland/issues/1
-    public int strLen(String s) {
+    public int strlen(String s) {
         return arrlen(s.getBytes(StandardCharsets.UTF_8).length + 1);
     }
     public void putString(ByteBuffer b, String s) {

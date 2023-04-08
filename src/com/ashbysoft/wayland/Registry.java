@@ -35,7 +35,7 @@ public class Registry extends WaylandObject<Registry.Listener> {
     }
 
     public boolean bind(int name, String iface, int version, WaylandBase obj) {
-        ByteBuffer b = newBuffer(12+strLen(iface), RQ_BIND);
+        ByteBuffer b = newBuffer(12+strlen(iface), RQ_BIND);
         b.putInt(name);
         // https://www.mail-archive.com/wayland-devel@lists.freedesktop.org/msg40960.html
         putString(b, iface);

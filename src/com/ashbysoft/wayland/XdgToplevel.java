@@ -63,13 +63,13 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
         return _display.write(b);
     }
     public boolean setTitle(String title) {
-        ByteBuffer b = newBuffer(strLen(title), RQ_SET_TITLE);
+        ByteBuffer b = newBuffer(strlen(title), RQ_SET_TITLE);
         putString(b, title);
         log(false, "setTitle:"+title);
         return _display.write(b);
     }
     public boolean setAppID(String app) {
-        ByteBuffer b = newBuffer(strLen(app), RQ_SET_APP_ID);
+        ByteBuffer b = newBuffer(strlen(app), RQ_SET_APP_ID);
         putString(b, app);
         log(false, "setAppID:"+app);
         return _display.write(b);
