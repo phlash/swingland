@@ -74,6 +74,7 @@ public class Font implements FontMetrics {
     void renderCodePoint(Graphics g, int cp, int x, int y) {
         if (!ensureLoaded())
             return;
+        _log.detail("renderCodePoint("+cp+"@"+x+"x"+y+")");
         if (!canDisplay(cp))
             cp = getMissingGlyphCode();
         cp -= _offset;

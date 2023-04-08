@@ -86,6 +86,7 @@ public abstract class Component {
         return null;
     }
     public Cursor getCursor() {
+        _log.info("Component:getCursor()");
         if (_cursor != null)
             return _cursor;
         Container p = getParent();
@@ -215,7 +216,7 @@ public abstract class Component {
         dispatchEventImpl(e);
     }
     private void dispatchEventImpl(AbstractEvent e) {
-        _log.info("Component:dispatchEvent:"+e.toString());
+        _log.info("Component:dispatchEvent(sm="+_seenMouse+"):"+e.toString());
         // dispatch to any listeners, so they can consume the event, before any local processing
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
@@ -242,23 +243,21 @@ public abstract class Component {
             // copy down event internal state
             m.copyState(e);
             // first mouse event? might need to synthesize MOUSE_ENTERED..
-            if (!_seenMouse) {
+            if (!_seenMouse && m.getCanSynthesize() && MouseEvent.MOUSE_ENTERED != m.getID() && MouseEvent.MOUSE_EXITED != m.getID()) {
                 _seenMouse = true;
-                // if we are processing an Enter/Exit, or the event has been marked, then someone else has done synthesis. we skip it.
-                if (MouseEvent.MOUSE_ENTERED != m.getID() && MouseEvent.MOUSE_EXITED != m.getID() && m.getCanSynthesize()) {
-                    // notify the previously entered Component that the mouse has left the building..
-                    if (s_lastEntered != null)
-                        s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
-                    // mark ourselves as the last notified Component
-                    s_lastEntered = this;
-                    // recursively notify ourselves of mouse entry
-                    dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
-                    // mark the event object to prevent further synthesis
-                    m.setCanSynthesize(false);
-                    // update the cursor if required
-                    drawCursor(this);
-                }
+                // notify the previously entered Component that the mouse has left the building..
+                if (s_lastEntered != null)
+                    s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                // mark ourselves as the last notified Component
+                s_lastEntered = this;
+                // recursively notify ourselves of mouse entry
+                dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                // update the cursor if required
+                drawCursor(this);
             }
+            // mark the event object to prevent further synthesis
+            m.setCanSynthesize(false);
+            // process the listeners
             for (MouseInputListener l : _mouseListeners) {
                 if (MouseEvent.MOUSE_MOVE == m.getID()) {
                     l.mouseMoved(m);

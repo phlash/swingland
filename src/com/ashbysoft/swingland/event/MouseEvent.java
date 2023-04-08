@@ -27,6 +27,6 @@ public class MouseEvent extends AbstractEvent {
     public int getButton() { return _button; }
     public int getState() { return _state; }
     public String toString() {
-        return pfxString()+",x="+_x+",y="+_y+".button="+_button+",state="+_state+")";
+        return pfxString()+",x="+_x+",y="+_y+",button="+_button+",state="+_state+")";
     }
 }

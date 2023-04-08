@@ -6,7 +6,6 @@ import com.ashbysoft.wayland.Registry;
 import com.ashbysoft.wayland.Compositor;
 import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
-import com.ashbysoft.wayland.Surface;
 import com.ashbysoft.wayland.Seat;
 import com.ashbysoft.wayland.Keyboard;
 import com.ashbysoft.wayland.Pointer;
@@ -179,8 +178,7 @@ class WaylandGlobals implements
         // we associate the cursor surface with the window surface here (needs serial)
         Window w = findWindow(_pointerWindow);
         if (w != null) {
-            Surface s = w.getCursorSurface();
-            _pointer.setCursor(serial, s, 0, 0);    // XXX:TODO: hotspot info
+            _pointer.setCursor(serial, w.getCursorSurface(), 0, 0);    // XXX:TODO: hotspot info
         }
         // dispatching the first pointer event will generate a MOUSE_ENTERED, which in turn will render the cursor on it's surface.
         return pointerMove(0, x, y);

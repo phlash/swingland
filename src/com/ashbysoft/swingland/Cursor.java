@@ -1,6 +1,9 @@
 package com.ashbysoft.swingland;
 
 public class Cursor {
+    public interface Resources {
+        void destroy();
+    }
     public static final int DEFAULT_CURSOR = 0;
     public static final int CROSSHAIR_CURSOR = 1;
     public static final int TEXT_CURSOR = 2;
@@ -24,6 +27,7 @@ public class Cursor {
     private int _type;
     private Font _font;
     protected String name;  // Yuk, but it's in the API
+    private Resources _res;
     public Cursor(int type) {
         _type = type;
         _font = Font.getFont(_defaultTheme);
@@ -51,13 +55,14 @@ public class Cursor {
     }
 
     // package-private render helpers
+    Resources getResources() { return _res; }
+    void setResources(Resources res) { _res = res; }
     Dimension getSize() {
-        FontMetrics fm = getFont().getFontMetrics();
+        FontMetrics fm = _font.getFontMetrics();
         return new Dimension(fm.charWidth(0), fm.getHeight());
     }
-    Font getFont() { return _font; }
-    Color getColor() { return Color.WHITE; }
     void drawCursor(Graphics g) {
-        getFont().renderCodePoint(g, _type, 0, 0);
+        g.setColor(Color.WHITE);
+        _font.renderCodePoint(g, _type, 0, _font.getFontMetrics().getHeight());
     }
 }

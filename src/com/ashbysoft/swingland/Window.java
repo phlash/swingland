@@ -32,9 +32,7 @@ public class Window extends Container implements
     private ShmPool _shmpool;
     private Buffer _buffer;
     private Surface _cursorSurface;
-    private int _cursorType;
-    private ShmPool _cursorPool;
-    private Buffer _cursorBuffer;
+    private int _lastCursor;
     // original size (if any), used during configure callback
     private int _origWidth;
     private int _origHeight;
@@ -68,7 +66,7 @@ public class Window extends Container implements
         setForeground(Color.BLACK);
         setFont(Font.getFont(Font.MONOSPACED));
         setCursor(Cursor.getDefaultCursor());
-        _cursorType = -1;
+        _lastCursor = -1;
     }
 
     // package-private UI thread callback to render things!
@@ -98,7 +96,7 @@ public class Window extends Container implements
             validate();
             paint(getGraphics());
             _surface.attach(_buffer, 0, 0);
-            _surface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            _surface.damageBuffer(0, 0, getWidth(), getHeight());
         }
         _surface.commit();
         _log.info("<--render()");
@@ -116,28 +114,46 @@ public class Window extends Container implements
     protected void drawCursor(Component src) {
         _log.info("Window:drawCursor("+src.getName()+")");
         Cursor c = src.getCursor();
+        _log.info("-c="+c.toString());
         // no cursor, or nothing changed
-        if (null == c || _cursorType == c.getType())
+        if (null == c || _lastCursor == c.getType())
             return;
-        // need a buffer or size changed?
         Dimension d = c.getSize();
-        int s = d._w * d._h * 4;
-        if (null == _cursorBuffer || s != _cursorBuffer.get().limit()) {
-            if (_cursorBuffer != null) {
-                _cursorBuffer.destroy();
-                if (_cursorPool != null)
-                    _cursorPool.destroy();
-            }
-            _cursorPool = _g.shm().createPool(s);
-            _cursorBuffer = _cursorPool.createBuffer(0, d._w, d._h, d._w * 4, 0);
+        ShmPool pool;
+        Buffer buffer;
+        // got old things?
+        Cursor.Resources res = c.getResources();
+        if (res != null && res instanceof CursorBuffer) {
+            pool = ((CursorBuffer)res)._pool;
+            buffer = ((CursorBuffer)res)._buffer;
+        } else {
+        // make new things..
+            pool = _g.shm().createPool(d._w * d._h * 4);
+            buffer = pool.createBuffer(0, d._w, d._h, d._w * 4, 0);
+            c.setResources(new CursorBuffer(pool, buffer));
         }
-        // draw it
-        c.drawCursor(new Graphics(_cursorBuffer.get(), d._w, d._h, c.getColor(), c.getFont()));
-        _cursorType = c.getType();
+        // draw the cursor
+        c.drawCursor(new Graphics(buffer.get(), d._w, d._h, null, null));
+        _lastCursor = c.getType();
         // push to Wayland
-        _cursorSurface.attach(_cursorBuffer, 0, 0);
-        _cursorSurface.damageBuffer(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        _cursorSurface.attach(buffer, 0, 0);
+        _cursorSurface.damageBuffer(0, 0, d._w, d._h);
         _cursorSurface.commit();
+    }
+    private class CursorBuffer implements Cursor.Resources {
+        private ShmPool _pool;
+        private Buffer _buffer;
+        public CursorBuffer(ShmPool pool, Buffer buffer) { _pool = pool; _buffer = buffer; }
+        public void destroy() {
+            if (_buffer != null) {
+                _buffer.destroy();
+                _buffer = null;
+            }
+            if (_pool != null) {
+                _pool.destroy();
+                _pool = null;
+            }
+        }
     }
     private void toWayland() {
         _log.info("toWayland()");
