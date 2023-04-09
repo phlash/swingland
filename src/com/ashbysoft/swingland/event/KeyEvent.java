@@ -124,6 +124,6 @@ public class KeyEvent extends AbstractEvent {
     public int getKeyCode() { return _code; }
     public char getKeyChar() { return _char; }
     public String toString() {
-        return pfxString()+",code="+_code+",char="+_char+")";
+        return pfxString()+",code="+_code+",char='"+_char+"')";
     }
 }

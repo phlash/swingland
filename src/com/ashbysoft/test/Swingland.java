@@ -37,26 +37,32 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 				return;
 			if (k.getKeyCode() == KeyEvent.VK_ESC) {
 				_log.info("disposing");
+				k.consume();
 				_frame.dispose();
 			} else if (k.getKeyCode() == KeyEvent.VK_D) {
 				_log.info("dialog");
+				k.consume();
 				toggleDialog();
 			} else if (k.getKeyCode() == KeyEvent.VK_B) {
 				_log.info("border");
+				k.consume();
 				if (getBorder() != null)
 					setBorder(null);
 				else
 					setBorder(_border);
 			} else if (k.getKeyCode() == KeyEvent.VK_R) {
+				k.consume();
 				if (_dialog != null)
 					_dialog.setLocation(0, 0);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
 			if (m.getID() == MouseEvent.MOUSE_MOVE) {
+				m.consume();
 				_x = m.getX();
 				_y = m.getY();
 			} else if (m.getID() == MouseEvent.MOUSE_BUTTON) {
+				m.consume();
 				_b = m.getButton();
 				repaint();
 			}
@@ -87,6 +93,8 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 
 	public void actionPerformed(ActionEvent a) {
 		_log.info("action!");
+		_dialog.dispose();
+		_dialog = null;
 	}
 
     public void paintComponent(Graphics g) {

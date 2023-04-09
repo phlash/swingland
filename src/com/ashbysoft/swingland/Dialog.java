@@ -22,11 +22,15 @@ public class Dialog extends Window {
     public boolean isModal() { return _modal; }
     public void setModal(boolean modal) {     // XXX:TODO: work out how to pass down to Wayland grab call.
         _log.info("Dialog:setModal("+modal+")");
+        if (isModal() == modal)
+            return;
         _modal = modal;
     }
     public boolean isResizable() { return _resizable; }
     public void setResizable(boolean resizable) {
         _log.info("Dialog:setResizeable("+resizable+")");
+        if (isResizable() == resizable)
+            return;
         _resizable = resizable;
     }
     public boolean isUndecorated() { return _undecorated; }

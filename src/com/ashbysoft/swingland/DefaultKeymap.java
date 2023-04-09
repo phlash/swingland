@@ -1,10 +1,12 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.logger.Logger;
 import com.ashbysoft.wayland.Keyboard;
 import com.ashbysoft.swingland.event.KeyEvent;
 import java.util.List;
 
 public class DefaultKeymap implements Keymap {
+    private Logger _log = new Logger("[DefaultKeymap]:");
     private List<Integer> _AtoZ = List.of(
         KeyEvent.VK_A, KeyEvent.VK_B, KeyEvent.VK_C, KeyEvent.VK_D, KeyEvent.VK_E, KeyEvent.VK_F,
         KeyEvent.VK_G, KeyEvent.VK_H, KeyEvent.VK_I, KeyEvent.VK_J, KeyEvent.VK_K, KeyEvent.VK_L,
@@ -46,6 +48,7 @@ public class DefaultKeymap implements Keymap {
         // keypad 0-9 can be affected by MOD_NUMLOCK
         // any other modifiers do NOT get mapped to typed events
 
+        _log.info("mapCode("+_keymods+"+"+keyCode+")");
         // holding Alt, AltGr or Super prevents typed events
         if ((_keymods & (Keyboard.MOD_ALT | Keyboard.MOD_ALTGR | Keyboard.MOD_SUPER)) != 0)
             return null;

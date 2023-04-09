@@ -12,9 +12,8 @@ public class JLabel extends JComponent {
     }
     public Dimension getPreferredSize() {
         Point p;
-        Graphics g = getGraphics();
-        if (g != null && _text.length() > 0) {
-            p = new Point(g.getFont().getFontMetrics().stringWidth(getText()), g.getFont().getFontMetrics().getHeight());
+        if (_text.length() > 0) {
+            p = new Point(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());
         } else {
             // not on screen yet or no text, default to smallish
             p = new Point(0,0);

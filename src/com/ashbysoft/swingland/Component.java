@@ -138,24 +138,30 @@ public abstract class Component {
     public Rectangle getBounds() { return new Rectangle(_xrel, _yrel, _width, _height); }
     public void setSize(int w, int h) {
         _log.info("Component:setSize("+w+","+h+")");
-        _width = w; _height = h;
-        invalidate();
+        if (getWidth() != w || getHeight() != h) {
+            _width = w; _height = h;
+            invalidate();
+        }
     }
     public void setSize(Dimension d) { setSize(d._w, d._h); }
     public void setLocation(int x, int y) {
         _log.info("Component:setLocation("+x+","+y+")");
-        _xrel = x;
-        _yrel = y;
-        invalidate();
+        if (getX() != x || getY() != y) {
+            _xrel = x;
+            _yrel = y;
+            invalidate();
+        }
     }
     public void setLocation(Point p) { setLocation(p._x, p._y); }
     public void setBounds(int x, int y, int w, int h) {
         _log.info("Component:setBounds("+x+","+y+","+w+","+h+")");
-        _xrel = x;
-        _yrel = y;
-        _width = w;
-        _height = h;
-        invalidate();
+        if (getX() != x || getY() != y || getWidth() != w || getHeight() != h) {
+            _xrel = x;
+            _yrel = y;
+            _width = w;
+            _height = h;
+            invalidate();
+        }
     }
     public boolean hasFocus() {
         Container p = getParent();
@@ -165,6 +171,7 @@ public abstract class Component {
     }
 
     protected Graphics getGraphics() {
+        _log.info("Component:getGraphics()");
         Container p = getParent();
         if (p != null)
             return p.getGraphics();
@@ -300,6 +307,7 @@ public abstract class Component {
 
     // Request a repaint later
     public void repaint() {
+        _log.info("Component:repaint()");
         // delegate to container by default
         Container p = getParent();
         if (p != null)
@@ -310,6 +318,7 @@ public abstract class Component {
 
     // Package-private cursor update
     void drawCursor(Component src) {
+        _log.info("Component:drawCursor("+src.getName()+")");
         Container p = getParent();
         if (p != null)
             p.drawCursor(src);

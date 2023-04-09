@@ -27,9 +27,8 @@ public class JButton extends JComponent {
     // set size based on text dimensions
     public Dimension getPreferredSize() {
         Point p;
-        Graphics g = getGraphics();
-        if (g != null && getText().length() > 0) {
-            p = new Point(g.getFont().getFontMetrics().stringWidth(getText()), g.getFont().getFontMetrics().getHeight());
+        if (getText().length() > 0) {
+            p = new Point(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());
         } else {
             // not on screen yet or no text, default to smallish
             p = new Point(0,0);
@@ -40,6 +39,7 @@ public class JButton extends JComponent {
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
     // process mouse events to show hover, click, release
     public void processEvent(AbstractEvent e) {
+        _log.info("Jbutton:processEvent("+e.toString()+")");
         if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             if (m.getID() == MouseEvent.MOUSE_ENTERED) {

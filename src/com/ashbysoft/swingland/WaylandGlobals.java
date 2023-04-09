@@ -84,9 +84,14 @@ class WaylandGlobals implements
     }
     public void unregister(int id) {
         _log.info("unregister("+id+")");
+        Window w;
         synchronized(_windows) {
-            _windows.remove(id);
+            w = _windows.remove(id);
         }
+        // remove any pending repaints
+        if (w != null)
+            _repaints.remove(w);
+        // XXX:TODO: remove any pending runnables...
     }
     private Window findWindow(int id) {
         synchronized(_windows) {
@@ -197,14 +202,19 @@ class WaylandGlobals implements
 
     // repaint request queue
     public void repaint(Window w) {
+        boolean add = false;
         synchronized(_repaints) {
             // coalesce repaints for the same window
-            if (!_repaints.contains(w))
+            if (!_repaints.contains(w)) {
                 _repaints.add(w);
+                add = true;
+            }
         }
+        _log.info("repaint("+w.getName()+")/"+add);
     }
     // general runnable queue
     public void queue(Runnable r) {
+        _log.info("queue("+r.toString()+")");
         synchronized(_runnables) {
             _runnables.add(r);
         }
@@ -221,23 +231,30 @@ class WaylandGlobals implements
             // priority order of work..
             // all pending Wayland events
             _display.dispatch();
+            boolean acted = false;
             // one repaint if one is waiting
             if (_repaints.size() > 0) {
                 Window w;
                 synchronized(_repaints) {
                     w = _repaints.remove();
                 }
-                if (w != null)
+                if (w != null) {
                     w.render();
+                    acted = true;
+                }
             // OR one runnable job if one is waiting
             } else if (_runnables.size() > 0) {
                 Runnable r;
                 synchronized(_runnables) {
                     r = _runnables.remove();
                 }
-                if (r != null)
+                if (r != null) {
                     r.run();
+                    acted = true;
+                }
             }
+            if (acted)
+                _log.info("-----------------------");
             // termination check
             int count;
             synchronized(_windows) {

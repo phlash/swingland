@@ -26,6 +26,8 @@ public class Frame extends Window {
     public boolean isUndecorated() { return _undecorated; }
     public void setUndecorated(boolean undecorated) {
         _log.info("Frame:setUndecorated("+undecorated+")");
+        if (isUndecorated() == undecorated)
+            return;
         _undecorated = undecorated;
         if (undecorated)
             setInsets(null);

@@ -23,6 +23,7 @@ public class Display extends WaylandObject<Display.Listener> {
     // synchronization lock for all network I/O
     private Object _lock;
     private Connection _conn;
+    private boolean _inDispatch;
     // object registry
     private Objects _objects;
     public Display() {
@@ -33,6 +34,7 @@ public class Display extends WaylandObject<Display.Listener> {
         // connect or die..
         _conn = new Connection(path);
         _lock = new Object();
+        _inDispatch = false;
         _objects = new Objects(this);
     }
     public void close() {
@@ -69,6 +71,11 @@ public class Display extends WaylandObject<Display.Listener> {
     public boolean roundtrip() {
         synchronized(_lock) {
             _log.detail("enter:roundtrip");
+            if (_inDispatch) {
+                _log.error("recursive dispatch detected:roundtrip=false");
+                return false;
+            }
+            _inDispatch = true;
             Callback cb = new Callback(this);
             sync(cb);
             boolean rv = false;
@@ -78,6 +85,7 @@ public class Display extends WaylandObject<Display.Listener> {
                     rv = true;
                 }
             }
+            _inDispatch = false;
             _log.detail("exit:roundtrip=true");
             return rv;
         }
@@ -88,11 +96,17 @@ public class Display extends WaylandObject<Display.Listener> {
         synchronized(_lock) {
             // read messages, dispatch to registered objects until none left
             _log.detail("dispatch:enter");
+            if (_inDispatch) {
+                _log.error("recursive dispatch detected:dispatch=false");
+                return false;
+            }
+            _inDispatch = true;
             boolean rv = true;
             while (_conn.available()) {
                 if (!dispatchOne())
                     rv = false;
             }
+            _inDispatch = false;
             _log.detail("dispatch:exit="+rv);
             return rv;
         }

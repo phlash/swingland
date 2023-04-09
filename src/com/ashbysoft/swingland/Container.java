@@ -159,7 +159,7 @@ public class Container extends Component {
         if (!isValid())
             return;
         _log.info("Container:invalidate()");
-        // invalidate out layout
+        // invalidate our layout
         if (_layoutManager instanceof LayoutManager2)
             ((LayoutManager2)_layoutManager).invalidateLayout(this);
         // drop cached sizes

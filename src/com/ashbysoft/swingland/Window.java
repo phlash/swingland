@@ -110,7 +110,7 @@ public class Window extends Container implements
         }
         return _cursorSurface;
     }
-    // 
+    // cursor rendering
     protected void drawCursor(Component src) {
         _log.info("Window:drawCursor("+src.getName()+")");
         Cursor c = src.getCursor();
@@ -174,6 +174,7 @@ public class Window extends Container implements
         _surface = new Surface(_g.display());
         _surface.addListener(this);
         _g.compositor().createSurface(_surface);
+        _g.register(_surface.getID(), this);
         _xdgSurface = new XdgSurface(_g.display());
         _xdgSurface.addListener(this);
         _g.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
@@ -198,13 +199,14 @@ public class Window extends Container implements
             }
         }
         _surface.commit();
-        _g.register(_surface.getID(), this);
-        _g.display().roundtrip();
-        repaint();
     }
     private void fromWayland() {
         _log.info("fromWayland()");
         // run away!
+        if (_cursorSurface != null) {
+            _cursorSurface.destroy();
+            _cursorSurface = null;
+        }
         if (_buffer != null) {
             _buffer.destroy();
             _buffer = null;
@@ -251,7 +253,6 @@ public class Window extends Container implements
         } else {
             setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
-        repaint();
         return true;
     }
     public boolean xdgToplevelClose() {
@@ -264,7 +265,6 @@ public class Window extends Container implements
         if (w>0 && h>0) {
             setLocation(x, y);
             setSize(w, h);
-            repaint();
         }
         return true;
     }
@@ -288,15 +288,15 @@ public class Window extends Container implements
     }
     public void dispose() {
         _log.info("Window:dispose()");
-        if (_owner != null)
-            _owner.remOwned(this);
+        setVisible(false);
         LinkedList<Window> copy;
         synchronized(_owned) {
             copy = new LinkedList<Window>(_owned);
         }
         for (Window w : copy)
             w.dispose();
-        fromWayland();
+        if (_owner != null)
+            _owner.remOwned(this);
     }
 
     protected String getTitle() { return _title; }
@@ -316,14 +316,15 @@ public class Window extends Container implements
             validate();
             super.setVisible(v);
             toWayland();
+            repaint();
         } else {
             // hide all owned windows
             synchronized(_owned) {
                 for (Window w : _owned)
                     w.setVisible(v);
             }
-            super.setVisible(v);
             fromWayland();
+            super.setVisible(v);
         }
     }
 
