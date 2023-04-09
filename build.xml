@@ -1,4 +1,4 @@
-<project name="Swingland" default="compile">
+<project name="Swingland" default="package">
 
 	<property name="ashbysoft.log.level" value="1"/>
 
@@ -6,9 +6,7 @@
 		<delete dir="bin"/>
 	</target>
 
-	<target name="compile">
-		<mkdir dir="bin/classes"/>
-		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin/classes" nativeheaderdir="bin/h" />
+	<target name="package" depends="compile">
 		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
 		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.test.Test"/>
 		<exec executable="jar" failonerror="true">
@@ -18,11 +16,34 @@
 			<arg value="com.ashbysoft.test.Test"/>
 			<arg value="-C"/>
 			<arg value="bin/classes"/>
-			<arg value="."/>
+			<arg value="module-info.class"/>
+			<arg value="-C"/>
+			<arg value="bin/classes"/>
+			<arg value="com/ashbysoft/logger"/>
+			<arg value="-C"/>
+			<arg value="bin/classes"/>
+			<arg value="com/ashbysoft/test"/>
+			<arg value="-C"/>
+			<arg value="bin/classes"/>
+			<arg value="com/ashbysoft/swingland"/>
+			<arg value="-C"/>
+			<arg value="bin/classes"/>
+			<arg value="com/ashbysoft/wayland"/>
 			<arg value="-C"/>
 			<arg value="res"/>
 			<arg value="."/>
 		</exec>
+		<jar destfile="bin/fed.jar" basedir="bin/classes" includes="com/ashbysoft/fed/**">
+			<manifest>
+				<attribute name="Main-Class" value="com.ashbysoft.fed.Fed"/>
+				<attribute name="Class-Path" value="swingland.jar"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="bin/classes"/>
+		<javac includeantruntime="no" debug="true" srcdir="src" destdir="bin/classes" nativeheaderdir="bin/h" />
 		<echo message="[gcc] Compiling JNI library bin/libnative.so"/>
 		<exec executable="gcc" failonerror="true">
 			<arg value="-shared"/>
@@ -40,9 +61,9 @@
 		</exec>
 	</target>
 
-	<target name="test" depends="test-wayland,test-swingland"/>
+	<target name="test" depends="test-wayland,test-swingland,test-fed"/>
 
-	<target name="test-wayland" depends="compile">
+	<target name="test-wayland" depends="package">
 		<record name="bin/test-wayland.log" action="start"/>
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
@@ -52,7 +73,7 @@
 		<record name="bin/test-wayland.log" action="stop"/>
 	</target>
 
-	<target name="test-swingland" depends="compile">
+	<target name="test-swingland" depends="package">
 		<record name="bin/test-swingland.log" action="start"/>
 		<java jar="bin/swingland.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
@@ -61,4 +82,12 @@
 		</java>
 		<record name="bin/test-swingland.log" action="stop"/>
 	</target>
+
+	<target name="test-fed" depends="package">
+		<java jar="bin/fed.jar" fork="true">
+			<jvmarg value="-Djava.library.path=bin"/>
+			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
+		</java>
+	</target>
+
 </project>
