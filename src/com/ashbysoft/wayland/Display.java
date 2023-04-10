@@ -92,19 +92,23 @@ public class Display extends WaylandObject<Display.Listener> {
     }
 
     // display message pump, call often!
-    public boolean dispatch() {
+    // returns number of events dispatched, or -1 if errored
+    public int dispatch() {
         synchronized(_lock) {
             // read messages, dispatch to registered objects until none left
             _log.detail("dispatch:enter");
             if (_inDispatch) {
                 _log.error("recursive dispatch detected:dispatch=false");
-                return false;
+                return -1;
             }
             _inDispatch = true;
-            boolean rv = true;
+            int rv = 0;
             while (_conn.available()) {
-                if (!dispatchOne())
-                    rv = false;
+                if (!dispatchOne()) {
+                    rv = -1;
+                    break;
+                }
+                rv += 1;
             }
             _inDispatch = false;
             _log.detail("dispatch:exit="+rv);

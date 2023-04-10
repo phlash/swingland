@@ -251,7 +251,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _display.roundtrip();
         long start = System.currentTimeMillis();
         long now = 0;
-        while (_display.dispatch()) {
+        while (_display.dispatch() >= 0) {
             try { Thread.sleep(10); } catch (Exception e) {}
             now = System.currentTimeMillis();
             if (now > start+timeout)

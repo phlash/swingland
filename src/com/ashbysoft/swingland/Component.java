@@ -111,7 +111,10 @@ public abstract class Component {
         _cursor = c;
     }
 
-    public Dimension getPreferredSize() { return _prefSize != null ? _prefSize : _parent != null ? _parent.getSize() : getMinimumSize(); }
+    public boolean isPreferredSizeSet() { return _prefSize != null; }
+    public boolean isMinimumSizeSet() { return _minSize != null; }
+    public boolean isMaximumSizeSet() { return _maxSize != null; }
+    public Dimension getPreferredSize() { return _prefSize != null ? _prefSize : getMinimumSize(); }
     public Dimension getMinimumSize() { return _minSize != null ? _minSize : new Dimension(_width, _height); }
     public Dimension getMaximumSize() { return _maxSize != null ? _maxSize : new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
     public void setPreferredSize(Dimension d) {

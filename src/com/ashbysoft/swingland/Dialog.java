@@ -27,7 +27,7 @@ public class Dialog extends Window {
         _modal = modal;
     }
     public boolean isResizable() { return _resizable; }
-    public void setResizable(boolean resizable) {
+    public void setResizable(boolean resizable) {   // XXX::TODO: work out how to inform Wayland we are now re-sizable
         _log.info("Dialog:setResizeable("+resizable+")");
         if (isResizable() == resizable)
             return;

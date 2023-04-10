@@ -26,8 +26,10 @@ public class Logger {
         private int _level = getLevel();
         int level() { return _level; }
         void write(int level, String pfx, String msg) {
-            if (level <= _level)
-                System.out.println(pfx+msg);
+            if (level > _level)
+                return;
+            System.out.print("("+Thread.currentThread().getName()+")");
+            System.out.println(pfx+msg);
         }
         private int getLevel() {
             // in priority order, we check: command line, environment, default

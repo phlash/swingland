@@ -84,10 +84,14 @@
 	</target>
 
 	<target name="test-fed" depends="package">
+		<record name="bin/test-fed.log" action="start"/>
 		<java jar="bin/fed.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
+			<arg value="-f"/>
+			<arg value="res/cursors/DEFAULT"/>
 		</java>
+		<record name="bin/test-fed.log" action="stop"/>
 	</target>
 
 </project>

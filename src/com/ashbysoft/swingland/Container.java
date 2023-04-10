@@ -129,25 +129,22 @@ public class Container extends Component {
         return null;
     }
     public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        if (d != null)
-            return d;
+        if (isPreferredSizeSet())
+            return super.getPreferredSize();
         if (null == _cachePrefSize)
             _cachePrefSize = _layoutManager.preferredLayoutSize(this);
         return _cachePrefSize;
     }
     public Dimension getMinimumSize() {
-        Dimension d = super.getMinimumSize();
-        if (d != null)
-            return d;
+        if (isMinimumSizeSet())
+            return super.getMinimumSize();
         if (null == _cacheMinSize)
             _cacheMinSize = _layoutManager.minimumLayoutSize(this);
         return _cacheMinSize;
     }
     public Dimension getMaximumSize() {
-        Dimension d = super.getMaximumSize();
-        if (d != null)
-            return d;
+        if (isMaximumSizeSet())
+            return super.getMaximumSize();
         if (null == _cacheMaxSize && _layoutManager instanceof LayoutManager2)
             _cacheMaxSize = ((LayoutManager2)_layoutManager).maximumLayoutSize(this);
         if (null == _cacheMaxSize)
@@ -225,8 +222,9 @@ public class Container extends Component {
             return;
         // iterate them components!
         _log.info("Container:paint()");
+        Rectangle r = g.getBounds();
         for (Component c: _components) {
-            g.setBounds(c.getBounds());
+            g.setBounds(r.offset(c.getBounds()));
             c.paint(g);
         }
     }

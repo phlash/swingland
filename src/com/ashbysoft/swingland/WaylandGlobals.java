@@ -210,7 +210,7 @@ class WaylandGlobals implements
                 add = true;
             }
         }
-        _log.info("repaint("+w.getName()+")/"+add);
+        _log.info("repaint("+w.getName()+")?"+add);
     }
     // general runnable queue
     public void queue(Runnable r) {
@@ -223,6 +223,7 @@ class WaylandGlobals implements
     // UI thread
     public void run() 
     {
+        _log.info("--> UI thread");
         // we run until:
         // - we have seen at least one window
         // - there are now zero registered windows
@@ -230,8 +231,11 @@ class WaylandGlobals implements
         while (true) {
             // priority order of work..
             // all pending Wayland events
-            _display.dispatch();
-            boolean acted = false;
+            int n = _display.dispatch();
+            if (n < 0)
+                break;
+            else if (n > 0)
+                _log.info("<-- events:n="+n);
             // one repaint if one is waiting
             if (_repaints.size() > 0) {
                 Window w;
@@ -239,8 +243,9 @@ class WaylandGlobals implements
                     w = _repaints.remove();
                 }
                 if (w != null) {
+                    _log.info("--> render");
                     w.render();
-                    acted = true;
+                    _log.info("<-- render");
                 }
             // OR one runnable job if one is waiting
             } else if (_runnables.size() > 0) {
@@ -249,12 +254,11 @@ class WaylandGlobals implements
                     r = _runnables.remove();
                 }
                 if (r != null) {
+                    _log.info("--> queued");
                     r.run();
-                    acted = true;
+                    _log.info("<-- queued");
                 }
             }
-            if (acted)
-                _log.info("-----------------------");
             // termination check
             int count;
             synchronized(_windows) {
@@ -266,6 +270,8 @@ class WaylandGlobals implements
                 break;
             try { Thread.sleep(10); } catch (InterruptedException e) {}
         }
+        _display.roundtrip();
         _display.close();
+        _log.info("<-- UI thread");
     }
 }

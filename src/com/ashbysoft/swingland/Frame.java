@@ -19,15 +19,10 @@ public class Frame extends Window {
         setUndecorated(false);
     }
     public String getTitle() { return super.getTitle(); }
-    public void setTitle(String title) {
-        _log.info("Frame:setTitle("+title+")");
-        super.setTitle(title);
-    }
+    public void setTitle(String title) { super.setTitle(title); }
     public boolean isUndecorated() { return _undecorated; }
     public void setUndecorated(boolean undecorated) {
         _log.info("Frame:setUndecorated("+undecorated+")");
-        if (isUndecorated() == undecorated)
-            return;
         _undecorated = undecorated;
         if (undecorated)
             setInsets(null);

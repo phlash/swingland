@@ -32,15 +32,15 @@ public class Font implements FontMetrics {
     private static final Logger _log = new Logger("[Font]:");
     private static final HashMap<String, Font> _fontCache = new HashMap<String, Font>();
     private String _name;
-    private int _width;
-    private int _height;
-    private int _baseline;
-    private int _leading;
-    private int _glyphBytes;
-    private int _offset;
-    private int _count;
-    private int _missing;
-    private byte[] _buffer;
+    protected int _width;
+    protected int _height;
+    protected int _baseline;
+    protected int _leading;
+    protected int _glyphBytes;
+    protected int _offset;
+    protected int _count;
+    protected int _missing;
+    protected byte[] _buffer;
 
     protected Font(String name) { _name = name; }
     public String getFontName() { return _name; }

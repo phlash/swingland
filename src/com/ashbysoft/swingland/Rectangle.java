@@ -11,5 +11,13 @@ public class Rectangle {
         _w = w;
         _h = h;
     }
+    public Rectangle offset(Rectangle delta) {
+        return new Rectangle(
+            _x + delta._x,
+            _y + delta._y,
+            delta._w,
+            delta._h
+        );
+    }
     public String toString() { return "Rect("+_x+","+_y+","+_w+","+_h+")"; }
 }

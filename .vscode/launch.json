@@ -15,6 +15,18 @@
             "vmArgs": "-Djava.library.path=bin",
             "mainClass": "com.ashbysoft.test.Test",
             "args": [ "swingland" ]
+        },
+        {
+            "type": "java",
+            "name": "Fed",
+            "request": "launch",
+            "classPaths": [ "${workspaceFolder}/bin/fed.jar" ],
+            "cwd": "${workspaceFolder}",
+            "sourcePaths": [ "src" ],
+            "stopOnEntry": true,
+            "vmArgs": "-Djava.library.path=bin",
+            "mainClass": "com.ashbysoft.fed.Fed",
+            "args": [ "-f", "res/cursors/DEFAULT" ]
         }
     ]
 }
