@@ -68,7 +68,6 @@ public class Graphics {
             setPixel(x+ox, y);
             setPixel(x+ox, y+h-1);
         }
-        _log.info("drawRect:part2");
         for (int oy = 0; oy < h; oy += 1) {
             setPixel(x, y+oy);
             setPixel(x+w-1, y+oy);
@@ -170,6 +169,10 @@ public class Graphics {
     public void drawString(String s, int x, int y) {
         _log.info("drawString:("+x+","+y+"):"+s);
         _font.renderString(this, s, x, y);
+    }
+    public void drawChars(char[] data, int o, int l, int x, int y) {
+        String s = new String(data, o, l);
+        drawString(s, x, y);
     }
     // package-private pixel setter, not part of public API
     void setPixel(int x, int y) {

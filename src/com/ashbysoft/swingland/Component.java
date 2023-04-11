@@ -33,8 +33,6 @@ public abstract class Component {
         _log.info("Component:<init>()");
         _visible = true;
         _valid = false;
-        _background = Color.GRAY;
-        _foreground = Color.BLACK;
         _keyListeners = new ArrayList<KeyListener>();
         _mouseListeners = new ArrayList<MouseInputListener>();
         _mouseButtons = new ArrayList<Integer>();

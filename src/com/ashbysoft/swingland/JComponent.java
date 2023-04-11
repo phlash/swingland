@@ -27,7 +27,7 @@ public class JComponent extends Container {
         if (_border != null) {
             _log.info("JComponent:paintBorder()");
             Rectangle bounds = getBounds();
-            _border.paintBorder(this, g, bounds._x, bounds._y, bounds._w, bounds._h);
+            _border.paintBorder(this, g, 0, 0, bounds._w, bounds._h);
         }
     }
     protected void paintComponent(Graphics g) {}

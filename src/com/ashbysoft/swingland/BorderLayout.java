@@ -109,6 +109,7 @@ public class BorderLayout extends NullLayout {
             minW = sumW;
         if (sumH > minH)
             minH = sumH;
-        return new Dimension(minW, minH);
+        Insets ins = parent.getInsets();
+        return new Dimension(minW+ins._l+ins._r, minH+ins._t+ins._b);
     }
 }

@@ -21,6 +21,11 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
     public static final int EV_AXIS_SOURCE = 6;
     public static final int EV_AXIS_STOP = 7;
     public static final int EV_AXIS_DISCRETE = 8;
+    public static final int BUTTON_LEFT = 272;      // @see /usr/include/linux/input-event-codes.h:BTN_x
+    public static final int BUTTON_RIGHT = 273;
+    public static final int BUTTON_MIDDLE = 274;
+    public static final int BUTTON_RELEASED = 0;
+    public static final int BUTTON_PRESSED = 1;
 
     public Pointer(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {

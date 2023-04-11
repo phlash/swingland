@@ -8,6 +8,11 @@ public class MouseEvent extends AbstractEvent {
     public static final int MOUSE_EXITED = 3;
     public static final int MOUSE_CLICKED = 4;
     public static final int MOUSE_DRAGGED = 5;
+    // button IDs
+    public static final int NOBUTTON = 0;
+    public static final int BUTTON1 = 1;    // left
+    public static final int BUTTON2 = 2;    // right
+    public static final int BUTTON3 = 3;    // middle
     // button state
     public static final int BUTTON_RELEASED = 0;
     public static final int BUTTON_PRESSED = 1;

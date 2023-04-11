@@ -197,7 +197,10 @@ class WaylandGlobals implements
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerButton(int serial, int time, int button, int state) {
-        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, button, state));
+        // map button codes & state
+        int mbutton = Pointer.BUTTON_LEFT == button ? MouseEvent.BUTTON1 : Pointer.BUTTON_RIGHT == button ? MouseEvent.BUTTON2 : MouseEvent.BUTTON3;
+        int mstate = Pointer.BUTTON_RELEASED == state ? MouseEvent.BUTTON_RELEASED : MouseEvent.BUTTON_PRESSED;
+        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
 
     // repaint request queue

@@ -106,6 +106,8 @@ public class EditableFont extends Font {
         _current = p;
         return _current;
     }
+    public int getOffset() { return _offset; }
+    public int getCount() { return _count; }
     public int addGlyph(int p) {
         // clip position
         if (p < 0) p = 0;
