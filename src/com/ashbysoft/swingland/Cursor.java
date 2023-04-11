@@ -24,13 +24,16 @@ public class Cursor {
     };
     // where we get our cursor images - a font containing all as codes 0->MOVE_CURSOR
     private static final String _defaultTheme = "/cursors/DEFAULT";
+    private static String _currentTheme;
+    public static void setTheme(String theme) { _currentTheme = theme; }
+
     private int _type;
     private Font _font;
     protected String name;  // Yuk, but it's in the API
     private Resources _res;
     public Cursor(int type) {
         _type = type;
-        _font = Font.getFont(_defaultTheme);
+        _font = Font.getFont(_currentTheme != null ? _currentTheme : _defaultTheme);
         name = _names[type];
     }
     public int getType() { return _type; }

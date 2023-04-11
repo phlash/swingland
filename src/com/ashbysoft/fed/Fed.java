@@ -17,6 +17,7 @@ import com.ashbysoft.logger.Logger;
 import com.ashbysoft.swingland.BorderLayout;
 import com.ashbysoft.swingland.Color;
 import com.ashbysoft.swingland.ColorBorder;
+import com.ashbysoft.swingland.Cursor;
 import com.ashbysoft.swingland.Dimension;
 import com.ashbysoft.swingland.Font;
 import com.ashbysoft.swingland.FontMetrics;
@@ -42,6 +43,7 @@ public class Fed implements ActionListener, KeyListener, Runnable {
 
     private Logger _log = new Logger("[Fed]:");
     private EditableFont _font;
+    private String _cursor;
     private JFrame _frame;
     private JLabel _status;
 
@@ -56,18 +58,40 @@ public class Fed implements ActionListener, KeyListener, Runnable {
         for (int a = 0; a < args.length; a += 1) {
             if (args[a].startsWith("-f"))
                 name = args[++a];
-            else {
-            }
+            else if (args[a].startsWith("-w"))
+                width = parseInt(args[++a], width);
+            else if (args[a].startsWith("-h"))
+                height = parseInt(args[++a], height);
+            else if (args[a].startsWith("-b"))
+                baseline = parseInt(args[++a], baseline);
+            else if (args[a].startsWith("-l"))
+                leading = parseInt(args[++a], leading);
+            else if (args[a].startsWith("-o"))
+                offset = parseInt(args[++a], offset);
+            else if (args[a].startsWith("-m"))
+                missing = parseInt(args[++a], missing);
+            else if (args[a].startsWith("-c"))
+                _cursor = args[++a];
         }
         if (null == name) {
             System.out.println("usage: fed -f <font file> [-w <glyph width:8>] [-h <glyph height:16>] [-b <glyph baseline:3>] [-l <glyph leading:3>]");
-            System.out.println("[-o <unicode offset:0>] [-m <missing glyph:0>]");
+            System.out.println("[-o <unicode offset:0>] [-m <missing glyph:0>] [-c <use cursor:DEFAULT>]");
             return;
         }
         _font = new EditableFont(_log, new File(name), width, height, baseline, leading, offset, missing);
         SwingUtilities.invokeLater(this);
     }
+    private int parseInt(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return def;
+        }
+    }
     public void run() {
+        // adjust the cursor theme
+        if (_cursor != null)
+            Cursor.setTheme(_cursor);
         // build the UI
         FontMetrics fm = _font.getFontMetrics();
         String title = "Fed: "+_font.getFontName()+" ("+fm.charWidth(_font.getMissingGlyphCode())+"x"+fm.getHeight()+")";
