@@ -138,6 +138,11 @@ class WaylandGlobals implements
     public boolean seatName(String name) { return true; }
     // Keyboard.Listener
     private Keymap _keymap;
+    private int _repeatDelay = -1;
+    private int _repeatRate = -1;
+    private int _repeatCode = -1;
+    private int _repeatState = 0;
+    private long _repeatStamp = -1L;
     public boolean keymap(int format, int fd, int size) {
         // XXX:TODO: use a real keymap once we can read the fd..
         _keymap = new DefaultKeymap();
@@ -151,6 +156,15 @@ class WaylandGlobals implements
     }
     public boolean keyboardLeave(int serial, int surface) { return true; }
     public boolean key(int serial, int time, int keyCode, int state) {
+        _repeatStamp = System.currentTimeMillis();
+        _repeatCode = keyCode;
+        if (Keyboard.KEY_PRESSED == state)
+            _repeatState = 1;
+        else
+            _repeatState = 0;
+        return keySend(serial, time, keyCode, state);
+    }
+    private boolean keySend(int serial, int time, int keyCode, int state) {
         Window w = findWindow(_keyboardWindow);
         if (w != null) {
             KeyEvent e = new KeyEvent(this, state, keyCode, '-');
@@ -167,7 +181,7 @@ class WaylandGlobals implements
         _keymap.modifiers(depressed, latched, locked, group);
         return true;
     }
-    public boolean repeat(int rate, int delay) { return true; } // XXX:TODO: key repeats
+    public boolean repeat(int rate, int delay) { _repeatRate = rate; _repeatDelay = delay; return true; }
     // Pointer.Listener
     private int _pointerX;
     private int _pointerY;
@@ -260,6 +274,25 @@ class WaylandGlobals implements
                     _log.info("--> queued");
                     r.run();
                     _log.info("<-- queued");
+                }
+            }
+            // key repeat processing
+            if (_repeatDelay > 0 && _repeatRate > 0) {
+                long now = System.currentTimeMillis();
+                if (1 == _repeatState) {            // delaying..
+                    if (now-_repeatStamp >= _repeatDelay) {
+                        _repeatState = 2;
+                        _repeatStamp = now;
+                        keySend(0, 0, _repeatCode, Keyboard.KEY_RELEASED);
+                        keySend(0, 0, _repeatCode, Keyboard.KEY_PRESSED);
+                    }
+                } else if (2 == _repeatState) {     // repeating..
+                    int period = 1000 / _repeatRate;
+                    if (now-_repeatStamp >= period) {
+                        _repeatStamp = now;
+                        keySend(0, 0, _repeatCode, Keyboard.KEY_RELEASED);
+                        keySend(0, 0, _repeatCode, Keyboard.KEY_PRESSED);
+                    }
                 }
             }
             // termination check
