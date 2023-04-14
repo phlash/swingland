@@ -139,8 +139,7 @@ public class ImageIO {
     private static long readUval(InputStream is, int bits, boolean big) throws IOException {
         int nbytes = (bits)/8;
         byte[] ba = new byte[nbytes];
-        if (is.read(ba) != ba.length)
-            throw new IOException("short read");
+        fill(is, ba, "");
         long rv = 0;
         for (int b = 0; b < nbytes; b += 1) {
             int o = big ? b : nbytes - 1 - b;
