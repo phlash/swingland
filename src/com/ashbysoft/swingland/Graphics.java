@@ -1,10 +1,22 @@
 package com.ashbysoft.swingland;
 
+// Notes about alpha compositing:
+// https://wayland.app/protocols/wayland#wl_shm:enum:format indicates that all buffers passed to Wayland are pre-multiplied with their alpha values, hence we
+// ensure the render buffer contains pre-multiplied values.
+// https://docs.oracle.com/javase/10/docs/api/java/awt/Color.html indicates that Color objects are never pre-multiplied.
+// https://docs.oracle.com/javase/10/docs/api/java/awt/image/BufferedImage.html#isAlphaPremultiplied() indicates if an image has pre-multiplied alpha or straight,
+// so we may act accordingly when composing pixels.
+// 
+// When drawing to a buffer, we compose each pixel according to the alpha value already present, and that in the pixel being added, using the 'over' equations:
+// https://en.wikipedia.org/wiki/Alpha_compositing
+
 import com.ashbysoft.logger.Logger;
+import com.ashbysoft.swingland.image.ColorModel;
+import com.ashbysoft.swingland.image.ImageConsumer;
 
 import java.nio.ByteBuffer;
 
-public class Graphics {
+public class Graphics implements ImageConsumer {
     private static Logger _log = new Logger("[Graphics]:");
     private ByteBuffer _buffer;
     private int _width;
@@ -174,8 +186,36 @@ public class Graphics {
         String s = new String(data, o, l);
         drawString(s, x, y);
     }
+    private int _imageX;
+    private int _imageY;
+    public void drawImage(Image img, int x, int y) {
+        _log.info("drawImage:("+img.getWidth(null)+"x"+img.getHeight(null)+"@"+x+","+y+")");
+        _imageX = x;
+        _imageY = y;
+        img.getSource().startProduction(this);
+    }
+    // ImageConsumer
+    public void imageComplete(int status) {}
+    public void setDimensions(int w, int h) {}
+    public void setHints(int hints) {}
+    public void setColorModel(ColorModel m) {}
+    public void setPixels(int x, int y, int w, int h, ColorModel m, int[] pixels, int off, int stride) {
+        for (int iy = 0; iy < h; iy += 1)
+            for (int ix = 0; ix < w; ix += 1) {
+                int px = _imageX + x + ix;
+                int py = _imageY + y + iy;
+                // stay within boundaries!
+                if (px >= 0 && px < _bounds._w &&
+                    py >= 0 && py < _bounds._h)
+                    setPixelImpl(px, py, m.getRGB(pixels[off + iy * stride + ix]), m.isAlphaPremultiplied());
+            }
+    }
     // package-private pixel setter, not part of public API
     void setPixel(int x, int y) {
+        setPixelImpl(x, y, (_color._a << 24) | (_color._r << 16) | (_color._g << 8) | (_color._b), false);
+    }
+    // internal implementation, performs co-ordinate offset and alpha compositing
+    private void setPixelImpl(int x, int y, int p, boolean pm) {
         // apply bounds offset
         x += _bounds._x;
         y += _bounds._y;
@@ -186,8 +226,27 @@ public class Graphics {
             _log.error("setPixel outside buffer: x/w,y/h,o/limit: "+x+"/"+_width+","+y+"/"+_height+","+o+"/"+_buffer.limit());
             return;
         }
-        // convert color to ARGB pixel
-        int c = (_color._a << 24) | (_color._r << 16) | (_color._g << 8) | (_color._b);
-        _buffer.putInt(o, c);
+        // split channels..
+        int a = (p >> 24) & 0xff;
+        int r = (p >> 16) & 0xff;
+        int g = (p >> 8) & 0xff;
+        int b = p & 0xff;
+        // pre-multiply new pixel if required
+        if (!pm) {
+            r = (r * a) / 255;
+            g = (g * a) / 255;
+            b = (b * a) / 255;
+        }
+        // compose supplied pixel 'over' buffer pixel
+        int bp = _buffer.getInt(o);
+        int ba = (bp >> 24) & 0xff;
+        int br = (bp >> 16) & 0xff;
+        int bg = (bp >> 8) & 0xff;
+        int bb = bp & 0xff;
+        int na = a + (ba * (255 - a)) / 255;
+        r += (br * (255 - a)) / 255;
+        g += (bg * (255 - a)) / 255;
+        b += (bb * (255 - a)) / 255;
+        _buffer.putInt(o, (na << 24) | (r << 16) | (g << 8) | (b));
     }
 }

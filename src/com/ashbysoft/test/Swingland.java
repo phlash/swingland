@@ -1,20 +1,40 @@
 package com.ashbysoft.test;
 
+import java.io.IOException;
+
 import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
+import com.ashbysoft.swingland.image.ImageIO;
 
 public class Swingland extends JComponent implements ActionListener, Runnable {
+	private String _imgResource;
     private JFrame _frame;
 	private Dialog _dialog;
 	private Border _border;
+	private Image _image;
 	private int _x = 0;
 	private int _y = 0;
 	private int _b = 0;
 
     public void run(String[] args) {
+		for (String arg : args)
+			if (arg.startsWith("img:"))
+				_imgResource = arg.substring(4);
 		SwingUtilities.invokeLater(this);
 	}
 	public void run() {
+		try {
+			if (null == _imgResource)
+				_imgResource = "/images/testcard.qoi";
+			if (_imgResource.startsWith("file:"))
+				_image = ImageIO.read(_imgResource.substring(5));
+			else
+				_image = ImageIO.read(getClass().getResourceAsStream(_imgResource));
+		} catch (IOException e) {
+			_log.error(e.toString());
+			for (var s : e.getStackTrace())
+				_log.error("  " + s.toString());
+		}
 		_log.info("-->run()");
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         // Create a top level frame and put ourselves in it.
@@ -22,7 +42,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		// not setting a size gives us a default resizable window (Sway tiles us)
 		//_frame.setSize(800, 600);
-		_frame.setBackground(new Color(64,64,64,128));
+		_frame.setBackground(new Color(64,64,64, 128));
 		_frame.add(this);
 		_frame.setVisible(true);
 		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
@@ -97,6 +117,10 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		_dialog = null;
 	}
 
+	public Dimension getPreferredSize() {
+		return new Dimension(getParent().getWidth(), getParent().getHeight());
+	}
+
     public void paintComponent(Graphics g) {
 		_log.info("Test:paint");
 		g.setColor(Color.CYAN);
@@ -107,5 +131,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", 20, getHeight()-15);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, 30);
+		if (_image != null)
+			g.drawImage(_image, (getWidth()-_image.getWidth(null))/2, (getHeight()-_image.getHeight(null))/2);
 	}
 }

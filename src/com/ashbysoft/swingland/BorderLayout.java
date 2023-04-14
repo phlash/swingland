@@ -40,6 +40,11 @@ public class BorderLayout extends NullLayout {
         _log.info("layoutContainer("+parent.getName()+")");
         Rectangle bounds = parent.getBounds();
         Insets insets = parent.getInsets();
+        // if the parent has zero size in either dimension - ask for minimums
+        if (0 == bounds._w || 0 == bounds._h) {
+            Dimension d = minimumLayoutSize(parent);
+            bounds = new Rectangle(bounds._x, bounds._y, d._w, d._h);
+        }
         int top = insets._t;
         int bot = bounds._h - insets._b;
         int left = insets._l;

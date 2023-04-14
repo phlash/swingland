@@ -2,4 +2,5 @@
 module com.ashbysoft.swingland {
     exports com.ashbysoft.swingland;
     exports com.ashbysoft.swingland.event;
+    exports com.ashbysoft.swingland.image;
 }
