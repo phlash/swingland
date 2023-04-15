@@ -12,6 +12,7 @@ import com.ashbysoft.wayland.ShmPool;
 import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Positioner;
 
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
 public class Window extends Container implements
@@ -91,6 +92,12 @@ public class Window extends Container implements
             _poolsize = psize;
             _shmpool = _g.shm().createPool(_poolsize);
             _buffer = _shmpool.createBuffer(0, getWidth(), getHeight(), getWidth() * 4, 0);
+        } else if (_buffer != null) {
+            // always start with an empty buffer, avoids issues with alpha compositing over earlier frames!
+            ByteBuffer b = _buffer.get();
+            b.clear();
+            for (int i = 0; i < b.limit(); i += 1)
+                b.put(i, (byte)0);
         }
         if (_buffer != null) {
             validate();
