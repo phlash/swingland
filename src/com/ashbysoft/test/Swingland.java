@@ -11,7 +11,8 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
     private JFrame _frame;
 	private Dialog _dialog;
 	private Border _border;
-	private Image _image;
+	private Image _testcard;
+	private Image _duke;
 	private int _x = 0;
 	private int _y = 0;
 	private int _b = 0;
@@ -27,9 +28,10 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 			if (null == _imgResource)
 				_imgResource = "/images/testcard.qoi";
 			if (_imgResource.startsWith("file:"))
-				_image = ImageIO.read(_imgResource.substring(5));
+				_testcard = ImageIO.read(_imgResource.substring(5));
 			else
-				_image = ImageIO.read(getClass().getResourceAsStream(_imgResource));
+				_testcard = ImageIO.read(getClass().getResourceAsStream(_imgResource));
+			_duke = ImageIO.read(getClass().getResourceAsStream("/swingland-duke-wayland.png"));
 		} catch (IOException e) {
 			_log.error(e.toString());
 			for (var s : e.getStackTrace())
@@ -131,7 +133,11 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", 20, getHeight()-15);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, 30);
-		if (_image != null)
-			g.drawImage(_image, (getWidth()-_image.getWidth(null))/2, (getHeight()-_image.getHeight(null))/2);
+		if (_testcard != null)
+			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);
+		if (_duke != null) {
+			g.drawImage(_duke, 0, 0);
+			g.drawImage(_duke, getWidth()-_duke.getWidth(null), getHeight()-_duke.getHeight(null));
+		}
 	}
 }
