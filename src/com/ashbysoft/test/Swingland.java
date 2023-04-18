@@ -125,19 +125,63 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 
     public void paintComponent(Graphics g) {
 		_log.info("Test:paint");
+		// adjust bounds for insets
+		Insets ins = getInsets();
+		int t = ins._t;
+		int l = ins._l;
+		int b = getHeight() - ins._b;
+		int r = getWidth() - ins._r;
+		// pinwheel at top right
 		g.setColor(Color.CYAN);
-		g.drawLine(1, 1, getWidth()-1, getHeight()-1);
+		int cx = (r-l)*3/4 + l;
+		int cy = (b-t)/4 + t;
+		int rad = (r-l) > (b-t) ? (b-t)/5 : (r-l)/5;
+		for (int a = 0; a < 360; a += 30) {
+			double ar = Math.toRadians(a);
+			double ox = Math.cos(ar) * rad;
+			double oy = Math.sin(ar) * rad;
+			g.drawLine(cx, cy, cx+(int)ox, cy+(int)oy);
+		}
+		g.drawOval(cx-rad, cy-rad, 2*rad, 2*rad);
+		// nested rects at lower right
 		g.setColor(Color.YELLOW);
-		g.drawLine(1, getHeight()-1, getWidth()-1, 1);
+		cy = (b-t)*3/4 + t;
+		g.drawRect(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.setColor(Color.RED);
+		g.fillRect(cx-rad+1, cy-rad+1, 2*rad-1, 2*rad-1);
+		g.setColor(Color.YELLOW);
+		rad = rad*2/3;
+		g.fillRect(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.setColor(Color.RED);
+		rad = rad*2/3;;
+		g.drawRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/5, rad/5);
+		rad = rad*2/3;;
+		g.fillRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/5, rad/5);
+		// nested circles at lower left
+		g.setColor(Color.GREEN);
+		cx = (r-l)/4 + l;
+		rad = (r-l) > (b-t) ? (b-t)/5 : (r-l)/5;
+		g.drawOval(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.setColor(Color.WHITE);
+		g.fillOval(cx-rad+1, cy-rad+1, 2*rad-1, 2*rad-1);
+		g.setColor(Color.GREEN);
+		rad = rad*2/3;
+		g.fillOval(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.setColor(Color.WHITE);
+		rad = rad*2/3;
+		g.drawOval(cx-rad, cy-rad, 2*rad, 2*rad);
+		rad = rad*2/3;
+		g.fillOval(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.setColor(Color.GREEN);
+		g.fillOval(cx-12, cy-12, 25, 25);
+		// instructions
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", 20, getHeight()-15);
+		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
-		g.drawString(m, getWidth()-160, 30);
+		g.drawString(m, getWidth()-160, t+20);
 		if (_testcard != null)
 			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);
-		if (_duke != null) {
-			g.drawImage(_duke, 0, 0);
-			g.drawImage(_duke, getWidth()-_duke.getWidth(null), getHeight()-_duke.getHeight(null));
-		}
+		if (_duke != null)
+			g.drawImage(_duke, l, t);
 	}
 }

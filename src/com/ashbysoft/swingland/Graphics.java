@@ -1,5 +1,9 @@
 package com.ashbysoft.swingland;
 
+// Notes on pixel model:
+// https://docs.oracle.com/javase/10/docs/api/java/awt/Graphics.html specifies that co-ordinates are infinitely thin and lie between pixels, the graphics
+// pen draws lines one pixel wide, to the right and below the pixel co-ordinate.
+// 
 // Notes about alpha compositing:
 // https://wayland.app/protocols/wayland#wl_shm:enum:format indicates that all buffers passed to Wayland are pre-multiplied with their alpha values, hence we
 // ensure the render buffer contains pre-multiplied values.
@@ -70,19 +74,19 @@ public class Graphics implements ImageConsumer {
             // high slope, iterate Y
             int y;
             for (y = y1; y != y2; y += sy)
-                setPixel(((y - y1) * dx) / dy, y);
-            setPixel(((y - y1) * dx) / dy, y);
+                setPixel(x1 + ((y - y1) * dx) / dy, y);
+            setPixel(x1 + ((y - y1) * dx) / dy, y);
         }
     }
     public void drawRect(int x, int y, int w, int h) {
         _log.info("drawRect:("+w+"x"+h+")@("+x+","+y+")");
-        for (int ox = 0; ox < w; ox += 1) {
+        for (int ox = 0; ox <= w; ox += 1) {
             setPixel(x+ox, y);
-            setPixel(x+ox, y+h-1);
+            setPixel(x+ox, y+h);
         }
-        for (int oy = 0; oy < h; oy += 1) {
+        for (int oy = 0; oy <= h; oy += 1) {
             setPixel(x, y+oy);
-            setPixel(x+w-1, y+oy);
+            setPixel(x+w, y+oy);
         }
     }
     public void fillRect(int x, int y, int w, int h) {
@@ -96,19 +100,19 @@ public class Graphics implements ImageConsumer {
         int hw = aw/2;
         int hh = ah/2;
         drawLine(x+hw, y, x+w-hw, y);
-        drawLine(x+hw, y+h-1, x+w-hw, y+h-1);
-        drawLine(x, y+hh, x, y+h-hh-1);
-        drawLine(x+w-1, y+hh, x+w-1, y+h-hh-1);
-        oval(x+w/2-hw, y+h/2-hh, aw, ah, false, w-aw, h-ah);
+        drawLine(x+hw, y+h, x+w-hw, y+h);
+        drawLine(x, y+hh, x, y+h-hh);
+        drawLine(x+w, y+hh, x+w, y+h-hh);
+        oval(x, y, aw, ah, false, w-aw, h-ah);
     }
     public void fillRoundRect(int x, int y, int w, int h, int aw, int ah) {
         _log.info("fillRoundRect("+w+"x"+h+")@("+x+","+x+"):aw="+aw+",ah="+ah);
         int hw = aw/2;
         int hh = ah/2;
-        fillRect(x+hw, y, w-aw, hh);
-        fillRect(x, y+hh, w, h-ah);
-        fillRect(x+hw, y+h-hh-1, w-aw, ah-hh);
-        oval(x+w/2-hw, y+h/2-hh, aw, ah, true, w-aw, h-ah);
+        fillRect(x+hw+1, y, w-aw, hh+1);
+        fillRect(x, y+hh+1, w, h-ah);
+        fillRect(x+hw+1, y+h-hh, w-aw, ah-hh);
+        oval(x, y, aw, ah, true, w-aw, h-ah);
     }
     public void drawOval(int x, int y, int w, int h) {
         oval(x, y, w, h, false, 0, 0);
@@ -128,12 +132,12 @@ public class Graphics implements ImageConsumer {
         // pre-calculate ellipse axis radii
         int a = w/2;
         int b = h/2;
-        // pre-calculate origins for each quarter, including spread factors
+        // pre-calculate origins for each quarter, including separation lengths
         Quarters q = new Quarters(
-            new Point(x+a-sw/2, y+b-sh/2),
-            new Point(x+a+sw/2, y+b-sh/2),
-            new Point(x+a-sw/2, y+b+sh/2),
-            new Point(x+a+sw/2, y+b+sh/2)
+            new Point(x+a, y+b),
+            new Point(x+a+sw, y+b),
+            new Point(x+a, y+b+sh),
+            new Point(x+a+sw, y+b+sh)
         );
         // apply standard equation: (x*x / a*a) + (y*y / b*b) == 1
         // cross multiply: (x*x * b*b) + (y*y * a*a) == a*a * b*b
@@ -143,14 +147,18 @@ public class Graphics implements ImageConsumer {
         long a2 = a*a;
         long b2 = b*b;
         long d2 = a2*b2;
-        int lx = a;
-        for (int oy = 0; oy <= b; oy += 1) {
+        int lx = filled ? a-1 : a;
+        for (int oy = 0; oy < (filled ? b : b+1); oy += 1) {
             long y2a2 = oy*oy * a2;
+            long pt = -1L;
             // scan right-to-left, from last x (lx) in line above, for efficiancy
             for (int ox = lx; ox >= 0; ox -= 1) {
                 long dt = (ox*ox * b2) + y2a2;
                 // at or below boundary?
                 if (dt <= d2) {
+                    // check if previous distance was closer.. unless filled...
+                    if (!filled && pt > 0L && pt-d2 < d2-dt)
+                        ox += 1;
                     // draw line back to last x
                     plotQuarters(q, ox, oy);
                     int hd = (lx-ox)/2;
@@ -167,6 +175,8 @@ public class Graphics implements ImageConsumer {
                             plotQuarters(q, ox, oy);
                     else
                         ox = -1;
+                } else {
+                    pt = dt;
                 }
             }
         }
