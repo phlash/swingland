@@ -154,7 +154,10 @@ class WaylandGlobals implements
             key(serial, 0, k, KeyEvent.KEY_PRESSED);
         return true;
     }
-    public boolean keyboardLeave(int serial, int surface) { return true; }
+    public boolean keyboardLeave(int serial, int surface) {
+        _repeatState = 0;
+        return true;
+    }
     public boolean key(int serial, int time, int keyCode, int state) {
         _repeatStamp = System.currentTimeMillis();
         _repeatCode = keyCode;
@@ -277,22 +280,27 @@ class WaylandGlobals implements
                 }
             }
             // key repeat processing
-            if (_repeatDelay > 0 && _repeatRate > 0) {
+            if (_repeatState > 0 && _repeatDelay > 0 && _repeatRate > 0) {
                 long now = System.currentTimeMillis();
+                boolean send = false;
                 if (1 == _repeatState) {            // delaying..
                     if (now-_repeatStamp >= _repeatDelay) {
                         _repeatState = 2;
                         _repeatStamp = now;
-                        keySend(0, 0, _repeatCode, Keyboard.KEY_RELEASED);
-                        keySend(0, 0, _repeatCode, Keyboard.KEY_PRESSED);
+                        send = true;
                     }
                 } else if (2 == _repeatState) {     // repeating..
                     int period = 1000 / _repeatRate;
                     if (now-_repeatStamp >= period) {
                         _repeatStamp = now;
-                        keySend(0, 0, _repeatCode, Keyboard.KEY_RELEASED);
-                        keySend(0, 0, _repeatCode, Keyboard.KEY_PRESSED);
+                        send = true;
                     }
+                }
+                if (send) {
+                    _log.info("--> key repeat("+_repeatCode+")");
+                    keySend(0, 0, _repeatCode, Keyboard.KEY_RELEASED);
+                    keySend(0, 0, _repeatCode, Keyboard.KEY_PRESSED);
+                    _log.info("<-- key repeat("+_repeatCode+")");
                 }
             }
             // termination check

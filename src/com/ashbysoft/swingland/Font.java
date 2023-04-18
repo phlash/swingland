@@ -80,10 +80,16 @@ public class Font implements FontMetrics {
         cp -= _offset;
         int o = cp * _glyphBytes;
         int p = 7;
+        Rectangle b = g.getBounds();
         for (int gy = 0; gy < _height; gy += 1) {
             for (int gx = 0; gx < _width; gx += 1) {
-                if ((_buffer[o] & (1 << p)) != 0)
-                    g.setPixel(x+gx, y+gy-_height);
+                if ((_buffer[o] & (1 << p)) != 0) {
+                    // stay within bounds
+                    int rx = x+gx;
+                    int ry = y+gy-_height;
+                    if (rx >= 0 & rx < b._w && ry >= 0 && ry < b._h)
+                        g.setPixel(rx, ry);
+                }
                 p -= 1;
                 if (p < 0) {
                     p = 7;
