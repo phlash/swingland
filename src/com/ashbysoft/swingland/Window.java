@@ -10,6 +10,7 @@ import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.XdgPopup;
 import com.ashbysoft.wayland.ShmPool;
 import com.ashbysoft.wayland.Buffer;
+import com.ashbysoft.wayland.Output;
 import com.ashbysoft.wayland.Positioner;
 
 import java.nio.ByteBuffer;
@@ -25,6 +26,7 @@ public class Window extends Container implements
 
     // Wayland objects instantiated per-window
     private WaylandGlobals _g;
+    private GraphicsConfiguration _config;
     private Surface _surface;
     private XdgSurface _xdgSurface;
     private XdgToplevel _xdgToplevel;
@@ -42,23 +44,26 @@ public class Window extends Container implements
     private LinkedList<Window> _owned;
     // popup window (short-lived, eg: menus, tooltips)
     private boolean _isPopup;
+    // display states
+    private boolean _isActive;
+    private boolean _isFloating;
+    private boolean _isResizing;
+    private boolean _isMaximized;
+    private boolean _isFullscreen;
     // title text - here as it's passed to Wayland
     private String _title;
 
-    public Window() {
-        _log.info("Window:<init>()");
-        init();
-    }
+    protected Window() { this(null); }
     protected Window(Window owner) { this(owner, false); }
-    protected Window(Window owner, boolean isPopup) {
-        _log.info("Window:<init>("+owner.getName()+","+isPopup+")");
-        assert(owner != null);
-        _owner = owner;
-        _owner.addOwned(this);
+    protected Window(Window owner, boolean isPopup) { this(owner, isPopup, null); }
+    protected Window(Window owner, boolean isPopup, GraphicsConfiguration config) {
+        _log.info("Window:<init>("+(owner != null ? owner.getName() : "null")+","+isPopup+","+(config != null ? config : "null")+")");
+        if (owner != null) {
+            _owner = owner;
+            _owner.addOwned(this);    
+        }
         _isPopup = isPopup;
-        init();
-    }
-    private void init() {
+        _config = (config != null) ? config : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         _owned = new LinkedList<Window>();
         // grab a reference to Wayland
         _g = WaylandGlobals.instance();
@@ -260,6 +265,16 @@ public class Window extends Container implements
         } else {
             setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
+        // update display states
+        _isActive = _isFullscreen = _isMaximized = _isResizing = false;
+        _isFloating = true;
+        for (int s : states) {
+            if (XdgToplevel.STATE_ACTIVATED == s) _isActive = true;
+            else if (XdgToplevel.STATE_FULLSCREEN == s) _isFullscreen = true;
+            else if (XdgToplevel.STATE_MAXIMIZED == s) _isMaximized = true;
+            else if (XdgToplevel.STATE_RESIZING == s) _isResizing = true;
+            else _isFloating = false;
+        }
         return true;
     }
     public boolean xdgToplevelClose() {
@@ -306,6 +321,7 @@ public class Window extends Container implements
             _owner.remOwned(this);
     }
 
+    // title - held here to avoid leaking Wayland stuff into sub-classes
     protected String getTitle() { return _title; }
     protected void setTitle(String title) {
         _log.info("Window:setTitle("+title+")");
@@ -358,4 +374,24 @@ public class Window extends Container implements
             return new Graphics(_buffer.get(), getWidth(), getHeight(), getForeground(), getFont());
         return null;
     }
+
+    // get a graphics configuration that describes stuff
+    public GraphicsConfiguration getGraphicsConfiguration() {
+        return _config;
+    }
+
+    // package-private fullscreen controls
+    boolean setFullscreen(GraphicsDevice d) {
+        return _xdgToplevel.setFullscreen(_g.findOutput(d));
+    }
+    boolean unsetFullscreen(GraphicsDevice d) {
+        return _xdgToplevel.unsetFullscreen();
+    }
+    // display state info
+    public boolean isActive() { return _isActive; }
+    // NB: not part of Swing API..
+    public boolean isMaximized() { return _isMaximized; }
+    public boolean isFullscreen() { return _isFullscreen; }
+    public boolean isResizing() { return _isResizing; }
+    public boolean isFloating() { return _isFloating; }
 }

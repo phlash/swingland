@@ -8,6 +8,7 @@ import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
 import com.ashbysoft.wayland.Seat;
 import com.ashbysoft.wayland.Keyboard;
+import com.ashbysoft.wayland.Output;
 import com.ashbysoft.wayland.Pointer;
 import com.ashbysoft.swingland.event.*;
 
@@ -43,6 +44,8 @@ class WaylandGlobals implements
     private Seat _seat;
     private Keyboard _keyboard;
     private Pointer _pointer;
+    private LinkedList<Output> _outputs;
+    private HashMap<GraphicsDevice, Integer> _gdMap;
     private Thread _uiThread;
     private LinkedList<Window> _repaints;
     private LinkedList<Runnable> _runnables;
@@ -52,10 +55,12 @@ class WaylandGlobals implements
 
     public WaylandGlobals() {
         _log.info("<init>()");
+        _outputs = new LinkedList<>();
         _display = new Display();
         _registry = new Registry(_display);
         _registry.addListener(this);
         _display.getRegistry(_registry);
+        // wait for all registry info
         _display.roundtrip();
         if (null == _compositor || null == _xdgWmBase || null == _shm) {
             String oops = "missing a required global object in Wayland: compositor="+_compositor+" xdgWmBase="+_xdgWmBase+" shm="+_shm;
@@ -65,9 +70,26 @@ class WaylandGlobals implements
         _xdgWmBase.addListener(this);
         _repaints = new LinkedList<>();
         _runnables = new LinkedList<>();
-        _windows = new HashMap<Integer, Window>();
+        _windows = new HashMap<>();
+        // wait for all bound objects callbacks
+        _display.roundtrip();
+        // initialise GraphicsEnvironment from known outputs
+        _gdMap = new HashMap<>();
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for (int i = 0; i < _outputs.size(); i += 1) {
+            Output o = _outputs.get(i);
+            if (!o.isDone()) {
+                _log.error("output("+o.getID()+") is not done");
+                continue;
+            }
+            GraphicsDevice gd = new GraphicsDevice();
+            gd.addMode(new DisplayMode(o.getGeometryW(), o.getGeometryH(), 32, o.getRefreshRate()));
+            gd.addConfig(new GraphicsConfiguration(gd, new Rectangle(o.getGeometryX(), o.getGeometryY(), o.getModeWidth(), o.getModeHeight())));
+            ge.addDevice(gd);
+            _gdMap.put(gd, i);
+        }
+        // create UI thread as non-daemon: holds the application active even if main exits
         _uiThread = new Thread(this);
-        // We hold the application active even if main exits
         _uiThread.setDaemon(false);
         _uiThread.setName("SwinglandUI");
         _uiThread.start();
@@ -76,6 +98,12 @@ class WaylandGlobals implements
     public Compositor compositor() { return _compositor; }
     public XdgWmBase xdgWmBase() { return _xdgWmBase; }
     public Shm shm() { return _shm; }
+    public Output[] outputs() { return (Output[])_outputs.toArray(); }
+    public Output findOutput(GraphicsDevice gd) {
+        if (_gdMap.containsKey(gd))
+            return _outputs.get(_gdMap.get(gd));
+        return null;
+    }
     public void register(int id, Window w) {
         _log.info("register("+id+","+w.getName()+")");
         synchronized(_windows) {
@@ -113,6 +141,10 @@ class WaylandGlobals implements
             _seat = new Seat(_display);
             _seat.addListener(this);
             _registry.bind(name, iface, version, _seat);
+        } else if (iface.equals("wl_output")) {
+            Output o = new Output(_display);
+            _outputs.add(o);
+            _registry.bind(name, iface, version, o);
         }
         return true;
     }

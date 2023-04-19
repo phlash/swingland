@@ -58,7 +58,13 @@ public abstract class Component {
         _log.setPfx(n);
         _name = n;
     }
-    // all renderable components have basic colours, a font, a cursor.. or their parent might!
+    // all renderable components have a graphics config, basic colours, a font, a cursor.. or their parent might!
+    public GraphicsConfiguration getGraphicsConfiguration() {
+        Container p = getParent();
+        if (p != null)
+            return p.getGraphicsConfiguration();
+        return null;
+    }
     public Color getBackground() {
         if (_background != null)
             return _background;

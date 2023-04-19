@@ -72,10 +72,15 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 					setBorder(null);
 				else
 					setBorder(_border);
-			} else if (k.getKeyCode() == KeyEvent.VK_R) {
+			} else if (k.getKeyCode() == KeyEvent.VK_F) {
 				k.consume();
-				if (_dialog != null)
-					_dialog.setLocation(0, 0);
+				Component c = getParent();
+				while (!(c instanceof Window))
+					c = c.getParent();
+				if (getGraphicsConfiguration().getDevice().getFullScreenWindow() != null)
+					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
+				else
+					getGraphicsConfiguration().getDevice().setFullScreenWindow((Window)c);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
@@ -176,7 +181,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		g.fillOval(cx-12, cy-12, 25, 25);
 		// instructions
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz (press ESC to quit, D for dialog test, R to reposition)", l+5, b-5);
+		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog test, F to toggle fullscreen)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-160, t+20);
 		if (_testcard != null)

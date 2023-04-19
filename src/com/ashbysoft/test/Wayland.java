@@ -3,9 +3,10 @@ package com.ashbysoft.test;
 import com.ashbysoft.logger.Logger;
 import com.ashbysoft.wayland.*;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Random;
 
-public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.Listener, Pointer.Listener {
+public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.Listener, Pointer.Listener, Output.Listener {
 
     private Logger _log = new Logger("[Wayland]:");
     private class Cursor {
@@ -218,6 +219,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     private Shm _shm;
     private Seat _seat;
     private Pointer _pointer;
+    private ArrayList<Output> _outputs = new ArrayList<>();
     private Toplevel _toplevel;
     private Cursor _lastCursor;
     public void run(String[] args) {
@@ -233,6 +235,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _registry = new Registry(_display);
         _registry.addListener(this);
         _display.getRegistry(_registry);
+        // wait for all registry info
         _display.roundtrip();
         if (null == _compositor)
             throw new RuntimeException("oops: did not see a compositor!");
@@ -241,6 +244,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         if (null == _xdgWmBase)
             throw new RuntimeException("oops: did not see an xdg_wm_base");
         _xdgWmBase.addListener(this);
+        // wait for all global binding info
+        _display.roundtrip();
         _toplevel = new Toplevel();
         _display.roundtrip();
         if (_seat != null) {
@@ -258,6 +263,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
                 break;
         }
         int fps = (_toplevel.destroy()*1000)/(int)(now-start);
+        for (Output o : _outputs)
+            o.release();
         if (_pointer != null) _pointer.release();
         _display.close();
         _log.error("---- Wayland test done (fps:"+fps+") ----");
@@ -278,6 +285,10 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         } else if (iface.equals("xdg_wm_base")) {
             _xdgWmBase = new XdgWmBase(_display);
             _registry.bind(name, iface, version, _xdgWmBase);
+        } else if (iface.equals("wl_output")) {
+            Output o = new Output(_display);
+            _outputs.add(o);
+            _registry.bind(name, iface, version, o);
         }
         return true;
     }
@@ -303,4 +314,9 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         return true;
     }
     public boolean pointerButton(int serial, int time, int button, int state) { return true; }
+
+    public boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans) { return true; }
+    public boolean outputMode(int flags, int w, int h, int refresh) { return true; }
+    public boolean outputScale(int s) { return true; }
+    public boolean outputDone() { return true; }
 }

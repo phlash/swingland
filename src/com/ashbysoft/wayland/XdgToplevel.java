@@ -24,6 +24,15 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     public static final int RQ_SET_MINIMIZED = 13;
     public static final int EV_CONFIGURE = 0;
     public static final int EV_CLOSE = 1;
+    // configure states
+    public static final int STATE_MAXIMIZED = 1;
+    public static final int STATE_FULLSCREEN = 2;
+    public static final int STATE_RESIZING = 3;
+    public static final int STATE_ACTIVATED = 4;
+    public static final int STATE_TILED_LEFT = 5;
+    public static final int STATE_TILED_RIGHT = 6;
+    public static final int STATE_TILED_TOP = 7;
+    public static final int STATE_TILED_BOTTOM = 8;
 
     public XdgToplevel(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
