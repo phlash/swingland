@@ -247,7 +247,13 @@ public class Window extends Container implements
         }
     }
     // Surface listener
-    public boolean enter(int outputID) { return true; }
+    public boolean enter(int outputID) {
+        // update configuration from output
+        GraphicsDevice gd = _g.findDevice(outputID);
+        if (gd != null)
+            _config = gd.getDefaultConfiguration();
+        return true;
+    }
     public boolean leave(int outputID) { return true; }
     // XdgSurface listener
     public boolean xdgSurfaceConfigure(int serial) {

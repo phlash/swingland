@@ -183,7 +183,13 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		g.setColor(Color.MAGENTA);
 		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog test, F to toggle fullscreen)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
-		g.drawString(m, getWidth()-160, t+20);
+		g.drawString(m, getWidth()-getFont().stringWidth(m)-10, t+20);
+		// show our current graphics config
+		GraphicsConfiguration gc = getGraphicsConfiguration();
+		Rectangle gcr = gc.getBounds();
+		String gcs = "GC:x="+gcr._x+",y="+gcr._y+",w="+gcr._w+",h="+gcr._h;
+		;
+		g.drawString(gcs, getWidth()-getFont().stringWidth(gcs)-10, t+45);
 		if (_testcard != null)
 			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);
 		if (_duke != null)

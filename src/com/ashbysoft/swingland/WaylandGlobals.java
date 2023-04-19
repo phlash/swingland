@@ -104,6 +104,18 @@ class WaylandGlobals implements
             return _outputs.get(_gdMap.get(gd));
         return null;
     }
+    public GraphicsDevice findDevice(int outID) {
+        for (int i = 0; i < _outputs.size(); i += 1) {
+            Output o = _outputs.get(i);
+            if (o.getID() == outID) {
+                for (var e : _gdMap.entrySet()) {
+                    if (e.getValue() == i)
+                        return e.getKey();
+                }
+            }
+        }
+        return null;
+    }
     public void register(int id, Window w) {
         _log.info("register("+id+","+w.getName()+")");
         synchronized(_windows) {
