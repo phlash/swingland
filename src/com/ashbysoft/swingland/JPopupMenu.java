@@ -9,7 +9,7 @@ public class JPopupMenu extends Window {
     public JPopupMenu(Window owner) {
         super(owner, true);
         setVisible(false);
-        setLayout(new FlowLayout(FlowLayout.LEFT, ITEM_SEPARATION, ITEM_SEPARATION));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setInsets(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
     }
     // prevent general use of underlying container

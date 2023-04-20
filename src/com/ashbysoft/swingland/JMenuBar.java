@@ -1,48 +1,53 @@
 package com.ashbysoft.swingland;
 
-// We use our BorderLayout (default) to separate main menu items from help menu
-// we use a sub-JPanel with a FlowLayout (default) for main items
+// horizontal menu bar to fit into a JRootPane
 
 public class JMenuBar extends JComponent {
     public static final int BORDER_WIDTH =2;
-    private JPanel _main;
-    private JMenu _help;
     private boolean _paintBorder;
+    private boolean _hasHelp;
     public JMenuBar() {
         _log.info("<init>()");
-        _main = new JPanel();
-        super.addImpl(_main, BorderLayout.CENTER, -1);
-        setMargin(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));    // random ;-)
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        setMargin(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
         setBorderPainted(true);
+        add(new GlueComponent());
+        _hasHelp = false;
     }
-    // b0rk attempts to use the undelying container
-    protected void addImpl(Component c, Object s, int i) {
-        throw new IllegalArgumentException("cannot add components directly to a JMenuBar");
-    }
-    // forward item add/remove to underlying JPanel
-    public int getMenuCount() { return _main.getComponentCount(); }
+    public int getMenuCount() { return getComponentCount() - 1; }
     public JMenu getMenu(int i) {
-        if (i >= 0 && i < getMenuCount())
-            return (JMenu)_main.getComponent(i);
-        return null;
+        // skip over glue
+        if (_hasHelp && getMenuCount() - 1 == i)
+            i += 1;
+        return (JMenu)getComponent(i);
     }
     public void add(JMenu item) {
         _log.info("add("+item.getText()+")");
-        _main.add(item);
+        // insert at glue position, pushing glue and possibly help item up
+        add(item, _hasHelp ? getMenuCount()-1 : getMenuCount());
     }
-    public void remove(int i) { _main.remove(i); }
-    public void remove(Component c) { _main.remove(c); }
+    public void remove(int i) {
+        // skip over the glue
+        if (_hasHelp && getMenuCount() - 1 == i)
+            i += 1;
+        super.remove(i);
+    }
     // special consideration for help menu
-    public JMenu getHelpMenu() { return _help; }
+    public JMenu getHelpMenu() {
+        if (_hasHelp)
+            return (JMenu)getComponent(getMenuCount());
+        return null;
+    }
     public void setHelpMenu(JMenu item) {
         _log.info("setHelpMenu("+item.getText()+")");
-        if (_help != null) {
-            super.remove(_help);
-            _help = null;
+        if (_hasHelp) {
+            remove(getMenuCount());
+            _hasHelp = false;
         }
         if (item != null) {
-            _help = item;
-            super.addImpl(_help, BorderLayout.EAST, -1);
+            // add above glue
+            add(item, -1);
+            _hasHelp = true;
         }
     }
     public Insets getMargin() { return getInsets(); }
