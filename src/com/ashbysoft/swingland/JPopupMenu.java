@@ -1,7 +1,5 @@
 package com.ashbysoft.swingland;
 
-import java.security.Key;
-
 import com.ashbysoft.swingland.event.AbstractEvent;
 import com.ashbysoft.swingland.event.KeyEvent;
 

@@ -180,9 +180,11 @@ public class Window extends Container implements
             // NB: we do this /before/ any surface stuff, or Sway breaks :(
             positioner = new Positioner(_g.display());
             _g.xdgWmBase().createPositioner(positioner);
-            // minimum positioner settings required..
+            // the size of this popup window
             positioner.setSize(getWidth(), getHeight());
-            positioner.setAnchorRect(_owner.getX(), _owner.getY(), _owner.getWidth(), _owner.getHeight());
+            // assumes *our* position has been set relative to owning surface
+            positioner.setAnchorRect(getX(), getY(), getWidth(), getHeight());
+            // default anchor corner & gravity (both 'centre') will put us in the rect above.
         }
         _surface = new Surface(_g.display());
         _surface.addListener(this);
