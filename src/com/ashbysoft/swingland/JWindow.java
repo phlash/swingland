@@ -3,17 +3,10 @@ package com.ashbysoft.swingland;
 public class JWindow extends Window implements RootPaneContainer {
     JRootPane _rootPane;
     private TransferHandler _transferHandler;
-    public JWindow() {
-        super();
-        _log.info("JWindow:<init>()");
-        windowInit();
-    }
+    public JWindow() { this(null); }
     public JWindow(Window owner) {
         super(owner);
-        _log.info("JWindow:<init>("+owner+")");
-        windowInit();
-    }
-    protected void windowInit() {
+        _log.info("JWindow:<init>("+(owner != null ? owner.getName() : "null")+")");
         this._transferHandler = new TransferHandler();
         _rootPane = createRootPane();
         super.addImpl(_rootPane, null, 0);

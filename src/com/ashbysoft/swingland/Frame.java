@@ -5,15 +5,10 @@ public class Frame extends Window {
     public static final int TITLE_HEIGHT = 20;
     private boolean _undecorated;
     public Frame() { this(""); }
-    public Frame(String title) {
-        _log.info("Frame:<init>("+title+")");
-        setVisible(false);
-        setTitle(title);
-        setUndecorated(false);
-    }
+    public Frame(String title) { this(null, title); }
     public Frame(Window owner, String title) {
         super(owner);
-        _log.info("Frame:<init>("+owner.getName()+","+title+")");
+        _log.info("Frame:<init>("+(owner != null ? owner.getName() : "null")+","+title+")");
         setVisible(false);
         setTitle(title);
         setUndecorated(false);

@@ -24,6 +24,9 @@ public class JButton extends JComponent {
     protected void addImpl(Component c, Object s, int i) {
         throw new IllegalArgumentException("cannot add components to JButton");
     }
+    // accessors for derived classes
+    protected boolean isHover() { return _hover; }
+    protected boolean isHeld() { return _hold; }
     // set size based on text dimensions
     public Dimension getPreferredSize() {
         Point p;

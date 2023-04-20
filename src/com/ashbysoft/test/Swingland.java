@@ -9,6 +9,7 @@ import com.ashbysoft.swingland.image.ImageIO;
 public class Swingland extends JComponent implements ActionListener, Runnable {
 	private String _imgResource;
     private JFrame _frame;
+	private JMenuBar _mbar;
 	private Dialog _dialog;
 	private Border _border;
 	private Image _testcard;
@@ -46,6 +47,15 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		//_frame.setSize(800, 600);
 		_frame.setBackground(new Color(64,64,64, 128));
 		_frame.add(this);
+		_mbar = new JMenuBar();
+		_mbar.setBackground(Color.LIGHT_GRAY);
+		JMenu fm = new JMenu("File..");
+		fm.add(new JMenuItem("Open.."));
+		fm.add(new JMenuItem("Close"));
+		_mbar.add(fm);
+		_mbar.add(new JMenu("Edit.."));
+		_mbar.setHelpMenu(new JMenu("Help"));
+		_frame.setJMenuBar(_mbar);
 		_frame.setVisible(true);
 		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
 		_log.info("<--run()");

@@ -10,7 +10,6 @@ import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.XdgPopup;
 import com.ashbysoft.wayland.ShmPool;
 import com.ashbysoft.wayland.Buffer;
-import com.ashbysoft.wayland.Output;
 import com.ashbysoft.wayland.Positioner;
 
 import java.nio.ByteBuffer;
@@ -61,6 +60,8 @@ public class Window extends Container implements
         if (owner != null) {
             _owner = owner;
             _owner.addOwned(this);    
+        } else if (isPopup) {
+            throw new IllegalArgumentException("popup windows require an owner");
         }
         _isPopup = isPopup;
         _config = (config != null) ? config : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
@@ -342,6 +343,9 @@ public class Window extends Container implements
             return;
         _log.info("Window:setVisible("+v+")");
         if (v) {
+            // if we are a popup and have a size of 0,0, adjust to minimum before validating
+            if (_isPopup && getWidth() == 0 && getHeight() == 0)
+                setSize(getMinimumSize());
             validate();
             super.setVisible(v);
             toWayland();

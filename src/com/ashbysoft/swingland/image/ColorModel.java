@@ -1,7 +1,5 @@
 package com.ashbysoft.swingland.image;
 
-// TODO!
-
 public interface ColorModel {
     int getAlpha(int p);
     int getRed(int p);

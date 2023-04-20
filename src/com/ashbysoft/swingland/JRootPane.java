@@ -52,7 +52,9 @@ public class JRootPane extends JComponent {
     public JMenuBar getJMenuBar() { return _menuBar; }
     public void setJMenuBar(JMenuBar mb) {
         _log.info("setJMenuBar("+mb.getName()+")");
+        _layeredPane.remove(mb);
         _menuBar = mb;
+        _layeredPane.add(mb, JLayeredPane.FRAME_CONTENT_LAYER);
     }
     public JButton getDefaultButton() { return _defaultButton; }
     public void setDefaultButton(JButton db) {
