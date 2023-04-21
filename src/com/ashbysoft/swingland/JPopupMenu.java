@@ -1,14 +1,16 @@
 package com.ashbysoft.swingland;
 
-import com.ashbysoft.swingland.event.AbstractEvent;
-import com.ashbysoft.swingland.event.KeyEvent;
-import com.ashbysoft.swingland.event.MouseEvent;
+import com.ashbysoft.swingland.event.ActionEvent;
+import com.ashbysoft.swingland.event.ActionListener;
 
-public class JPopupMenu extends Window {
+public class JPopupMenu extends Window implements ActionListener {
     public static final int BORDER_WIDTH = 2;
-    public JPopupMenu(Window owner) {
+    private JMenu _parent;
+    public JPopupMenu(Window owner) { this(owner, null); }
+    public JPopupMenu(Window owner, JMenu parent) {
         super(owner, true);
-        _log.info("<init>("+owner.getName()+")");
+        _log.info("<init>("+owner.getName()+","+(parent != null ? parent.getName() : "null")+")");
+        _parent = parent;
         setVisible(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setInsets(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
@@ -18,26 +20,16 @@ public class JPopupMenu extends Window {
         throw new IllegalArgumentException("cannot add components to JPopupMenu");
     }
     public void add(JMenuItem item) {
+        // hook into action events, so we can close ourselves
+        item.addActionListener(this);
         super.addImpl(item, null, -1);
     }
-    public void processEvent(AbstractEvent e) {
-        // We nuke ourselves if the mouse exits, or ESC is pressed
-        boolean done = false;
-        if (e instanceof KeyEvent) {
-            KeyEvent k = (KeyEvent)e;
-            if (k.getID() == KeyEvent.KEY_PRESSED && k.getKeyCode() == KeyEvent.VK_ESC) {
-                k.consume();
-                done = true;
-            }
-        } else if (e instanceof MouseEvent) {
-            MouseEvent m = (MouseEvent)e;
-            if (m.getID() == MouseEvent.MOUSE_EXITED) {
-                m.consume();
-                done = true;
-            }
-        }
-        if (done)
-            dispose();
+    public void actionPerformed(ActionEvent e) {
+        // a menu item was clicked.. we're done
+        dispose();
+        // if we have a parent menu, let it know
+        if (_parent != null)
+            _parent.fireActionPerformed(null);
     }
     public void paint(Graphics g) {
         if (!isVisible())

@@ -25,6 +25,11 @@ public class JMenu extends JMenuItem {
     }
     // post-intercept action performed, so we can pop up our sub-menu
     protected void fireActionPerformed(ActionEvent a) {
+        // special contract with JPopupMenu to clear our state
+        if (null == a) {
+            _isActive = false;
+            return;
+        }
         super.fireActionPerformed(a);
         if (a.isConsumed() || _items.size() == 0 || _isActive)
             return;
@@ -40,7 +45,7 @@ public class JMenu extends JMenuItem {
             _log.error("missing Window parent");
             return;
         }
-        JPopupMenu pop = new JPopupMenu((Window)c);
+        JPopupMenu pop = new JPopupMenu((Window)c, this);
         for (var item : _items)
             pop.add(item);
         pop.setBackground(getBackground());

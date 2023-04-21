@@ -261,6 +261,7 @@ public abstract class Component {
                 // notify the previously entered Component that the mouse has left the building..
                 if (s_lastEntered != null) {
                     _log.info("- synthesize EXITED -> "+s_lastEntered.getName());
+                    // TODO: fix coordinates here - they might be outside the target component
                     s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
                 }
                 // mark ourselves as the last notified Component
