@@ -90,7 +90,6 @@ public abstract class Component {
         return null;
     }
     public Cursor getCursor() {
-        _log.info("Component:getCursor()");
         if (_cursor != null)
             return _cursor;
         Container p = getParent();
@@ -178,7 +177,6 @@ public abstract class Component {
     }
 
     protected Graphics getGraphics() {
-        _log.info("Component:getGraphics()");
         Container p = getParent();
         if (p != null)
             return p.getGraphics();
@@ -246,10 +244,11 @@ public abstract class Component {
                 else
                     l.keyTyped(k);
             }
-            // copy out internal state for caller
+            // local processing (if any) after listeners
+            if (!k.isConsumed())
+                processEvent(k);
+            // copy out internal state to caller
             e.copyState(k);
-            // now use dispatched/modified event for local processing
-            e = k;
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             // ensure we are the event source when transitioning from dispatch flow to handlers
@@ -257,20 +256,21 @@ public abstract class Component {
             // copy down event internal state
             m.copyState(e);
             // first mouse event? might need to synthesize MOUSE_ENTERED..
-            if (!_seenMouse && m.getCanSynthesize() && MouseEvent.MOUSE_ENTERED != m.getID() && MouseEvent.MOUSE_EXITED != m.getID()) {
+            if (!_seenMouse && m.getCanSynthesize() && (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID())) {
                 _seenMouse = true;
                 // notify the previously entered Component that the mouse has left the building..
-                if (s_lastEntered != null)
+                if (s_lastEntered != null) {
+                    _log.info("- synthesize EXITED -> "+s_lastEntered.getName());
                     s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                }
                 // mark ourselves as the last notified Component
                 s_lastEntered = this;
                 // recursively notify ourselves of mouse entry
+                _log.info("- synthesize ENTERED (this)");
                 dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
                 // update the cursor if required
                 drawCursor(this);
             }
-            // mark the event object to prevent further synthesis
-            m.setCanSynthesize(false);
             // process the listeners
             for (MouseInputListener l : _mouseListeners) {
                 if (MouseEvent.MOUSE_MOVE == m.getID()) {
@@ -288,26 +288,30 @@ public abstract class Component {
                     l.mouseClicked(m);
                 }
             }
+            // local processing (if any) after listeners
+            if (!m.isConsumed())
+                processEvent(m);
             // process button press/release into clicks and recursively dispatch
             if (MouseEvent.MOUSE_BUTTON == m.getID()) {
                 if (MouseEvent.BUTTON_PRESSED == m.getState()) {
                     _mouseButtons.add(m.getButton());
                 } else if (_mouseButtons.contains(m.getButton())) {
                     _mouseButtons.remove((Integer)m.getButton());
-                    dispatchEventImpl(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, m.getX(), m.getY(), m.getButton(), 0));
+                    if (m.getCanSynthesize()) {
+                        _log.info("- synthesize CLICKED (this)");
+                        dispatchEventImpl(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, m.getX(), m.getY(), m.getButton(), 0));
+                    }
                 }
             } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
                 _mouseButtons.clear();
                 _seenMouse = false;
+                s_lastEntered = null;
             }
-            // copy out internal state for caller
+            // mark the event object to prevent further synthesis by parents
+            m.setCanSynthesize(false);
+            // copy out internal state to caller
             e.copyState(m);
-            // now use dispatched/modified event for processing
-            e = m;
         }
-        // unless consumed, process locally
-        if (!e.isConsumed())
-            processEvent(e);
     }
     // process an event locally (eg: button push)
     public void processEvent(AbstractEvent e) {}

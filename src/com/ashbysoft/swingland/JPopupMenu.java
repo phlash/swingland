@@ -2,12 +2,13 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.AbstractEvent;
 import com.ashbysoft.swingland.event.KeyEvent;
+import com.ashbysoft.swingland.event.MouseEvent;
 
 public class JPopupMenu extends Window {
     public static final int BORDER_WIDTH = 2;
-    public static final int ITEM_SEPARATION = 1;
     public JPopupMenu(Window owner) {
         super(owner, true);
+        _log.info("<init>("+owner.getName()+")");
         setVisible(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setInsets(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
@@ -20,13 +21,23 @@ public class JPopupMenu extends Window {
         super.addImpl(item, null, -1);
     }
     public void processEvent(AbstractEvent e) {
+        // We nuke ourselves if the mouse exits, or ESC is pressed
+        boolean done = false;
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
             if (k.getID() == KeyEvent.KEY_PRESSED && k.getKeyCode() == KeyEvent.VK_ESC) {
                 k.consume();
-                dispose();
+                done = true;
+            }
+        } else if (e instanceof MouseEvent) {
+            MouseEvent m = (MouseEvent)e;
+            if (m.getID() == MouseEvent.MOUSE_EXITED) {
+                m.consume();
+                done = true;
             }
         }
+        if (done)
+            dispose();
     }
     public void paint(Graphics g) {
         if (!isVisible())

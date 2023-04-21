@@ -26,8 +26,9 @@ public class JMenu extends JMenuItem {
     // post-intercept action performed, so we can pop up our sub-menu
     protected void fireActionPerformed(ActionEvent a) {
         super.fireActionPerformed(a);
-        if (_items.size() == 0 || _isActive)
+        if (a.isConsumed() || _items.size() == 0 || _isActive)
             return;
+        _log.info("JMenu:fireActionPerformed("+a.toString()+")");
         // find our Window ancestor, and calculate our position relative to it
         Rectangle pos = getBounds();
         Component c = this;
@@ -42,8 +43,8 @@ public class JMenu extends JMenuItem {
         JPopupMenu pop = new JPopupMenu((Window)c);
         for (var item : _items)
             pop.add(item);
-        pop.setForeground(getForeground());
         pop.setBackground(getBackground());
+        pop.setForeground(getForeground());
         pop.setFont(getFont());
         pop.setCursor(getCursor());
         // place popup menu directly below us

@@ -263,6 +263,7 @@ class WaylandGlobals implements
         int mstate = Pointer.BUTTON_RELEASED == state ? MouseEvent.BUTTON_RELEASED : MouseEvent.BUTTON_PRESSED;
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
+    public boolean pointerFrame() { return true; }
 
     // repaint request queue
     public void repaint(Window w) {

@@ -314,6 +314,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         return true;
     }
     public boolean pointerButton(int serial, int time, int button, int state) { return true; }
+    public boolean pointerFrame() { return true; }
 
     public boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans) { return true; }
     public boolean outputMode(int flags, int w, int h, int refresh) { return true; }

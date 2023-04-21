@@ -127,7 +127,7 @@ public class Display extends WaylandObject<Display.Listener> {
             if (!o.handle(oid, szop & 0xffff, (szop >> 16) & 0xffff, b))
                 rv = false;
         } else {
-            _log.detail("Ignoring event for missing object: "+oid);
+            _log.error("Ignoring event for missing object: "+oid);
         }
         _log.detail("dispatchOne:exit="+rv);
         return rv;

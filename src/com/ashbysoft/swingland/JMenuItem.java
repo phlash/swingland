@@ -4,8 +4,12 @@ package com.ashbysoft.swingland;
 
 public class JMenuItem extends JButton {
     public JMenuItem() { this(""); }
-    public JMenuItem(String text) { super(text); }
+    public JMenuItem(String text) {
+        super(text);
+        _log.info("<init>("+text+")");
+    }
     public void paintComponent(Graphics g) {
+        _log.info("JMenuItem:paintComponent()");
         g.setColor(getForeground());
         if (isHeld()) {
             g.fillRect(2, 2, getWidth()-3, getHeight()-3);

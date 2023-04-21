@@ -1,6 +1,7 @@
 package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class Pointer extends WaylandObject<Pointer.Listener> {
     public interface Listener {
@@ -8,6 +9,7 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
         boolean pointerLeave(int serial, int surface);
         boolean pointerMove(int time, int x, int y);
         boolean pointerButton(int serial, int time, int button, int state);
+        boolean pointerFrame();
         // XXX:TODO axis stuff
     }
     public static final int RQ_SET_CURSOR = 0;
@@ -63,9 +65,14 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
             for (Listener l : listeners())
                 if (!l.pointerButton(serial, time, button, state))
                     rv = false;
+        } else if (EV_FRAME == op) {
+            log(true, "frame");
+            for (Listener l : listeners())
+                if (!l.pointerFrame())
+                    rv = false;
         } else if (op <= EV_AXIS_DISCRETE) {
             // unsupported at present - ignore quietly(ish)
-            _log.detail("unsupported:"+op);
+            log(true, "unsupported:"+op);
         } else {
             rv = unknownOpcode(op);
         }

@@ -11,6 +11,7 @@ public class BoxLayout extends NullLayout {
         _axis = axis;
     }
     public void layoutContainer(Container parent) {
+        _log.info("layoutContainer("+parent.getName()+")");
         Insets ins = parent.getInsets();
         int curX = ins._l;
         int curY = ins._t;

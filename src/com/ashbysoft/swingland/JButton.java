@@ -8,7 +8,11 @@ public class JButton extends JComponent {
     private boolean _hover;
     private boolean _hold;
     public JButton() { this(""); }    
-    public JButton(String text) { _hover = _hold = false; setText(text); }
+    public JButton(String text) {
+        _log.info("<init>("+text+")");
+        _hover = _hold = false;
+        setText(text);
+    }
     public void addActionListener(ActionListener l) { addEventListener(l); }
     public void removeActionListener(ActionListener l) { removeEventListener(l); }
     public String getText() { return _text; }
@@ -72,6 +76,7 @@ public class JButton extends JComponent {
         }
     }
     protected void fireActionPerformed(ActionEvent a) {
+        _log.info("JButton:fireActionPerformed("+a.toString()+")");
         for (EventListener l: _listeners)
             ((ActionListener)l).actionPerformed(a);
     }
