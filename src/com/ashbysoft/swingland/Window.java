@@ -284,7 +284,7 @@ public class Window extends Container implements
         return true;
     }
     public boolean xdgToplevelClose() {
-        // XXX:TODO: process disposeOnClose setting..
+        sendEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         return true;
     }
     // XdgPopup listener
@@ -348,6 +348,8 @@ public class Window extends Container implements
             else if (w.getID() == WindowEvent.WINDOW_CLOSED)
                 l.windowClosed(w);
         }
+        if (!w.isConsumed())
+            processEvent(w);
     }
 
     // title - held here to avoid leaking Wayland stuff into sub-classes

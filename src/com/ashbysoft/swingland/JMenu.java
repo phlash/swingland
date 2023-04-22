@@ -70,6 +70,7 @@ public class JMenu extends JMenuItem implements WindowListener {
         if (_popup != null && !_popup.equals(w.getSource()))
             _popup.dispose();
     }
+    public void windowClosing(WindowEvent w) {}
     public void windowClosed(WindowEvent w) {
         // if our popup got closed, drop our reference
         if (_popup != null && _popup.equals(w.getSource()))

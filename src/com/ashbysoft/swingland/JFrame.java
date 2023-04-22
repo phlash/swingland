@@ -2,6 +2,9 @@
 
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.WindowEvent;
+
 public class JFrame extends Frame implements WindowConstants, RootPaneContainer {
     private JRootPane _rootPane;
     private TransferHandler _transferHandler;
@@ -46,5 +49,18 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
     }
     public void remove(Component c) {
         getContentPane().remove(c);
+    }
+    protected void processEvent(AbstractEvent e) {
+        // apply default close opertation (if any)
+        if (!e.isConsumed() && e instanceof WindowEvent && e.getID() == WindowEvent.WINDOW_CLOSING) {
+            if (_defaultCloseOperation == HIDE_ON_CLOSE)
+                setVisible(false);
+            else if (_defaultCloseOperation == DISPOSE_ON_CLOSE)
+                dispose();
+            else if (_defaultCloseOperation == EXIT_ON_CLOSE)
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() { System.exit(0); }
+                });
+        }
     }
 }

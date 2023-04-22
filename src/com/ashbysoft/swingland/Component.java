@@ -273,8 +273,8 @@ public abstract class Component {
                 // notify the previously entered Component that the mouse has left the building..
                 if (s_lastEntered != null) {
                     _log.info("- synthesize EXITED -> "+s_lastEntered.getName());
-                    // TODO: fix coordinates here - they might be outside the target component
-                    s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                    // We supply invalid co-ordinates here, as the mouse has left the building!
+                    s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, -1, -1, 0, 0));
                 }
                 // mark ourselves as the last notified Component
                 s_lastEntered = this;
@@ -327,7 +327,7 @@ public abstract class Component {
         }
     }
     // process an event locally (eg: button push)
-    public void processEvent(AbstractEvent e) {}
+    protected void processEvent(AbstractEvent e) {}
 
     // Request a repaint later
     public void repaint() {

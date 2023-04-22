@@ -45,7 +45,7 @@ public class JButton extends JComponent {
     public Dimension getMinimumSize() { return getPreferredSize(); }
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
     // process mouse events to show hover, click, release
-    public void processEvent(AbstractEvent e) {
+    protected void processEvent(AbstractEvent e) {
         if (!isEnabled())
             return;
         _log.info("Jbutton:processEvent("+e.toString()+")");

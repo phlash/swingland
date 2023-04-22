@@ -2,6 +2,9 @@
 
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.WindowEvent;
+
 public class JDialog extends Dialog implements WindowConstants, RootPaneContainer {
     private JRootPane _rootPane;
     private TransferHandler _transferHandler;
@@ -47,5 +50,14 @@ public class JDialog extends Dialog implements WindowConstants, RootPaneContaine
     }
     public void remove(Component c) {
         getContentPane().remove(c);
+    }
+    protected void processEvent(AbstractEvent e) {
+        // apply default close opertation (if any)
+        if (!e.isConsumed() && e instanceof WindowEvent && e.getID() == WindowEvent.WINDOW_CLOSING) {
+            if (_defaultCloseOperation == HIDE_ON_CLOSE)
+                setVisible(false);
+            else if (_defaultCloseOperation == DISPOSE_ON_CLOSE)
+                dispose();
+        }
     }
 }

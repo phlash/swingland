@@ -10,7 +10,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 	private String _imgResource;
     private JFrame _frame;
 	private JMenuBar _mbar;
-	private Dialog _dialog;
+	private JDialog _dialog;
 	private Border _border;
 	private Image _testcard;
 	private Image _duke;
@@ -72,7 +72,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		_log.info("<--run()");
     }
 
-	public void processEvent(AbstractEvent e) {
+	protected void processEvent(AbstractEvent e) {
 		_log.info(e.toString());
 		if (e instanceof KeyEvent) {
 			KeyEvent k = (KeyEvent)e;
@@ -122,7 +122,9 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 			_dialog.dispose();
 			_dialog = null;
 		} else {
-			_dialog = new Dialog(_frame, "Test dialog");
+			_dialog = new JDialog(_frame, "Test dialog");
+			_dialog.setLayout(new BorderLayout());
+			_dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
 			JLabel label = new JLabel("Label..");
 			label.setForeground(Color.WHITE);
@@ -130,7 +132,7 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 			JButton button = new JButton("Press me!");
 			button.addActionListener(this);
 			_dialog.add(button, BorderLayout.CENTER);
-			_dialog.setFocus(button);
+			_dialog.getContentPane().setFocus(button);
 			JButton nope = new JButton("Not me..");
 			nope.setEnabled(false);
 			_dialog.add(nope, BorderLayout.EAST);

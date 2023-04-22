@@ -25,7 +25,7 @@ public class JPopupMenu extends Window implements ActionListener {
             item.addActionListener(this);
         super.addImpl(item, null, -1);
     }
-    public void processEvent(AbstractEvent e) {
+    protected void processEvent(AbstractEvent e) {
         // detect ESC key as close menu
         if (e instanceof KeyEvent && !e.isConsumed()) {
             KeyEvent k = (KeyEvent)e;
