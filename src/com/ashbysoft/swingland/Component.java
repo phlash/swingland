@@ -17,6 +17,7 @@ public abstract class Component {
     private int _height;
     private boolean _valid;
     private boolean _visible;
+    private boolean _enabled;
     private Color _background;
     private Color _foreground;
     private Font _font;
@@ -32,6 +33,7 @@ public abstract class Component {
         _log = new Logger("["+_name+"]:");
         _log.info("Component:<init>()");
         _visible = true;
+        _enabled = true;
         _valid = false;
         _keyListeners = new ArrayList<KeyListener>();
         _mouseListeners = new ArrayList<MouseInputListener>();
@@ -44,6 +46,12 @@ public abstract class Component {
         _log.info("Component:setParent("+(p!=null?p.getName():"null")+")");
         _parent = p;
         invalidate();
+    }
+    // are we enabled (will process input events / generate action events, often 'greys out' when disabled)
+    public boolean isEnabled() { return _enabled; }
+    public void setEnabled(boolean e) {
+        _log.info("Component:setEnabled("+e+")");
+        _enabled = e;
     }
     // are we visible (provided all parent objects are visible)?
     public boolean isVisible() { return _visible; }
@@ -65,6 +73,7 @@ public abstract class Component {
             return p.getGraphicsConfiguration();
         return null;
     }
+    public boolean isBackgroundSet() { return _background != null; }
     public Color getBackground() {
         if (_background != null)
             return _background;
@@ -73,6 +82,7 @@ public abstract class Component {
             return p.getBackground();
         return null;
     }
+    public boolean isForegroundSet() { return _foreground != null; }
     public Color getForeground() {
         if (_foreground != null)
             return _foreground;
@@ -81,6 +91,7 @@ public abstract class Component {
             return p.getForeground();
         return null;
     }
+    public boolean isFontSet() { return _font != null; }
     public Font getFont() {
         if (_font != null)
             return _font;
@@ -89,6 +100,7 @@ public abstract class Component {
             return p.getFont();
         return null;
     }
+    public boolean isCursorSet() { return _cursor != null; }
     public Cursor getCursor() {
         if (_cursor != null)
             return _cursor;

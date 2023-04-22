@@ -22,6 +22,10 @@ public class Window extends Container implements
     XdgPopup.Listener {
     public static final int DEFAULT_WIDTH = 640;
     public static final int DEFAULT_HEIGHT= 480;
+    public static final Color DEFAULT_BACKGROUND = Color.LIGHT_GRAY;
+    public static final Color DEFAULT_FOREGROUND = Color.BLACK;
+    public static final Color DEFAULT_DISABLED = Color.GRAY;
+    public static final String DEFAULT_FONT = Font.MONOSPACED;
 
     // Wayland objects instantiated per-window
     private WaylandGlobals _g;
@@ -69,9 +73,9 @@ public class Window extends Container implements
         // grab a reference to Wayland
         _g = WaylandGlobals.instance();
         // default rendering properties
-        setBackground(Color.LIGHT_GRAY);
-        setForeground(Color.BLACK);
-        setFont(Font.getFont(Font.MONOSPACED));
+        setBackground(DEFAULT_BACKGROUND);
+        setForeground(DEFAULT_FOREGROUND);
+        setFont(Font.getFont(DEFAULT_FONT));
         setCursor(Cursor.getDefaultCursor());
         _lastCursor = -1;
     }
@@ -326,8 +330,10 @@ public class Window extends Container implements
         }
         for (Window w : copy)
             w.dispose();
-        if (_owner != null)
+        if (_owner != null) {
             _owner.remOwned(this);
+            _owner = null;
+        }
     }
 
     // title - held here to avoid leaking Wayland stuff into sub-classes
@@ -394,9 +400,15 @@ public class Window extends Container implements
 
     // package-private fullscreen controls
     boolean setFullscreen(GraphicsDevice d) {
+        if (isFullscreen())
+            return true;
+        _log.info("Window:setFullscreen()");
         return _xdgToplevel.setFullscreen(_g.findOutput(d));
     }
     boolean unsetFullscreen(GraphicsDevice d) {
+        if (!isFullscreen())
+            return true;
+        _log.info("Window:unsetFullscreen()");
         return _xdgToplevel.unsetFullscreen();
     }
     // display state info

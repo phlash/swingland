@@ -46,6 +46,8 @@ public class JButton extends JComponent {
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
     // process mouse events to show hover, click, release
     public void processEvent(AbstractEvent e) {
+        if (!isEnabled())
+            return;
         _log.info("Jbutton:processEvent("+e.toString()+")");
         if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
@@ -82,17 +84,18 @@ public class JButton extends JComponent {
     }
     // paint a button!
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
         if (_hold) {
-            g.setColor(getForeground());
+            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
             g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
             g.setColor(getBackground());
         } else {
-            g.setColor(getForeground());
+            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
             g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
             g.setColor(getBackground());
             int o = hasFocus() ? 2 : 1;
             g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, getWidth()/10, getHeight()/10);
-            g.setColor(getForeground());
+            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
         }
         int w = g.getFont().getFontMetrics().stringWidth(getText());
         int h = g.getFont().getFontMetrics().getHeight();

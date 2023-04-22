@@ -5,12 +5,9 @@ import com.ashbysoft.swingland.event.ActionListener;
 
 public class JPopupMenu extends Window implements ActionListener {
     public static final int BORDER_WIDTH = 2;
-    private JMenu _parent;
-    public JPopupMenu(Window owner) { this(owner, null); }
-    public JPopupMenu(Window owner, JMenu parent) {
+    public JPopupMenu(Window owner) {
         super(owner, true);
-        _log.info("<init>("+owner.getName()+","+(parent != null ? parent.getName() : "null")+")");
-        _parent = parent;
+        _log.info("<init>("+owner.getName()+")");
         setVisible(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setInsets(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
@@ -27,9 +24,6 @@ public class JPopupMenu extends Window implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         // a menu item was clicked.. we're done
         dispose();
-        // if we have a parent menu, let it know
-        if (_parent != null)
-            _parent.fireActionPerformed(null);
     }
     public void paint(Graphics g) {
         if (!isVisible())

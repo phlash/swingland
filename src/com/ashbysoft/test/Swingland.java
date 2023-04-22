@@ -49,11 +49,18 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		_frame.add(this);
 		_mbar = new JMenuBar();
 		_mbar.setBackground(Color.LIGHT_GRAY);
-		JMenu fm = new JMenu("File..");
+		JMenu fm = new JMenu("File");
 		fm.add(new JMenuItem("Open.."));
-		fm.add(new JMenuItem("Close"));
+		JMenuItem close = new JMenuItem("Close");
+		close.setEnabled(false);
+		fm.add(close);
 		_mbar.add(fm);
-		_mbar.add(new JMenu("Edit.."));
+		JMenu em = new JMenu("Edit");
+		em.setEnabled(false);
+		_mbar.add(em);
+		JMenu vm = new JMenu("View");
+		vm.add(new JMenuItem("Dialog"));
+		_mbar.add(vm);
 		_mbar.setHelpMenu(new JMenu("Help"));
 		_frame.setJMenuBar(_mbar);
 		_frame.setVisible(true);
@@ -113,17 +120,19 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		} else {
 			_dialog = new Dialog(_frame, "Test dialog");
 			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
-			_dialog.setForeground(Color.WHITE);
-			_dialog.setBackground(Color.DARK_GRAY);
 			JLabel label = new JLabel("Label..");
 			label.setForeground(Color.WHITE);
 			_dialog.add(label, BorderLayout.NORTH);
 			JButton button = new JButton("Press me!");
-			button.setForeground(Color.WHITE);
-			button.setBackground(Color.GRAY);
 			button.addActionListener(this);
 			_dialog.add(button, BorderLayout.CENTER);
 			_dialog.setFocus(button);
+			JButton nope = new JButton("Not me..");
+			nope.setEnabled(false);
+			_dialog.add(nope, BorderLayout.EAST);
+			JLabel dead = new JLabel("Disabled label");
+			dead.setEnabled(false);
+			_dialog.add(dead, BorderLayout.SOUTH);
 			_dialog.setVisible(true);
 		}
 	}

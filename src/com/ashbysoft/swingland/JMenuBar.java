@@ -69,8 +69,4 @@ public class JMenuBar extends JComponent {
             g.fillRect(0, getHeight()-m._b, getWidth(), m._b);
         }
     }
-    public void paintComponent(Graphics g) {
-        g.setColor(getBackground());
-        g.fillRect(0, 0, getWidth(), getHeight());
-    }
 }

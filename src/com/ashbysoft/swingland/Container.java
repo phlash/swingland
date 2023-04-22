@@ -218,7 +218,7 @@ public class Container extends Component {
     }
 
     public void paint(Graphics g) {
-        if (!isVisible())
+        if (!isVisible() || _components.size() == 0)
             return;
         // iterate them components!
         _log.info("Container:paint()");

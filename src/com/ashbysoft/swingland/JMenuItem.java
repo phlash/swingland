@@ -9,8 +9,11 @@ public class JMenuItem extends JButton {
         _log.info("<init>("+text+")");
     }
     public void paintComponent(Graphics g) {
-        _log.info("JMenuItem:paintComponent()");
-        g.setColor(getForeground());
+        if (isBackgroundSet()) {
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+        g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
         if (isHeld()) {
             g.fillRect(2, 2, getWidth()-3, getHeight()-3);
             g.setColor(getBackground());

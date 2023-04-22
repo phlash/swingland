@@ -30,7 +30,13 @@ public class JComponent extends Container {
             _border.paintBorder(this, g, 0, 0, bounds._w, bounds._h);
         }
     }
-    protected void paintComponent(Graphics g) {}
+    protected void paintComponent(Graphics g) {
+        _log.info("JComponent:paintComponent()");
+        if (isBackgroundSet()) {
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+    }
     protected void paintChildren(Graphics g) {
         super.paint(g);
     }
