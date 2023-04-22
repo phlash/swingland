@@ -150,10 +150,7 @@ public class Window extends Container implements
         c.drawCursor(new Graphics(buffer.get(), d._w, d._h, null, null));
         _lastCursor = c.getType();
         // push to Wayland
-        Surface cs = _g.cursorSurface();
-        cs.attach(buffer, 0, 0);
-        cs.damageBuffer(0, 0, d._w, d._h);
-        cs.commit();
+        _g.updateCursor(buffer, d, c.getHotspot());
     }
     private class CursorBuffer implements Cursor.Resources {
         private ShmPool _pool;

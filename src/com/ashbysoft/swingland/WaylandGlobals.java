@@ -3,6 +3,7 @@ package com.ashbysoft.swingland;
 import com.ashbysoft.logger.Logger;
 import com.ashbysoft.wayland.Display;
 import com.ashbysoft.wayland.Registry;
+import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Compositor;
 import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
@@ -45,7 +46,6 @@ class WaylandGlobals implements
     private Seat _seat;
     private Keyboard _keyboard;
     private Pointer _pointer;
-    private Surface _cursorSurface;
     private LinkedList<Output> _outputs;
     private HashMap<GraphicsDevice, Integer> _gdMap;
     private Thread _uiThread;
@@ -102,13 +102,6 @@ class WaylandGlobals implements
     public Compositor compositor() { return _compositor; }
     public XdgWmBase xdgWmBase() { return _xdgWmBase; }
     public Shm shm() { return _shm; }
-    public Surface cursorSurface() {
-        if (null == _cursorSurface) {
-            _cursorSurface = new Surface(_display);
-            _compositor.createSurface(_cursorSurface);
-        }
-        return _cursorSurface;
-    }
     public Output[] outputs() { return (Output[])_outputs.toArray(); }
     public Output findOutput(GraphicsDevice gd) {
         if (_gdMap.containsKey(gd))
@@ -262,6 +255,15 @@ class WaylandGlobals implements
     // Pointer.Listener
     private int _pointerX;
     private int _pointerY;
+    private int _lastEnter;
+    private Surface _cursorSurface;
+    private Surface cursorSurface() {
+        if (null == _cursorSurface) {
+            _cursorSurface = new Surface(_display);
+            _compositor.createSurface(_cursorSurface);
+        }
+        return _cursorSurface;
+    }
     private boolean pointerSend(MouseEvent m) {
         Window w = findWindow(_pointerWindow);
         if (w != null) {
@@ -271,12 +273,9 @@ class WaylandGlobals implements
     }
     public boolean pointerEnter(int serial, int surface, int x, int y) {
         _pointerWindow = surface;
-        // we associate the cursor surface with the window surface here (needs serial)
-        Window w = findWindow(_pointerWindow);
-        if (w != null) {
-            Point h = w.getCursor().getHotspot();
-            _pointer.setCursor(serial, cursorSurface(), h._x, h._y);
-        }
+        // save enter serial number so we can update cursor hotspot later
+        _lastEnter = serial;
+        _pointer.setCursor(serial, cursorSurface(), 0, 0);
         // dispatching the first pointer event will generate a MOUSE_ENTERED, which in turn will render the cursor on it's surface.
         return pointerMove(0, x, y);
     }
@@ -295,6 +294,15 @@ class WaylandGlobals implements
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
     public boolean pointerFrame() { return true; }
+
+    // cursor update
+    public void updateCursor(Buffer b, Dimension d, Point h) {
+        Surface s = cursorSurface();
+        _pointer.setCursor(_lastEnter, s, h._x, h._y);
+        s.attach(b, 0, 0);
+        s.damageBuffer(0, 0, d._w, d._h);
+        s.commit();
+    }
 
     // repaint request queue
     public void repaint(Window w) {
