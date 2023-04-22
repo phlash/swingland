@@ -9,10 +9,10 @@ import com.ashbysoft.wayland.XdgSurface;
 import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.XdgPopup;
 import com.ashbysoft.wayland.ShmPool;
-import com.ashbysoft.swingland.event.WindowEvent;
-import com.ashbysoft.swingland.event.WindowListener;
 import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Positioner;
+import com.ashbysoft.swingland.event.WindowEvent;
+import com.ashbysoft.swingland.event.WindowListener;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -39,7 +39,6 @@ public class Window extends Container implements
     private int _poolsize;
     private ShmPool _shmpool;
     private Buffer _buffer;
-    private Surface _cursorSurface;
     private int _lastCursor;
     // original size (if any), used during configure callback
     private int _origWidth;
@@ -125,15 +124,6 @@ public class Window extends Container implements
         _surface.commit();
         _log.info("<--render()");
     }
-    // package-private cursor surface creation for Wayland
-    Surface getCursorSurface() {
-        if (null == _cursorSurface) {
-            _log.info("getCursorSurface()");
-            _cursorSurface = new Surface(_g.display());
-            _g.compositor().createSurface(_cursorSurface);
-        }
-        return _cursorSurface;
-    }
     // cursor rendering
     protected void drawCursor(Component src) {
         _log.info("Window:drawCursor("+src.getName()+")");
@@ -160,9 +150,10 @@ public class Window extends Container implements
         c.drawCursor(new Graphics(buffer.get(), d._w, d._h, null, null));
         _lastCursor = c.getType();
         // push to Wayland
-        _cursorSurface.attach(buffer, 0, 0);
-        _cursorSurface.damageBuffer(0, 0, d._w, d._h);
-        _cursorSurface.commit();
+        Surface cs = _g.cursorSurface();
+        cs.attach(buffer, 0, 0);
+        cs.damageBuffer(0, 0, d._w, d._h);
+        cs.commit();
     }
     private class CursorBuffer implements Cursor.Resources {
         private ShmPool _pool;
@@ -230,10 +221,6 @@ public class Window extends Container implements
     private void fromWayland() {
         _log.info("fromWayland()");
         // run away!
-        if (_cursorSurface != null) {
-            _cursorSurface.destroy();
-            _cursorSurface = null;
-        }
         if (_buffer != null) {
             _buffer.destroy();
             _buffer = null;
