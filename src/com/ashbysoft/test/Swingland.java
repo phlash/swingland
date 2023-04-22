@@ -60,6 +60,10 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		_mbar.add(em);
 		JMenu vm = new JMenu("View");
 		vm.add(new JMenuItem("Dialog"));
+		JMenu sub = new JMenu("Choose >");
+		sub.add(new JMenuItem("Type #1"));
+		sub.add(new JMenuItem("Type #2"));
+		vm.add(sub);
 		_mbar.add(vm);
 		_mbar.setHelpMenu(new JMenu("Help"));
 		_frame.setJMenuBar(_mbar);

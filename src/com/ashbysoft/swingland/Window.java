@@ -9,6 +9,8 @@ import com.ashbysoft.wayland.XdgSurface;
 import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.XdgPopup;
 import com.ashbysoft.wayland.ShmPool;
+import com.ashbysoft.swingland.event.WindowEvent;
+import com.ashbysoft.swingland.event.WindowListener;
 import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Positioner;
 
@@ -45,6 +47,9 @@ public class Window extends Container implements
     // window ownership hierarchy, affects lifecycle / visibility methods
     private Window _owner;
     private LinkedList<Window> _owned;
+    // window event listeners
+    private LinkedList<WindowListener> _listeners;
+    private boolean _hasOpened;
     // popup window (short-lived, eg: menus, tooltips)
     private boolean _isPopup;
     // display states
@@ -69,7 +74,8 @@ public class Window extends Container implements
         }
         _isPopup = isPopup;
         _config = (config != null) ? config : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-        _owned = new LinkedList<Window>();
+        _owned = new LinkedList<>();
+        _listeners = new LinkedList<>();
         // grab a reference to Wayland
         _g = WaylandGlobals.instance();
         // default rendering properties
@@ -78,6 +84,7 @@ public class Window extends Container implements
         setFont(Font.getFont(DEFAULT_FONT));
         setCursor(Cursor.getDefaultCursor());
         _lastCursor = -1;
+        _hasOpened = false;
     }
 
     // package-private UI thread callback to render things!
@@ -303,7 +310,11 @@ public class Window extends Container implements
         }
         return true;
     }
-    public boolean xdgPopupDone() { return true; }
+    public boolean xdgPopupDone() {
+        // We've been unmapped - clean up
+        dispose();
+        return true;
+    }
     public boolean xdgPopupRepositioned(int token) { return true; }
 
     // ownership / lifecycle management
@@ -334,6 +345,23 @@ public class Window extends Container implements
             _owner.remOwned(this);
             _owner = null;
         }
+        sendEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSED));
+    }
+
+    // window event listeners
+    public void addWindowListener(WindowListener l) {
+        _listeners.add(l);
+    }
+    public void removeWindowListener(WindowListener l) {
+        _listeners.remove(l);
+    }
+    private void sendEvent(WindowEvent w) {
+        for (WindowListener l : _listeners) {
+            if (w.getID() == WindowEvent.WINDOW_OPENED)
+                l.windowOpened(w);
+            else if (w.getID() == WindowEvent.WINDOW_CLOSED)
+                l.windowClosed(w);
+        }
     }
 
     // title - held here to avoid leaking Wayland stuff into sub-classes
@@ -356,6 +384,10 @@ public class Window extends Container implements
                 setSize(getMinimumSize());
             validate();
             super.setVisible(v);
+            if (!_hasOpened) {
+                _hasOpened = true;
+                sendEvent(new WindowEvent(this, WindowEvent.WINDOW_OPENED));
+            }
             toWayland();
             repaint();
         } else {

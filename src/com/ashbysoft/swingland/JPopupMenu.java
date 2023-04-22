@@ -18,13 +18,20 @@ public class JPopupMenu extends Window implements ActionListener {
     }
     public void add(JMenuItem item) {
         // hook into action events, so we can close ourselves
-        item.addActionListener(this);
+        // ignore JMenu components, as they select a sub-menu
+        if (!(item instanceof JMenu))
+            item.addActionListener(this);
         super.addImpl(item, null, -1);
     }
     public void actionPerformed(ActionEvent e) {
-        // a menu item was clicked.. we're done
+        // grab owner ref before disposing everything
+        Window o = getOwner();
         dispose();
+        // now inform our owner if it's also a popup menu
+        if (o instanceof JPopupMenu)
+            ((JPopupMenu)o).actionPerformed(e);
     }
+
     public void paint(Graphics g) {
         if (!isVisible())
             return;

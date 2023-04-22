@@ -15,14 +15,18 @@ public class BoxLayout extends NullLayout {
         Insets ins = parent.getInsets();
         int curX = ins._l;
         int curY = ins._t;
+        int fixH = parent.getHeight() - ins._t - ins._b;
+        int fixW = parent.getWidth() - ins._l - ins._r;
         for (int i = 0; i < parent.getComponentCount(); i += 1) {
             Component c = parent.getComponent(i);
             Dimension d = c.getPreferredSize();
-            c.setBounds(curX, curY, d._w, d._h);
-            if (X_AXIS == _axis)
+            if (X_AXIS == _axis) {
+                c.setBounds(curX, curY, d._w, fixH);
                 curX += d._w;
-            else
+            } else {
+                c.setBounds(curX, curY, fixW, d._h);
                 curY += d._h;
+            }
         }
     }
     public Dimension minimumLayoutSize(Container parent) {
