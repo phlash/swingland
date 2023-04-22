@@ -1,7 +1,9 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
 import com.ashbysoft.swingland.event.ActionEvent;
 import com.ashbysoft.swingland.event.ActionListener;
+import com.ashbysoft.swingland.event.KeyEvent;
 
 public class JPopupMenu extends Window implements ActionListener {
     public static final int BORDER_WIDTH = 2;
@@ -22,6 +24,14 @@ public class JPopupMenu extends Window implements ActionListener {
         if (!(item instanceof JMenu))
             item.addActionListener(this);
         super.addImpl(item, null, -1);
+    }
+    public void processEvent(AbstractEvent e) {
+        // detect ESC key as close menu
+        if (e instanceof KeyEvent) {
+            KeyEvent k = (KeyEvent)e;
+            if (k.getID() == KeyEvent.KEY_RELEASED && k.getKeyCode() == KeyEvent.VK_ESC)
+                actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, null));
+        }
     }
     public void actionPerformed(ActionEvent e) {
         // grab owner ref before disposing everything

@@ -49,6 +49,7 @@ class WaylandGlobals implements
     private Thread _uiThread;
     private LinkedList<Window> _repaints;
     private LinkedList<Runnable> _runnables;
+    private LinkedList<Window> _popups;
     private HashMap<Integer, Window> _windows;
     private int _keyboardWindow;
     private int _pointerWindow;
@@ -70,6 +71,7 @@ class WaylandGlobals implements
         _xdgWmBase.addListener(this);
         _repaints = new LinkedList<>();
         _runnables = new LinkedList<>();
+        _popups = new LinkedList<>();
         _windows = new HashMap<>();
         // wait for all bound objects callbacks
         _display.roundtrip();
@@ -137,6 +139,23 @@ class WaylandGlobals implements
         synchronized(_windows) {
             return _windows.get(id);
         }
+    }
+    public void pushPopup(Window w) {
+        synchronized(_popups) {
+            _popups.add(w);
+        }
+    }
+    public void removePopup(Window w) {
+        synchronized(_popups) {
+            _popups.remove(w);
+        }
+    }
+    public Window topPopup() {
+        synchronized(_popups) {
+            if (_popups.size() > 0)
+                return _popups.peekLast();
+        }
+        return null;
     }
     // Registry.Listener
     public boolean global(int name, String iface, int version) {
@@ -212,7 +231,9 @@ class WaylandGlobals implements
         return keySend(serial, time, keyCode, state);
     }
     private boolean keySend(int serial, int time, int keyCode, int state) {
-        Window w = findWindow(_keyboardWindow);
+        // Keyboard input always goes to any popup present, before last entered window
+        Window w = topPopup();
+        if (null == w) w = findWindow(_keyboardWindow);
         if (w != null) {
             KeyEvent e = new KeyEvent(this, state, keyCode, '-');
             w.dispatchEvent(e);

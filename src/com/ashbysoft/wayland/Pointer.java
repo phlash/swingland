@@ -1,7 +1,6 @@
 package com.ashbysoft.wayland;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 public class Pointer extends WaylandObject<Pointer.Listener> {
     public interface Listener {

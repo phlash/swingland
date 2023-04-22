@@ -209,6 +209,7 @@ public class Window extends Container implements
             _xdgPopup = new XdgPopup(_g.display());
             _xdgPopup.addListener(this);
             _xdgSurface.getPopup(_xdgPopup, _owner._xdgSurface, positioner);
+            _g.pushPopup(this);
             positioner.destroy();
         } else {
             _xdgToplevel = new XdgToplevel(_g.display());
@@ -243,6 +244,7 @@ public class Window extends Container implements
         }
         _poolsize = 0;
         if (_xdgPopup != null) {
+            _g.removePopup(this);
             _xdgPopup.destroy();
             _xdgPopup = null;
         }
