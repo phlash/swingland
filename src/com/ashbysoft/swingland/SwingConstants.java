@@ -1,6 +1,6 @@
 package com.ashbysoft.swingland;
 
-public class SwingConstants {
+public interface SwingConstants {
     public static final int CENTER = 0;
     public static final int TOP = 1;
     public static final int LEFT = 2;

@@ -246,19 +246,19 @@ public class Fed implements ActionListener, KeyListener, Runnable {
         public void mouseMoved(MouseEvent e) {}
     }
     public void actionPerformed(ActionEvent e) {
-        if (e.getCommand().equals("left")) {
+        if (e.getActionCommand().equals("left")) {
             _font.setCurrent(_font.getCurrent() - 1);
-        } else if (e.getCommand().equals("right")) {
+        } else if (e.getActionCommand().equals("right")) {
             _font.setCurrent(_font.getCurrent() + 1);
-        } else if (e.getCommand().equals("pageleft")) {
+        } else if (e.getActionCommand().equals("pageleft")) {
             _font.setCurrent(_font.getCurrent() - 10);
-        } else if (e.getCommand().equals("pageright")) {
+        } else if (e.getActionCommand().equals("pageright")) {
             _font.setCurrent(_font.getCurrent() + 10);
-        } else if (e.getCommand().equals("add")) {
+        } else if (e.getActionCommand().equals("add")) {
             _font.addGlyph(_font.getCurrent());
-        } else if (e.getCommand().equals("append")) {
+        } else if (e.getActionCommand().equals("append")) {
             _font.addGlyph(_font.getCount());
-        } else if (e.getCommand().equals("rem")) {
+        } else if (e.getActionCommand().equals("rem")) {
             _font.remGlyph(_font.getCurrent());
         }
         _status.setText(getStatus());

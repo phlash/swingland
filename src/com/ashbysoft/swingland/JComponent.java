@@ -6,7 +6,11 @@ import java.util.LinkedList;
 public class JComponent extends Container {
     private boolean _beOpaque;
     private Border _border;
+    private String _toolTip;
     protected final LinkedList<EventListener> _listeners = new LinkedList<EventListener>();
+
+    public String getToolTipText() { return _toolTip; }
+    public void setToolTipText(String t) { _toolTip = t; }
     public boolean isOpaque() { return _beOpaque || isBackgroundSet(); }
     public void setOpaque(boolean o) { _beOpaque = o; }
     public void setDoubleBuffered(boolean db) {}

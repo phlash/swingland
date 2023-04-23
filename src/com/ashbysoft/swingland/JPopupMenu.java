@@ -6,13 +6,17 @@ import com.ashbysoft.swingland.event.ActionListener;
 import com.ashbysoft.swingland.event.KeyEvent;
 
 public class JPopupMenu extends Window implements ActionListener {
+    public static final int TITLE_HEIGHT = 20;
     public static final int BORDER_WIDTH = 2;
-    public JPopupMenu(Window owner) {
+    public JPopupMenu(Window owner) { this(owner, null); }
+        public JPopupMenu(Window owner, String title) {
         super(owner, true);
         _log.info("<init>("+owner.getName()+")");
         setVisible(false);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setInsets(new Insets(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+        setInsets(new Insets(title != null ? TITLE_HEIGHT : BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+        if (title != null)
+            setTitle(title);
     }
     // prevent general use of underlying container
     protected void addImpl(Component c, Object s, int i) {
@@ -53,6 +57,10 @@ public class JPopupMenu extends Window implements ActionListener {
         g.fillRect(0, m._t, m._l, getHeight()-m._b);
         g.fillRect(getWidth()-m._r, m._t, m._r, getHeight()-m._b);
         g.fillRect(0, getHeight()-m._b, getWidth(), m._b);
+        if (getTitle() != null) {
+            g.setColor(getBackground());
+            g.drawString(getTitle(), 2, TITLE_HEIGHT-2);
+        }
         super.paint(g);
     }
 }

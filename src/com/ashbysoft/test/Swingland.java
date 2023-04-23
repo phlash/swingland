@@ -6,10 +6,11 @@ import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
 import com.ashbysoft.swingland.image.ImageIO;
 
-public class Swingland extends JComponent implements ActionListener, Runnable {
+public class Swingland extends JComponent implements ActionListener, WindowListener, Runnable {
 	private String _imgResource;
     private JFrame _frame;
 	private JMenuBar _mbar;
+	private JPopupMenu _popup;
 	private JDialog _dialog;
 	private Border _border;
 	private Image _testcard;
@@ -95,13 +96,10 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 					setBorder(_border);
 			} else if (k.getKeyCode() == KeyEvent.VK_F) {
 				k.consume();
-				Component c = getParent();
-				while (!(c instanceof Window))
-					c = c.getParent();
 				if (getGraphicsConfiguration().getDevice().getFullScreenWindow() != null)
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
 				else
-					getGraphicsConfiguration().getDevice().setFullScreenWindow((Window)c);
+					getGraphicsConfiguration().getDevice().setFullScreenWindow(_frame);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
@@ -113,6 +111,10 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 				m.consume();
 				_b = m.getButton();
 				repaint();
+			} else if (m.getID() == MouseEvent.MOUSE_CLICKED) {
+				m.consume();
+				if (m.getButton() == MouseEvent.BUTTON2)
+					showPopup(m.getX(), m.getY());
 			}
 		}
 	}
@@ -143,10 +145,32 @@ public class Swingland extends JComponent implements ActionListener, Runnable {
 		}
 	}
 
+	private void showPopup(int x, int y) {
+		if (_popup != null)
+			_popup.dispose();
+		_popup = new JPopupMenu(_frame, "Context!");
+		_popup.add(new JMenuItem("Foogle.."));
+		_popup.add(new JMenuItem("Gargle?"));
+		_popup.addWindowListener(this);
+		Rectangle us = getBounds();
+		Component c = getParent();
+		while (c != null && c != _frame) {
+			us = us.offset(c.getBounds());
+			c = c.getParent();
+		}
+		_popup.setLocation(x+us._x, y+us._y);
+		_popup.setVisible(true);
+	}
+
 	public void actionPerformed(ActionEvent a) {
 		_log.info("action!");
 		_dialog.dispose();
 		_dialog = null;
+	}
+    public void windowOpened(WindowEvent w) {}
+    public void windowClosing(WindowEvent w) {}
+    public void windowClosed(WindowEvent w) {
+		_popup = null;
 	}
 
 	public Dimension getPreferredSize() {

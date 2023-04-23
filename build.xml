@@ -11,11 +11,13 @@
 			<fileset dir="bin/classes" excludes="com/ashbysoft/test/** com/ashbysoft/fed/**"/>
 			<fileset dir="res"/>
 		</jar>
-		<jar destfile="bin/test.jar" basedir="bin/classes" includes="com/ashbysoft/test/**">
+		<jar destfile="bin/test.jar">
 			<manifest>
 				<attribute name="Main-Class" value="com.ashbysoft.test.Test"/>
 				<attribute name="Class-Path" value="swingland.jar"/>
 			</manifest>
+			<fileset dir="bin/classes" includes="com/ashbysoft/test/**"/>
+			<fileset dir="src" includes="com/ashbysoft/test/images/**"/>
 		</jar>
 		<jar destfile="bin/fed.jar" basedir="bin/classes" includes="com/ashbysoft/fed/**">
 			<manifest>

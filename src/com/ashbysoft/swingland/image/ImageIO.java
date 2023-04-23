@@ -1,10 +1,12 @@
 package com.ashbysoft.swingland.image;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.zip.DataFormatException;
@@ -16,6 +18,10 @@ public class ImageIO {
     private static final Logger _log = new Logger("[ImageIO]:");
     private static String _short = "Short read";
 
+    public static BufferedImage read(byte[] data) throws IOException {
+        _log.info("read(byte[])");
+        return read(new ByteArrayInputStream(data));
+    }
     public static BufferedImage read(String pathname) throws IOException {
         _log.info("read("+pathname+")");
         return read(new File(pathname));
@@ -25,6 +31,12 @@ public class ImageIO {
         if (!file.canRead())
             throw new IOException("unreadable: "+file.getCanonicalPath());
         try (InputStream is = new BufferedInputStream(new FileInputStream(file))) {
+            return read(is);
+        }
+    }
+    public static BufferedImage read(URL url) throws IOException {
+        _log.info("read(URL:"+url.toString()+")");
+        try (InputStream is = url.openStream()) {
             return read(is);
         }
     }
