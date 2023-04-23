@@ -33,6 +33,8 @@ public class JButton extends JComponent {
     protected boolean isHeld() { return _hold; }
     // set size based on text dimensions
     public Dimension getPreferredSize() {
+        if (isPreferredSizeSet())
+            return super.getPreferredSize();
         Point p;
         if (getText().length() > 0) {
             p = new Point(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());

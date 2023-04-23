@@ -9,7 +9,7 @@ public class JMenuItem extends JButton {
         _log.info("<init>("+text+")");
     }
     public void paintComponent(Graphics g) {
-        if (isBackgroundSet()) {
+        if (isOpaque()) {
             g.setColor(getBackground());
             g.fillRect(0, 0, getWidth(), getHeight());
         }

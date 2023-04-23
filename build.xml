@@ -7,32 +7,16 @@
 	</target>
 
 	<target name="package" depends="compile">
-		<!-- ANT does not support setting the module main class attribute directly, so we have to poke 'jar' ourselves -->
-		<echo message="[jar] Building bin/swingland.jar as module with main class com.ashbysoft.test.Test"/>
-		<exec executable="jar" failonerror="true">
-			<arg value="cfme"/>
-			<arg value="bin/swingland.jar"/>
-			<arg value="src/MANIFEST.MF"/>
-			<arg value="com.ashbysoft.test.Test"/>
-			<arg value="-C"/>
-			<arg value="bin/classes"/>
-			<arg value="module-info.class"/>
-			<arg value="-C"/>
-			<arg value="bin/classes"/>
-			<arg value="com/ashbysoft/logger"/>
-			<arg value="-C"/>
-			<arg value="bin/classes"/>
-			<arg value="com/ashbysoft/test"/>
-			<arg value="-C"/>
-			<arg value="bin/classes"/>
-			<arg value="com/ashbysoft/swingland"/>
-			<arg value="-C"/>
-			<arg value="bin/classes"/>
-			<arg value="com/ashbysoft/wayland"/>
-			<arg value="-C"/>
-			<arg value="res"/>
-			<arg value="."/>
-		</exec>
+		<jar destfile="bin/swingland.jar">
+			<fileset dir="bin/classes" excludes="com/ashbysoft/test/** com/ashbysoft/fed/**"/>
+			<fileset dir="res"/>
+		</jar>
+		<jar destfile="bin/test.jar" basedir="bin/classes" includes="com/ashbysoft/test/**">
+			<manifest>
+				<attribute name="Main-Class" value="com.ashbysoft.test.Test"/>
+				<attribute name="Class-Path" value="swingland.jar"/>
+			</manifest>
+		</jar>
 		<jar destfile="bin/fed.jar" basedir="bin/classes" includes="com/ashbysoft/fed/**">
 			<manifest>
 				<attribute name="Main-Class" value="com.ashbysoft.fed.Fed"/>
@@ -65,7 +49,7 @@
 
 	<target name="test-wayland" depends="package">
 		<record name="bin/test-wayland.log" action="start"/>
-		<java jar="bin/swingland.jar" fork="true">
+		<java jar="bin/test.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
 			<arg value="wayland"/>
@@ -75,7 +59,7 @@
 
 	<target name="test-swingland" depends="package">
 		<record name="bin/test-swingland.log" action="start"/>
-		<java jar="bin/swingland.jar" fork="true">
+		<java jar="bin/test.jar" fork="true">
 			<jvmarg value="-Djava.library.path=bin"/>
 			<jvmarg value="-Dashbysoft.log.level=${ashbysoft.log.level}"/>
 			<arg value="swingland"/>

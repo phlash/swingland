@@ -360,6 +360,22 @@ public class Window extends Container implements
         repaint();
     }
 
+    // adjust our size (but not less than minimum if set) to fit contents
+    public void pack() {
+        if (isMinimumSizeSet()) {
+            // temporarily remove fixed size
+            Dimension d = getMinimumSize();
+            setMinimumSize(null);
+            // get layout minimum
+            Dimension l = getMinimumSize();
+            // calc clamped minimum
+            Dimension m = new Dimension((l._w > d._w) ? l._w : d._w, (l._h > d._h) ? l._h : d._h);
+            // put stuff back
+            setSize(m);
+            setMinimumSize(m);
+        } else
+            setSize(getMinimumSize());
+    }
     // intercept setVisible to force validation and Wayland I/O
     public void setVisible(boolean v) {
         // no change?

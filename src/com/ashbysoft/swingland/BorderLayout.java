@@ -85,7 +85,7 @@ public class BorderLayout extends NullLayout {
         int sumH = 0;
         for (int i = 0; i < _components.length; i++) {
             if (_components[i] != null) {
-                Dimension d = _components[i].getMinimumSize();
+                Dimension d = _components[i].getPreferredSize();
                 switch (i) {
                 case 0:
                     minW = d._w;

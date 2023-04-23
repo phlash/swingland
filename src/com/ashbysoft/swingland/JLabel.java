@@ -17,6 +17,8 @@ public class JLabel extends JComponent {
         throw new IllegalArgumentException("cannot add components to JLabel");
     }
     public Dimension getPreferredSize() {
+        if (isPreferredSizeSet())
+            return super.getPreferredSize();
         Point p;
         if (_text.length() > 0) {
             p = new Point(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());

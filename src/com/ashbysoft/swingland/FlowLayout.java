@@ -36,7 +36,7 @@ public class FlowLayout implements LayoutManager {
             Dimension d = c.getPreferredSize();
             // current row?
             int newW = curW + (i > 0 ? _hgap : 0);
-            if (newW + d._w <= insW) {
+            if (!apply || newW + d._w <= insW) {
                 if (apply) c.setBounds(newW, curH, d._w, d._h);
                 curW = newW + d._w;
                 maxH = d._h > maxH ? d._h : maxH;
@@ -50,7 +50,7 @@ public class FlowLayout implements LayoutManager {
                 if (apply) c.setBounds(insets._l, insets._t + curH, d._w, d._h);
             }
         }
-        return new Dimension(maxW, curH + maxH);
+        return new Dimension(maxW + insets._r, curH + maxH + insets._b);
     }
     public void layoutContainer(Container parent) {
         // wrap components into parent width, row-by-row

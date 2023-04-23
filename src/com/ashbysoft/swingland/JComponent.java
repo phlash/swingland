@@ -4,8 +4,11 @@ import com.ashbysoft.swingland.event.EventListener;
 import java.util.LinkedList;
 
 public class JComponent extends Container {
+    private boolean _beOpaque;
     private Border _border;
     protected final LinkedList<EventListener> _listeners = new LinkedList<EventListener>();
+    public boolean isOpaque() { return _beOpaque || isBackgroundSet(); }
+    public void setOpaque(boolean o) { _beOpaque = o; }
     public void setDoubleBuffered(boolean db) {}
     public Border getBorder() { return _border; }
     public void setBorder(Border b) {
@@ -32,7 +35,7 @@ public class JComponent extends Container {
     }
     protected void paintComponent(Graphics g) {
         _log.info("JComponent:paintComponent()");
-        if (isBackgroundSet()) {
+        if (isOpaque()) {
             g.setColor(getBackground());
             g.fillRect(0, 0, getWidth(), getHeight());
         }

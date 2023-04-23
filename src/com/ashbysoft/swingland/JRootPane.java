@@ -93,6 +93,21 @@ public class JRootPane extends JComponent {
 
     protected class RootLayout extends NullLayout {
         RootLayout() { _log.info("<init>()"); }
+        public Dimension minimumLayoutSize(Container parent) {
+            if (parent == _layeredPane) {
+                Insets ins = parent.getInsets();
+                Dimension c = _contentPane.getPreferredSize();
+                int w = c._w;
+                int h = c._h;
+                if (_menuBar != null) {
+                    Dimension m = _menuBar.getPreferredSize();
+                    w = m._w > w ? m._w : w;
+                    h += m._h;
+                }
+                return new Dimension(w + ins._l + ins._r, h + ins._t + ins._b);
+            }
+            return minimumLayoutSize(_layeredPane);
+        }
         public void layoutContainer(Container parent) {
             _log.info("layoutContainer("+parent.getName()+")");
             Rectangle bounds = parent.getBounds();

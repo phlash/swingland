@@ -27,6 +27,18 @@
             "vmArgs": "-Djava.library.path=bin",
             "mainClass": "com.ashbysoft.fed.Fed",
             "args": [ "-f", "res/cursors/DEFAULT" ]
+        },
+        {
+            "type": "java",
+            "name": "ToplevelDemo",
+            "request": "launch",
+            "classPaths": [ "${workspaceFolder}/bin/test.jar" ],
+            "cwd": "${workspaceFolder}",
+            "sourcePaths": [ "src" ],
+            "stopOnEntry": true,
+            "vmArgs": "-Djava.library.path=bin",
+            "mainClass": "com.ashbysoft.test.TopLevelDemo"
         }
+
     ]
 }
