@@ -138,16 +138,18 @@ public class JButton extends JComponent implements SwingConstants {
     // paint a button!
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        int cw = getWidth() > getHeight() ? getHeight()/4 : getWidth()/4;
+        if (cw > 25) cw = 25;
         if (_hold) {
             g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
-            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
+            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, cw, cw);
             g.setColor(getBackground());
         } else {
             g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
-            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, getWidth()/10, getHeight()/10);
+            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, cw, cw);
             g.setColor(getBackground());
             int o = hasFocus() ? 2 : 1;
-            g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, getWidth()/10, getHeight()/10);
+            g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, cw, cw);
             g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
         }
         // we always draw an icon if we have one..

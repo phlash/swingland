@@ -128,7 +128,43 @@ public class Graphics implements ImageConsumer {
         public Quarters(Point tl, Point tr, Point bl, Point br) { _tl=tl; _tr=tr; _bl=bl; _br=br; }
     };
     private void oval(int x, int y, int w, int h, boolean filled, int sw, int sh) {
-        _log.info("oval("+w+"x"+h+")@("+x+","+y+"):f="+filled+",sw="+sw+",sh="+sh);
+        // choose an algorithm based on oval dimensions for best appearance
+        // weeny - use diamond approx!
+        if (w < 20 && h < 20) {
+            ovalD(x, y, w, h, filled, sw, sh);
+        } else {
+            float aspect = (float)w/(float)h;
+            // high aspect ratio (wide) - use integer approx
+            if (aspect > 4.0)
+                ovalI(x, y, w, h, filled, sw, sh, false);
+            else if (aspect < 0.25)
+                ovalI(y, x, h, w, filled, sh, sw, true);  // flip x/y, adjust plotter to compensate
+            // near round, use trig algorithm for accuracy
+            else
+                ovalF(x, y, w, h, filled, sw, sh);
+        }
+    }
+    private void ovalD(int x, int y, int w, int h, boolean filled, int sw, int sh) {
+        _log.info("ovalD("+w+"x"+h+")@("+x+","+y+"):f="+filled+",sw="+sw+",sh="+sh);
+        int a = w/2;
+        int b = h/2;
+        Quarters q = new Quarters(
+            new Point(x+a, y+b),
+            new Point(x+a+sw, y+b),
+            new Point(x+a, y+b+sh),
+            new Point(x+a+sw, y+b+sh)
+        );
+        // draw a triangle in lower right.. reflect to others
+        for (int oy = 0; oy <= b; oy += 1) {
+            int ox = ((b-oy)*a) / b;
+            do {
+                plotQuarters(q, ox, oy, false);
+                ox -= 1;
+            } while (filled && ox >= 0);
+        }
+    }
+    private void ovalI(int x, int y, int w, int h, boolean filled, int sw, int sh, boolean flip) {
+        _log.info("ovalI("+w+"x"+h+")@("+x+","+y+"):f="+filled+",sw="+sw+",sh="+sh);
         // pre-calculate ellipse axis radii
         int a = w/2;
         int b = h/2;
@@ -160,19 +196,19 @@ public class Graphics implements ImageConsumer {
                     if (!filled && pt > 0L && pt-d2 < d2-dt)
                         ox += 1;
                     // draw line back to last x
-                    plotQuarters(q, ox, oy);
+                    plotQuarters(q, ox, oy, flip);
                     int hd = (lx-ox)/2;
                     for (int dx = 1; dx < hd; dx += 1) {
-                        plotQuarters(q, ox+dx, oy);
+                        plotQuarters(q, ox+dx, oy, flip);
                     }
                     for (int dx = hd > 1 ? hd : 1; dx < (lx-ox); dx += 1) {
-                        plotQuarters(q, ox+dx, oy-1);
+                        plotQuarters(q, ox+dx, oy-1, flip);
                     }
                     lx = ox;
                     // filled - draw line back to zero
                     if (filled)
                         for (ox -= 1; ox >= 0; ox -= 1)
-                            plotQuarters(q, ox, oy);
+                            plotQuarters(q, ox, oy, flip);
                     else
                         ox = -1;
                 } else {
@@ -181,12 +217,47 @@ public class Graphics implements ImageConsumer {
             }
         }
     }
-    private void plotQuarters(Quarters q, int ox, int oy) {
-        // plot 4 quarters
-        setPixel(q._tl._x-ox, q._tl._y-oy); // TL
-        setPixel(q._tr._x+ox, q._tr._y-oy); // TR
-        setPixel(q._bl._x-ox, q._bl._y+oy); // BL
-        setPixel(q._br._x+ox, q._br._y+oy); // BR
+    private void plotQuarters(Quarters q, int ox, int oy, boolean flip) {
+        if (flip) {
+            // plot 4 quarters
+            setPixel(q._tl._y-oy, q._tl._x-ox); // TL
+            setPixel(q._tr._y-oy, q._tr._x+ox); // TR
+            setPixel(q._bl._y+oy, q._bl._x-ox); // BL
+            setPixel(q._br._y+oy, q._br._x+ox); // BR
+        } else {
+            // plot 4 quarters
+            setPixel(q._tl._x-ox, q._tl._y-oy); // TL
+            setPixel(q._tr._x+ox, q._tr._y-oy); // TR
+            setPixel(q._bl._x-ox, q._bl._y+oy); // BL
+            setPixel(q._br._x+ox, q._br._y+oy); // BR
+        }
+    }
+    private void ovalF(int x, int y, int w, int h, boolean filled, int sw, int sh) {
+        _log.info("ovalF("+w+"x"+h+")@("+x+","+y+"):f="+filled+",sw="+sw+",sh="+sh);
+        // floating point for accuracy.. we'll see.
+        double a = (double)(filled ? w-1 : w)/2.0 + 0.01;   // fudge factor to prevent rounding issue
+        double b = (double)(filled ? h-1 : h)/2.0 + 0.01;
+        // we assume the number of points required is < circumference(max(a,b))/4
+        int pts = (int)(Math.PI*Math.max(a, b) / 2.0);
+        for (int p = 0; p <= pts; p += 1) {
+            double o = ((double)p/(double)pts)*(Math.PI/2.0);
+            double ox = a * Math.cos(o);
+            double oy = b * Math.sin(o);
+            // translate to separated positions, round and plot..
+            int lx = (int)Math.round((double)x+a-ox);
+            int rx = (int)Math.round((double)(x+sw)+a+ox);
+            int ty = (int)Math.round((double)y+b-oy);
+            int by = (int)Math.round((double)(y+sh)+b+oy);
+            do {
+                setPixel(lx, ty); // TL
+                setPixel(rx, ty); // TR
+                setPixel(lx, by); // BL
+                setPixel(rx, by); // BR
+                lx += 1;
+                rx -= 1;
+                ox -= 1.0;
+            } while (filled && rx >= lx);
+        }
     }
     public void drawString(String s, int x, int y) {
         _log.info("drawString:("+x+","+y+"):"+s);

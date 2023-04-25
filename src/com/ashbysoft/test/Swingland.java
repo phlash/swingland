@@ -179,13 +179,14 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 
     public void paintComponent(Graphics g) {
 		_log.info("Test:paint");
+		long start = System.currentTimeMillis();
 		// adjust bounds for insets
 		Insets ins = getInsets();
 		int t = ins._t;
 		int l = ins._l;
 		int b = getHeight() - ins._b;
 		int r = getWidth() - ins._r;
-		// pinwheel at top right
+		// pinwheel at top right, with various ellipses
 		g.setColor(Color.CYAN);
 		int cx = (r-l)*3/4 + l;
 		int cy = (b-t)/4 + t;
@@ -197,7 +198,15 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			g.drawLine(cx, cy, cx+(int)ox, cy+(int)oy);
 		}
 		g.drawOval(cx-rad, cy-rad, 2*rad, 2*rad);
-		// nested rects at lower right
+		g.setColor(Color.MAGENTA);
+		g.drawOval(cx-rad, cy-3*rad/4, 2*rad, 3*rad/2);
+		for (int a = 2; a <= 32; a *= 2)
+			g.drawOval(cx-rad, cy-rad/a, 2*rad, 2*rad/a);
+		g.setColor(Color.YELLOW);
+		g.drawOval(cx-3*rad/4, cy-rad, 3*rad/2, 2*rad);
+		for (int a = 2; a <= 32; a *= 2)
+			g.drawOval(cx-rad/a, cy-rad, 2*rad/a, 2*rad);
+		// nested (rounded)rects at lower right
 		g.setColor(Color.YELLOW);
 		cy = (b-t)*3/4 + t;
 		g.drawRect(cx-rad, cy-rad, 2*rad, 2*rad);
@@ -205,12 +214,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.fillRect(cx-rad+1, cy-rad+1, 2*rad-1, 2*rad-1);
 		g.setColor(Color.YELLOW);
 		rad = rad*2/3;
-		g.fillRect(cx-rad, cy-rad, 2*rad, 2*rad);
+		g.fillRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/4, rad/4);
 		g.setColor(Color.RED);
 		rad = rad*2/3;;
-		g.drawRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/5, rad/5);
+		g.drawRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/4, rad/4);
 		rad = rad*2/3;;
-		g.fillRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/5, rad/5);
+		g.fillRoundRect(cx-rad, cy-rad, 2*rad, 2*rad, rad/4, rad/4);
 		// nested circles at lower left
 		g.setColor(Color.GREEN);
 		cx = (r-l)/4 + l;
@@ -228,6 +237,10 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.fillOval(cx-rad, cy-rad, 2*rad, 2*rad);
 		g.setColor(Color.GREEN);
 		g.fillOval(cx-12, cy-12, 25, 25);
+		g.setColor(Color.WHITE);
+		g.fillOval(cx-5, cy-5, 10, 10);
+		g.setColor(Color.GREEN);
+		g.fillOval(cx-3, cy-3, 6, 6);
 		// instructions
 		g.setColor(Color.MAGENTA);
 		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog test, F to toggle fullscreen)", l+5, b-5);
@@ -237,11 +250,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		GraphicsConfiguration gc = getGraphicsConfiguration();
 		Rectangle gcr = gc.getBounds();
 		String gcs = "GC:x="+gcr._x+",y="+gcr._y+",w="+gcr._w+",h="+gcr._h;
-		;
 		g.drawString(gcs, getWidth()-getFont().stringWidth(gcs)-10, t+45);
 		if (_testcard != null)
 			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);
 		if (_duke != null)
 			g.drawImage(_duke, l, t);
+		long dur = System.currentTimeMillis() - start;
+		_log.error("render: dur="+dur);
 	}
 }
