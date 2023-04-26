@@ -138,8 +138,9 @@ public class JButton extends JComponent implements SwingConstants {
     // paint a button!
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        // draw button frame (rounded rectangle)
         int cw = getWidth() > getHeight() ? getHeight()/4 : getWidth()/4;
-        if (cw > 25) cw = 25;
+        if (cw > 26) cw = 26;
         if (_hold) {
             g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
             g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, cw, cw);
@@ -152,55 +153,63 @@ public class JButton extends JComponent implements SwingConstants {
             g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, cw, cw);
             g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
         }
-        // we always draw an icon if we have one..
-        Icon i = getIcon();
-        if (i != null) {
-            int ix = switch (getHorizontalTextPosition()) {
-                case LEFT, LEADING -> getWidth() - i.getIconWidth() - PAD;
-                case RIGHT, TRAILING -> PAD;
-                default -> switch (getHorizontalAlignment()) {
-                    case LEFT -> PAD;
-                    case RIGHT -> getWidth() - i.getIconWidth() - PAD;
-                    default -> (getWidth() - i.getIconWidth()) / 2;
-                };
+        // get content dimensions
+        int iw = getIcon() != null ? getIcon().getIconWidth() : 0;
+        int ih = getIcon() != null ? getIcon().getIconHeight() : 0;
+        int tw = getText().length() > 0 ? g.getFont().getFontMetrics().stringWidth(getText()) : 0;
+        int th = getText().length() > 0 ? g.getFont().getFontMetrics().getHeight() : 0;
+
+        // calculate drawing size, then residual space according to text position (may be zero)
+        int dw = switch (getHorizontalTextPosition()) {
+            case CENTER -> Math.max(iw, tw);
+            default -> iw + tw + PAD;
+        };
+        int rw = getWidth() - dw;
+        int dh = switch (getVerticalTextPosition()) {
+            case CENTER -> Math.max(ih, th);
+            default -> ih + th;
+        };
+        int rh = getHeight() - dh;
+        // distribute residual space, derive padding from 0,0
+        int px = switch (getHorizontalAlignment()) {
+            case LEFT -> PAD;
+            case RIGHT -> rw - PAD;
+            default -> rw / 2;
+        };
+        int py = switch (getVerticalAlignment()) {
+            case TOP -> PAD;
+            case BOTTOM -> rh - PAD;
+            default -> rh / 2;
+        };
+        // draw icon first..
+        if (getIcon() != null) {
+            int x = switch (getHorizontalTextPosition()) {
+                case LEFT, LEADING -> px + dw - iw;
+                case RIGHT, TRAILING -> px;
+                default -> px + (dw - iw) / 2;
             };
-            int iy = switch (getVerticalTextPosition()) {
-                case TOP -> getHeight() - i.getIconHeight() - PAD;
-                case BOTTOM -> PAD;
-                default -> switch (getVerticalAlignment()) {
-                    case TOP -> PAD;
-                    case BOTTOM -> getHeight() - i.getIconHeight() - PAD;
-                    default -> (getHeight() - i.getIconHeight()) / 2;
-                };
+            int y = switch (getVerticalTextPosition()) {
+                case TOP -> py + dh - ih;
+                case BOTTOM -> py;
+                default -> py + (dh - ih) / 2;
             };
-            i.paintIcon(this, g, ix, iy);
+            getIcon().paintIcon(this, g, x, y);
         }
+        // now text (which may overlap icon)
         if (getText().length() > 0) {
-            // grab text dimensions
-            int w = g.getFont().getFontMetrics().stringWidth(getText());
-            int h = g.getFont().getFontMetrics().getHeight();
-            // position the text according to alignment
-            int tx = switch (getHorizontalTextPosition()) {
-                case LEFT, LEADING -> PAD;
-                case RIGHT, TRAILING -> getWidth() - w - PAD;
-                default -> switch (getHorizontalAlignment()) {
-                    case LEFT -> PAD;
-                    case RIGHT -> getWidth() - w - PAD;
-                    default -> (getWidth() - w) / 2;
-                };
+            int x = switch (getHorizontalTextPosition()) {
+                case LEFT, LEADING -> px;
+                case RIGHT, TRAILING -> px + dw - tw;
+                default -> px + (dw - tw) / 2;
             };
-            int ty = switch (getVerticalTextPosition()) {
-                case TOP -> PAD + h;
-                case BOTTOM -> getHeight() - PAD;
-                default -> switch (getVerticalAlignment()) {
-                    case TOP -> PAD + h;
-                    case BOTTOM -> getHeight() - PAD;
-                    default -> (getHeight() + h) / 2;
-                };
+            int y = switch (getVerticalTextPosition()) {
+                case TOP -> py + th;
+                case BOTTOM -> py + dh;
+                default -> py + (dh + th) / 2;
             };
-            g.drawString(getText(), tx, ty);
+            g.drawString(getText(), x, y);
             if (_hover)
-                g.drawLine(tx, ty, tx + w, ty);
+                g.drawLine(x, y, x + tw, y);
         }
     }
 }
