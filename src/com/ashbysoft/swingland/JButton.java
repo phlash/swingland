@@ -4,7 +4,8 @@ import com.ashbysoft.swingland.event.*;
 
 public class JButton extends JComponent implements SwingConstants {
     public static final int PAD = 5;
-
+    // hand-drawn quarter circle radius 5 corner (BR)
+    private static final int[][] corner = { {4,0}, {3,1}, {4,1}, {3,2}, {1,3}, {2,3}, {3,3}, {0,4}, {1,4} };
     private String _text;
     private int _mnemonic;
     private Icon _icon;
@@ -136,22 +137,48 @@ public class JButton extends JComponent implements SwingConstants {
         repaint();
     }
     // paint a button!
+    private void fillCornerRect(Graphics g, int x, int y, int w, int h) {
+        int lx = x + PAD;
+        int lw = w - 2*PAD;
+        int ty = y + PAD;
+        int lh = h - 2*PAD;
+        g.fillRect(lx, y, lw, PAD);
+        g.fillRect(lx, ty+lh, lw, PAD);
+        g.fillRect(x, ty, w, lh);
+        for (int[] xy : corner) {
+            g.drawLine(lx+lw, ty+lh+xy[1], lx+lw+xy[0], ty+lh+xy[1]);   // BR
+            g.drawLine(lx+lw, ty-1-xy[1], lx+lw+xy[0], ty-1-xy[1]);     // TR
+            g.drawLine(lx-1-xy[0], ty+lh+xy[1], lx, ty+lh+xy[1]);   // BL
+            g.drawLine(lx-1-xy[0], ty-1-xy[1], lx, ty-1-xy[1]);     // TL
+        }
+    }
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // draw button frame (rounded rectangle)
-        int cw = getWidth() > getHeight() ? getHeight()/4 : getWidth()/4;
-        if (cw > 26) cw = 26;
-        if (_hold) {
-            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
-            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, cw, cw);
-            g.setColor(getBackground());
+        Color fg = isEnabled() ? getForeground() : Window.DEFAULT_DISABLED;
+        g.setColor(fg);
+        // draw button frame (rounded rectangle, unless too small)
+        if (Math.min(getWidth(), getHeight()) < 4*PAD) {
+            if (_hold) {
+                g.fillRect(2, 2, getWidth()-3, getHeight()-3);
+                g.setColor(getBackground());
+            } else {
+                g.fillRect(2, 2, getWidth()-3, getHeight()-3);
+                g.setColor(getBackground());
+                int o = hasFocus() ? 2 : 1;
+                g.fillRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o);
+                g.setColor(fg);
+            }
         } else {
-            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
-            g.fillRoundRect(2, 2, getWidth()-3, getHeight()-3, cw, cw);
-            g.setColor(getBackground());
-            int o = hasFocus() ? 2 : 1;
-            g.fillRoundRect(2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o, cw, cw);
-            g.setColor(isEnabled() ? getForeground() : Window.DEFAULT_DISABLED);
+            if (_hold) {
+                fillCornerRect(g, 2, 2, getWidth()-3, getHeight()-3);
+                g.setColor(getBackground());
+            } else {
+                fillCornerRect(g, 2, 2, getWidth()-3, getHeight()-3);
+                g.setColor(getBackground());
+                int o = hasFocus() ? 2 : 1;
+                fillCornerRect(g, 2+o, 2+o, getWidth()-3-2*o, getHeight()-3-2*o);
+                g.setColor(fg);
+            }
         }
         // get content dimensions
         int iw = getIcon() != null ? getIcon().getIconWidth() : 0;
