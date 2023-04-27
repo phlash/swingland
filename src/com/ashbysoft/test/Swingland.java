@@ -55,6 +55,11 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		JMenuItem close = new JMenuItem("Close");
 		close.setEnabled(false);
 		fm.add(close);
+		fm.addSeparator();
+		JMenuItem exit = new JMenuItem("Exit");
+		exit.setActionCommand("exit");
+		exit.addActionListener(this);
+		fm.add(exit);
 		_mbar.add(fm);
 		JMenu em = new JMenu("Edit");
 		em.setEnabled(false);
@@ -132,6 +137,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			label.setForeground(Color.WHITE);
 			_dialog.add(label, BorderLayout.NORTH);
 			JButton button = new JButton("Press me!");
+			button.setActionCommand("dialog");
 			button.addActionListener(this);
 			_dialog.add(button, BorderLayout.CENTER);
 			_dialog.getContentPane().setFocus(button);
@@ -163,9 +169,18 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	}
 
 	public void actionPerformed(ActionEvent a) {
-		_log.info("action!");
-		_dialog.dispose();
-		_dialog = null;
+		_log.info("action:"+a.getActionCommand());
+		switch (a.getActionCommand()) {
+			case "dialog":
+				_dialog.dispose();
+				_dialog = null;
+				break;
+			case "exit":
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() { System.exit(0); }
+				});
+				break;
+		}
 	}
     public void windowOpened(WindowEvent w) {}
     public void windowClosing(WindowEvent w) {}

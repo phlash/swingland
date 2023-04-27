@@ -8,15 +8,22 @@ import com.ashbysoft.swingland.event.WindowListener;
 // a menu item that holds a sub-menu and pops it up when activated
 
 public class JMenu extends JMenuItem implements WindowListener {
-    private ArrayList<JMenuItem> _items;
+    private ArrayList<JComponent> _items;
     private JPopupMenu _popup;
     public JMenu() { this(""); }
     public JMenu(String text) {
         super(text);
         _items = new ArrayList<>();
     }
-    public void add(JMenuItem item) {
+    public JMenuItem add(JMenuItem item) {
         _items.add(item);
+        return item;
+    }
+    public JMenuItem add(String text) {
+        return add (new JMenuItem(text));
+    }
+    public void addSeparator() {
+        _items.add(new JSeparator());
     }
     public void remove(JMenuItem item) {
         _items.remove(item);
@@ -45,8 +52,12 @@ public class JMenu extends JMenuItem implements WindowListener {
             return;
         }
         _popup = new JPopupMenu((Window)c);
-        for (var item : _items)
-        _popup.add(item);
+        for (var item : _items) {
+            if (item instanceof JMenuItem)
+                _popup.add((JMenuItem)item);
+            else if (item instanceof JSeparator)
+                _popup.add((JSeparator)item);
+        }
         _popup.setBackground(getBackground());
         _popup.setForeground(getForeground());
         _popup.setFont(getFont());

@@ -1,6 +1,7 @@
 package com.ashbysoft.swingland;
 
 public interface SwingConstants {
+    // alignments
     public static final int CENTER = 0;
     public static final int TOP = 1;
     public static final int LEFT = 2;
@@ -8,4 +9,7 @@ public interface SwingConstants {
     public static final int RIGHT = 4;
     public static final int LEADING = 10;
     public static final int TRAILING = 11;
+    // orientations
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
 }

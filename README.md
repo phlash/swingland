@@ -37,9 +37,10 @@ Test:
 
 where the `test-wayland` target directly creates a Wayland window on screen, fills it with random dots for a few seconds and terminates.
 The `test-swingland` target runs a Swing GUI application that extends a `JComponent` and draws stuff in the `paintComponent()` method.
-It has a non-working menu bar that demonstrates the popup windows and menuing logic, but does nothing. `test-swingland` also demonstrates
+It has a working menu bar that demonstrates the popup windows and menuing logic, you can exit via it! `test-swingland` also demonstrates
 a simple pop up `JDialog` (Swing flavour), with some `JLabel`s and `JButton`s in... more to come as I write it!
 The `test` target runs both tests.
+
 
 ## Licence
 
