@@ -41,6 +41,26 @@ It has a working menu bar that demonstrates the popup windows and menuing logic,
 a simple pop up `JDialog` (Swing flavour), with some `JLabel`s and `JButton`s in... more to come as I write it!
 The `test` target runs both tests.
 
+## Other apps
+
+### Swing demos (in `test.jar`)
+
+I have started importing some of the standard [Swing demos](https://docs.oracle.com/javase/tutorial/uiswing/components/index.html) as additional
+test applications, they _should_ work largely unaltered apart from import statements..
+
+Run one:
+```bash
+% java -Djava.library.path=bin -cp bin/test.jar com.ashbysoft.test.[TopLevelDemo|ButtonDemo]
+```
+
+### Font Editor (in `fed.jar`)
+
+Font EDitor is a dogfooding application written with `swingland` to edit bitmap font files (`res/fonts` and `res/cursors`) used by `swingland`..
+
+Run it:
+```bash
+% java -Djava.library.path=bin -jar bin/fed.jar -f <font file> [--help]
+```
 
 ## Licence
 
