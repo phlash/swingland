@@ -143,7 +143,7 @@ public class Fed implements ActionListener, KeyListener, Runnable {
     private String getStatus() {
         FontMetrics fm = _font.getFontMetrics();
         return "  Glyph: "+(_font.getCurrent()+1)+"/"+_font.getCount()+" | codepoint: 0x"+Integer.toHexString(_font.getCurrent() + _font.getOffset())+
-            " | baseline: "+fm.getDescent()+" | leading:"+fm.getLeading();
+            " | offset: "+Integer.toHexString(_font.getOffset())+" | baseline: "+fm.getDescent()+" | leading:"+fm.getLeading();
     }
     private class FontStrip extends JComponent {
         private int _start = 0;
