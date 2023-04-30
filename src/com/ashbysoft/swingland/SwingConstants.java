@@ -12,4 +12,13 @@ public interface SwingConstants {
     // orientations
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
+    // directions (for resizing)
+    public static final int NORTH = 1;
+    public static final int NORTH_EAST = 2;
+    public static final int EAST = 3;
+    public static final int SOUTH_EAST = 4;
+    public static final int SOUTH = 5;
+    public static final int SOUTH_WEST = 6;
+    public static final int WEST = 7;
+    public static final int NORTH_WEST = 8;
 }

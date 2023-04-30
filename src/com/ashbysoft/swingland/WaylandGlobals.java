@@ -8,6 +8,7 @@ import com.ashbysoft.wayland.Compositor;
 import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
 import com.ashbysoft.wayland.Surface;
+import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.Seat;
 import com.ashbysoft.wayland.Keyboard;
 import com.ashbysoft.wayland.Output;
@@ -15,6 +16,7 @@ import com.ashbysoft.wayland.Pointer;
 import com.ashbysoft.swingland.event.*;
 
 import java.util.LinkedList;
+import java.io.Serial;
 import java.util.HashMap;
 
 // package-private singleton container for all Wayland global objects and UI thread holder
@@ -256,6 +258,7 @@ class WaylandGlobals implements
     private int _pointerX;
     private int _pointerY;
     private int _lastEnter;
+    private int _lastSerial;
     private Surface _cursorSurface;
     private Surface cursorSurface() {
         if (null == _cursorSurface) {
@@ -274,12 +277,13 @@ class WaylandGlobals implements
     public boolean pointerEnter(int serial, int surface, int x, int y) {
         _pointerWindow = surface;
         // save enter serial number so we can update cursor hotspot later
-        _lastEnter = serial;
+        _lastEnter = _lastSerial = serial;
         _pointer.setCursor(serial, cursorSurface(), 0, 0);
         // dispatching the first pointer event will generate a MOUSE_ENTERED, which in turn will render the cursor on it's surface.
         return pointerMove(0, x, y);
     }
     public boolean pointerLeave(int serial, int surface) {
+        _lastSerial = serial;
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_EXITED, _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerMove(int time, int x, int y) {
@@ -288,6 +292,7 @@ class WaylandGlobals implements
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerButton(int serial, int time, int button, int state) {
+        _lastSerial = serial;
         // map button codes & state
         int mbutton = Pointer.BUTTON_LEFT == button ? MouseEvent.BUTTON1 : Pointer.BUTTON_RIGHT == button ? MouseEvent.BUTTON2 : MouseEvent.BUTTON3;
         int mstate = Pointer.BUTTON_RELEASED == state ? MouseEvent.BUTTON_RELEASED : MouseEvent.BUTTON_PRESSED;
@@ -302,6 +307,16 @@ class WaylandGlobals implements
         s.attach(b, 0, 0);
         s.damageBuffer(0, 0, d._w, d._h);
         s.commit();
+    }
+
+    // interactive reposition / resize requests
+    public void reposition(XdgToplevel t) {
+        _log.info("reposition()");
+        t.move(_seat, _lastSerial);
+    }
+    public void resize(XdgToplevel t, int edges) {
+        _log.info("resize("+edges+")");
+        t.resize(_seat, _lastSerial, edges);
     }
 
     // repaint request queue

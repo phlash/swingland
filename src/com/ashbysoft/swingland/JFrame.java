@@ -51,6 +51,7 @@ public class JFrame extends Frame implements WindowConstants, RootPaneContainer 
         getContentPane().remove(c);
     }
     protected void processEvent(AbstractEvent e) {
+        super.processEvent(e);
         // apply default close opertation (if any)
         if (!e.isConsumed() && e instanceof WindowEvent && e.getID() == WindowEvent.WINDOW_CLOSING) {
             if (_defaultCloseOperation == HIDE_ON_CLOSE)

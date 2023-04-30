@@ -59,6 +59,13 @@ public abstract class Component {
         _log.info("Component:setVisible("+v+")");
         _visible = v;
     }
+    // are we showing (check parent objects)
+    public boolean isShowing() {
+        Container p = getParent();
+        if (!isVisible() || null == p)
+            return false;
+        return p.isShowing();
+    }
     // what's this instance called (mostly affects logging)?
     public String getName() { return _name; }
     public void setName(String n) {

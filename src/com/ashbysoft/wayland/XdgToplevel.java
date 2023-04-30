@@ -33,6 +33,12 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     public static final int STATE_TILED_RIGHT = 6;
     public static final int STATE_TILED_TOP = 7;
     public static final int STATE_TILED_BOTTOM = 8;
+    // edges bitfield
+    public static final int EDGE_NONE = 0;
+    public static final int EDGE_TOP = 1;
+    public static final int EDGE_BOTTOM = 2;
+    public static final int EDGE_LEFT = 4;
+    public static final int EDGE_RIGHT = 8;
 
     public XdgToplevel(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {

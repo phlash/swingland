@@ -263,13 +263,13 @@ public class Window extends Container implements
     public boolean xdgToplevelConfigure(int w, int h, int[] states) {
         // adjust to actual size..
         if (w > 0 && h > 0) {
-            setSize(w, h);
+            super.setSize(w, h);
         // ..or set original size (if any)..
         } else if (_origWidth > 0 && _origHeight > 0) {
-            setSize(_origWidth, _origHeight);
+            super.setSize(_origWidth, _origHeight);
         // ..or use a default.
         } else {
-            setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            super.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
         // update display states
         _isActive = _isFullscreen = _isMaximized = _isResizing = false;
@@ -292,7 +292,7 @@ public class Window extends Container implements
         // ignore zero sizes
         if (w>0 && h>0) {
             setLocation(x, y);
-            setSize(w, h);
+            super.setSize(w, h);
         }
         return true;
     }
@@ -376,6 +376,25 @@ public class Window extends Container implements
         } else
             setSize(getMinimumSize());
     }
+    // intercept setSize/setBounds to inform Wayland
+    public void setSize(int w, int h) {
+        super.setSize(w, h);
+        if (!isValid() && _xdgToplevel != null) {
+            _xdgToplevel.setMinSize(w, h);
+            _xdgToplevel.setMaxSize(w, h);
+        }
+    }
+    public void setBounds(int x, int y, int w, int h) {
+        super.setBounds(x, y, w, h);
+        if (!isValid() && _xdgToplevel != null) {
+            _xdgToplevel.setMinSize(w, h);
+            _xdgToplevel.setMaxSize(w, h);
+        }
+    }
+    // intercept isShowing as we are the end of the parent chain
+    public boolean isShowing() {
+        return isVisible();
+    }
     // intercept setVisible to force validation and Wayland I/O
     public void setVisible(boolean v) {
         // no change?
@@ -388,11 +407,11 @@ public class Window extends Container implements
                 setSize(getMinimumSize());
             validate();
             super.setVisible(v);
+            toWayland();
             if (!_hasOpened) {
                 _hasOpened = true;
                 sendEvent(new WindowEvent(this, WindowEvent.WINDOW_OPENED));
             }
-            toWayland();
             repaint();
         } else {
             // hide all owned windows
@@ -449,9 +468,34 @@ public class Window extends Container implements
     }
     // display state info
     public boolean isActive() { return _isActive; }
-    // NB: not part of Swing API..
+
+    // NB: not part of Swing API.. below here
     public boolean isMaximized() { return _isMaximized; }
     public boolean isFullscreen() { return _isFullscreen; }
     public boolean isResizing() { return _isResizing; }
     public boolean isFloating() { return _isFloating; }
+
+    // Wayland-specific request interactive reposition / resize
+    protected void reposition() {
+        if (_xdgToplevel != null && isFloating()) {
+            _g.reposition(_xdgToplevel);
+        }
+    }
+    // map from SwingConstants directions to Wayland edges
+    private static int[] _directionMap = {
+        XdgToplevel.EDGE_NONE,
+        XdgToplevel.EDGE_TOP,
+        XdgToplevel.EDGE_TOP | XdgToplevel.EDGE_RIGHT,
+        XdgToplevel.EDGE_RIGHT,
+        XdgToplevel.EDGE_BOTTOM | XdgToplevel.EDGE_RIGHT,
+        XdgToplevel.EDGE_BOTTOM,
+        XdgToplevel.EDGE_BOTTOM | XdgToplevel.EDGE_LEFT,
+        XdgToplevel.EDGE_LEFT,
+        XdgToplevel.EDGE_TOP | XdgToplevel.EDGE_LEFT
+    };
+    protected void resize(int dir) {
+        if (_xdgToplevel != null && isFloating()) {
+            _g.resize(_xdgToplevel, _directionMap[dir]);
+        }
+    }
 }

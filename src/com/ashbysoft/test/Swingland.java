@@ -105,6 +105,8 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
 				else
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(_frame);
+			} else if (k.getKeyCode() == KeyEvent.VK_R) {
+				_frame.setSize(800, 600);
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
@@ -258,7 +260,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.fillOval(cx-3, cy-3, 6, 6);
 		// instructions
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog test, F to toggle fullscreen)", l+5, b-5);
+		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, F to toggle fullscreen, R to resize to 800x600)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-getFont().stringWidth(m)-10, t+20);
 		// show our current graphics config
