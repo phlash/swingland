@@ -20,6 +20,11 @@ public class JMenuItem extends JButton {
         }
         int w = g.getFont().getFontMetrics().stringWidth(getText());
         int h = g.getFont().getFontMetrics().getHeight();
-        g.drawString(getText(), (getWidth()-w)/2, (getHeight()+h)/2);
+        int x = (getWidth()-w)/2;
+        int y = (getHeight()+h)/2;
+        g.drawString(getText(), x, y);
+        int[] mx = findMnemonic(g);
+        if (mx != null)
+            g.drawLine(x + mx[0], y, x + mx[1], y);
     }
 }

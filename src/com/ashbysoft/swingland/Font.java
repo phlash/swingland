@@ -7,7 +7,7 @@ import java.io.IOException;
 
 /*
  * Bitmap fonts - lazy loaded, also used to hold cursor themes.
- * File format (offset and size in bytes):
+ * File format (offset and size in bytes, values little endian):
  * +----------------------------------------------------------+
  * | offset |  size  |  name  | description                   |
  * +----------------------------------------------------------+

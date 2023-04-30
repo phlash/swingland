@@ -1,6 +1,9 @@
 package com.ashbysoft.swingland.event;
 
+import com.ashbysoft.swingland.DefaultKeymap;
+
 public class KeyEvent extends AbstractEvent {
+    public static final int VK_UNDEFINED = 0;
     public static final int VK_ESC = 1;
     public static final int VK_1 = 2;
     public static final int VK_2 = 3;
@@ -112,6 +115,7 @@ public class KeyEvent extends AbstractEvent {
     public static final int VK_KPPLUSMINUS = 118;
     public static final int VK_PAUSE = 119;
     public static final int VK_SCALE = 120;
+    public static final int CHAR_UNDEFINED = 65535;
 
     // event IDs
     public static final int KEY_RELEASED = 0;
@@ -125,5 +129,9 @@ public class KeyEvent extends AbstractEvent {
     public char getKeyChar() { return _char; }
     public String toString() {
         return pfxString()+",code="+_code+",char='"+_char+"')";
+    }
+
+    public static int getExtendedKeyCodeForChar(int c) {
+        return DefaultKeymap.instance().mapChar((char)c);
     }
 }

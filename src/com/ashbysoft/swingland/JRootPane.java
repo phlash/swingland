@@ -1,5 +1,8 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.KeyEvent;
+
 public class JRootPane extends JComponent {
     // decoration styles
     public static final int NONE = 0;
@@ -130,6 +133,13 @@ public class JRootPane extends JComponent {
                 _glassPane.setBounds(insets._l, insets._t, wid, hgt);
                 _layeredPane.setBounds(insets._l, insets._t, wid, hgt);
             }
+        }
+    }
+
+    protected void processEvent(AbstractEvent e) {
+        // forward unconsumed KeyEvents to the menu bar (if present)
+        if (getJMenuBar() != null && e instanceof KeyEvent) {
+            getJMenuBar().processEvent(e);
         }
     }
 

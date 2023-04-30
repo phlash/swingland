@@ -98,4 +98,25 @@ public class DefaultKeymap implements Keymap {
         // or nowt.
         return null;
     }
+    public int mapChar(char unicode) {
+        // translate to offset from 'A' (or 'a')
+        int o = unicode >= (char)'A' && unicode <= (char)'Z' ? (int)unicode - 'A' :
+            unicode >= (char)'a' && unicode <= (char)'z' ? (int)unicode - 'a' : -1;
+        // fetch VK_x code
+        o = o < 0 ? o : _AtoZ.get(o);
+        // not found? check against '0'-'9'
+        if (o < 0) {
+            o = unicode >= (char)'0' && unicode <= (char)'9' ? (int)unicode - '0' : -1;
+            o = o < 0 ? o : _Nums.get(o);
+        }
+        return o;
+    }
+
+    private DefaultKeymap() {}
+    private static Keymap _instance;
+    public static Keymap instance() {
+        if (null == _instance)
+            _instance = new DefaultKeymap();
+        return _instance;
+    }
 }

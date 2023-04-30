@@ -1,11 +1,16 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.ActionEvent;
+import com.ashbysoft.swingland.event.KeyEvent;
+
 // horizontal menu bar to fit into a JRootPane
 
 public class JMenuBar extends JComponent {
     public static final int BORDER_WIDTH =2;
     private boolean _paintBorder;
     private boolean _hasHelp;
+    private boolean _altHeld;
     public JMenuBar() {
         _log.info("<init>()");
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -13,6 +18,7 @@ public class JMenuBar extends JComponent {
         setBorderPainted(true);
         add(new GlueComponent());
         _hasHelp = false;
+        _altHeld = false;
     }
     public int getMenuCount() { return getComponentCount() - 1; }
     public JMenu getMenu(int i) {
@@ -50,6 +56,29 @@ public class JMenuBar extends JComponent {
             _hasHelp = true;
         }
     }
+    // check for mnemonics to activate in the menu bar
+    protected void processEvent(AbstractEvent e) {
+        if (e instanceof KeyEvent) {
+            KeyEvent k = (KeyEvent)e;
+            if (k.getKeyCode() == KeyEvent.VK_LEFTALT) {
+                _altHeld = k.getID() == KeyEvent.KEY_PRESSED;
+            } else if (_altHeld && k.getID() == KeyEvent.KEY_PRESSED) {
+                for (int i = 0; i < getComponentCount(); i += 1) {
+                    Component c = getComponent(i);
+                    if (c instanceof JMenu) {
+                        JMenu m = (JMenu)c;
+                        if (m.isEnabled() && m.getMnemonic() == k.getKeyCode()) {
+                            k.consume();
+                            m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
+                            _altHeld = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public Insets getMargin() { return getInsets(); }
     public void setMargin(Insets m) { setInsets(m); }
     public boolean isBorderPainted() { return _paintBorder; }

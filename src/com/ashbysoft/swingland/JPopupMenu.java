@@ -33,11 +33,25 @@ public class JPopupMenu extends Window implements ActionListener {
         super.addImpl(sep, null, -1);
     }
     protected void processEvent(AbstractEvent e) {
-        // detect ESC key as close menu
-        if (e instanceof KeyEvent && !e.isConsumed()) {
+        if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
+            // detect ESC key as close menu
             if (k.getID() == KeyEvent.KEY_RELEASED && k.getKeyCode() == KeyEvent.VK_ESC)
                 actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, null));
+            else if (k.getID() == KeyEvent.KEY_PRESSED) {
+                // check other keys against mnemonics
+                for (int i = 0; i < getComponentCount(); i += 1) {
+                    Component c = getComponent(i);
+                    if (c instanceof JMenuItem) {
+                        JMenuItem m = (JMenuItem)c;
+                        if (m.isEnabled() && m.getMnemonic() == k.getKeyCode()) {
+                            k.consume();
+                            m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
     public void actionPerformed(ActionEvent e) {

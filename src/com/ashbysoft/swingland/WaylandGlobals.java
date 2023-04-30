@@ -210,7 +210,7 @@ class WaylandGlobals implements
     private long _repeatStamp = -1L;
     public boolean keymap(int format, int fd, int size) {
         // TODO: use a real keymap once we can read the fd..
-        _keymap = new DefaultKeymap();
+        _keymap = DefaultKeymap.instance();
         return true;
     }
     public boolean keyboardEnter(int serial, int surface, int[] keys) {
@@ -237,7 +237,7 @@ class WaylandGlobals implements
         Window w = topPopup();
         if (null == w) w = findWindow(_keyboardWindow);
         if (w != null) {
-            KeyEvent e = new KeyEvent(this, state, keyCode, '-');
+            KeyEvent e = new KeyEvent(this, state, keyCode, (char)KeyEvent.CHAR_UNDEFINED);
             w.dispatchEvent(e);
             if (KeyEvent.KEY_PRESSED == state) {
                 e = _keymap.mapCode(keyCode);

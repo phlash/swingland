@@ -16,6 +16,7 @@ public class JButton extends JComponent implements SwingConstants {
     private int _vTextPos;
     private boolean _hover;
     private boolean _hold;
+
     public JButton() { this(""); }    
     public JButton(String text) { this(text, null); }
     public JButton(Icon icon) { this("", icon); }
@@ -92,7 +93,7 @@ public class JButton extends JComponent implements SwingConstants {
     }
     public Dimension getMinimumSize() { return getPreferredSize(); }
     public Dimension getMaximumSize() { return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE); }
-    // process mouse events to show hover, click, release
+    // process events to show hover, click, release
     protected void processEvent(AbstractEvent e) {
         if (!isEnabled())
             return;
@@ -110,6 +111,7 @@ public class JButton extends JComponent implements SwingConstants {
                 _hold = (m.getState() == MouseEvent.BUTTON_PRESSED);
                 repaint();
             } else if (m.getID() == MouseEvent.MOUSE_CLICKED) {
+                m.consume();
                 fireActionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, getActionCommand()));
                 // directly dispatch action event to listeners
             }
@@ -121,8 +123,10 @@ public class JButton extends JComponent implements SwingConstants {
             } else if (KeyEvent.KEY_RELEASED == k.getID() && KeyEvent.VK_SPACE == k.getKeyCode()) {
                 _hold = false;
                 repaint();
-            } else if (KeyEvent.KEY_TYPED == k.getID() && ' ' == k.getKeyChar())
+            } else if (KeyEvent.KEY_TYPED == k.getID() && ' ' == k.getKeyChar()) {
+                k.consume();
                 fireActionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, getActionCommand()));
+            }
         }
     }
     protected void fireActionPerformed(ActionEvent a) {
@@ -135,6 +139,25 @@ public class JButton extends JComponent implements SwingConstants {
         super.setEnabled(e);
         _hold = _hover = false;
         repaint();
+    }
+    // mnemonic helper, returns x offsets of underlined char, or null
+    protected int[] findMnemonic(Graphics g) {
+        if (getMnemonic() < 0)
+            return null;
+        int[] rv = { -1,-1 };
+        int s = 0;
+        FontMetrics fm = g.getFont().getFontMetrics();
+        for (int o = 0; o < _text.length(); o += 1) {
+            int cp = _text.codePointAt(o);
+            int l = fm.charWidth(cp);
+            if (KeyEvent.getExtendedKeyCodeForChar(_text.charAt(o)) == getMnemonic()) {
+                rv[0] = s;
+                rv[1] = s + l;
+                return rv;
+            }
+            s += l;
+        }
+        return null;
     }
     // paint a button!
     private void fillCornerRect(Graphics g, int x, int y, int w, int h) {
@@ -237,6 +260,9 @@ public class JButton extends JComponent implements SwingConstants {
             g.drawString(getText(), x, y);
             if (_hover)
                 g.drawLine(x, y, x + tw, y);
+            int[] mx = findMnemonic(g);
+            if (mx != null)
+                g.drawLine(x + mx[0], y, x + mx[1], y);
         }
     }
 }

@@ -51,27 +51,58 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		_mbar = new JMenuBar();
 		_mbar.setBackground(Color.LIGHT_GRAY);
 		JMenu fm = new JMenu("File");
-		fm.add(new JMenuItem("Open.."));
+		fm.setMnemonic(KeyEvent.VK_F);
+		JMenuItem open = new JMenuItem("Open..");
+		open.setMnemonic(KeyEvent.VK_O);
+		open.addActionListener(this);
+		fm.add(open);
 		JMenuItem close = new JMenuItem("Close");
+		close.setMnemonic(KeyEvent.VK_C);
+		close.addActionListener(this);
 		close.setEnabled(false);
 		fm.add(close);
 		fm.addSeparator();
 		JMenuItem exit = new JMenuItem("Exit");
+		exit.setMnemonic(KeyEvent.VK_X);
 		exit.setActionCommand("exit");
 		exit.addActionListener(this);
 		fm.add(exit);
 		_mbar.add(fm);
 		JMenu em = new JMenu("Edit");
+		em.setMnemonic(KeyEvent.VK_E);
 		em.setEnabled(false);
+		JMenuItem st = new JMenuItem("Stuff");
+		st.setMnemonic(KeyEvent.VK_S);
+		st.addActionListener(this);
+		em.add(st);
 		_mbar.add(em);
 		JMenu vm = new JMenu("View");
-		vm.add(new JMenuItem("Dialog"));
+		vm.setMnemonic(KeyEvent.VK_V);
+		JMenuItem dlg = new JMenuItem("Dialog");
+		dlg.setMnemonic(KeyEvent.VK_D);
+		dlg.setActionCommand("popup");
+		dlg.addActionListener(this);
+		vm.add(dlg);
 		JMenu sub = new JMenu("Choose >");
-		sub.add(new JMenuItem("Type #1"));
-		sub.add(new JMenuItem("Type #2"));
+		sub.setMnemonic(KeyEvent.VK_H);
+		JMenuItem t1 = new JMenuItem("Type #1");
+		t1.setMnemonic(KeyEvent.VK_1);
+		t1.addActionListener(this);
+		sub.add(t1);
+		JMenuItem t2 = new JMenuItem("Type #2");
+		t2.setMnemonic(KeyEvent.VK_2);
+		t2.addActionListener(this);
+		sub.add(t2);
 		vm.add(sub);
 		_mbar.add(vm);
-		_mbar.setHelpMenu(new JMenu("Help"));
+		JMenu help = new JMenu("Help");
+		help.setMnemonic(KeyEvent.VK_H);
+		JMenuItem about = new JMenuItem("About");
+		about.setMnemonic(KeyEvent.VK_A);
+		about.setActionCommand("about");
+		about.addActionListener(this);
+		help.add(about);
+		_mbar.setHelpMenu(help);
 		_frame.setJMenuBar(_mbar);
 		_frame.setVisible(true);
 		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
@@ -99,7 +130,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 					setBorder(null);
 				else
 					setBorder(_border);
-			} else if (k.getKeyCode() == KeyEvent.VK_F) {
+			} else if (k.getKeyCode() == KeyEvent.VK_U) {
 				k.consume();
 				if (getGraphicsConfiguration().getDevice().getFullScreenWindow() != null)
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
@@ -171,8 +202,13 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	}
 
 	public void actionPerformed(ActionEvent a) {
-		_log.info("action:"+a.getActionCommand());
+		_log.error("action:src="+((JButton)a.getSource()).getText()+",cmd="+a.getActionCommand());
+		if (a.getActionCommand() == null)
+			return;
 		switch (a.getActionCommand()) {
+			case "popup":
+				toggleDialog();
+				break;
 			case "dialog":
 				_dialog.dispose();
 				_dialog = null;
@@ -260,7 +296,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.fillOval(cx-3, cy-3, 6, 6);
 		// instructions
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, F to toggle fullscreen, R to resize to 800x600)", l+5, b-5);
+		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, U to toggle fUllscreen, R to resize to 800x600)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+")="+_b;
 		g.drawString(m, getWidth()-getFont().stringWidth(m)-10, t+20);
 		// show our current graphics config
@@ -273,6 +309,6 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		if (_duke != null)
 			g.drawImage(_duke, l, t);
 		long dur = System.currentTimeMillis() - start;
-		_log.error("render: dur="+dur);
+		_log.error("render: msecs="+dur);
 	}
 }
