@@ -16,7 +16,6 @@ import com.ashbysoft.wayland.Pointer;
 import com.ashbysoft.swingland.event.*;
 
 import java.util.LinkedList;
-import java.io.Serial;
 import java.util.HashMap;
 
 // package-private singleton container for all Wayland global objects and UI thread holder
@@ -137,7 +136,6 @@ class WaylandGlobals implements
         // remove any pending repaints
         if (w != null)
             _repaints.remove(w);
-        // XXX:TODO: remove any pending runnables...
     }
     private Window findWindow(int id) {
         synchronized(_windows) {
@@ -211,7 +209,7 @@ class WaylandGlobals implements
     private int _repeatState = 0;
     private long _repeatStamp = -1L;
     public boolean keymap(int format, int fd, int size) {
-        // XXX:TODO: use a real keymap once we can read the fd..
+        // TODO: use a real keymap once we can read the fd..
         _keymap = new DefaultKeymap();
         return true;
     }

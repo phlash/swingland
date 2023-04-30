@@ -41,7 +41,7 @@ public class JLabel extends JComponent {
             int h = fm.getHeight();
             Insets ins = getInsets();
             int x = (SwingConstants.LEFT == _align || SwingConstants.LEADING == _align) ? ins._l+5 :
-                (SwingConstants.TRAILING == _align || SwingConstants.RIGHT == _align) ? ins._r-5-w : (getWidth()-w) / 2;    // XXX:TODO right-to-left text
+                (SwingConstants.TRAILING == _align || SwingConstants.RIGHT == _align) ? ins._r-5-w : (getWidth()-w) / 2;    // TODO right-to-left text
             if (isEnabled())
                 g.setColor(getForeground());
             else

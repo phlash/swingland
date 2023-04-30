@@ -9,7 +9,7 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
         boolean pointerMove(int time, int x, int y);
         boolean pointerButton(int serial, int time, int button, int state);
         boolean pointerFrame();
-        // XXX:TODO axis stuff
+        // TODO axis stuff
     }
     public static final int RQ_SET_CURSOR = 0;
     public static final int RQ_RELEASE = 1;

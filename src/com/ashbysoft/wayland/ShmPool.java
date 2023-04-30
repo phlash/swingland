@@ -10,10 +10,11 @@ public class ShmPool extends WaylandObject<Void> {
 
     private final int _fd;
     private final ByteBuffer _pool;
+    private int _size;
 
     public ShmPool(Display d, int size) {
         super(d);
-        int f = Native.createSHM("/wayland-java-pool", size);
+        int f = Native.createSHM("/swingland-pool", size);
         if (f < 0)
             throw new RuntimeException("Unable to create shared memory");
         ByteBuffer p = Native.mapSHM(f, size);
@@ -21,6 +22,7 @@ public class ShmPool extends WaylandObject<Void> {
             throw new RuntimeException("Unable to map shared memory");
         _fd = f;
         _pool = p;
+        _size = size;
     }
     // package-private write helper, avoids exposing _fd
     boolean writeFD(ByteBuffer b) {
@@ -28,6 +30,9 @@ public class ShmPool extends WaylandObject<Void> {
     }
 
     public Buffer createBuffer(int off, int w, int h, int s, int f) {
+        // does it fit?
+        if (off + h * s > _size)
+            throw new IllegalArgumentException("requested buffer exceeds pool size: ("+(h*s)+"@"+off+") > "+_size);
         // first map a view of the underlying buffer
         _pool.position(off);
         ByteBuffer v = _pool.slice();
@@ -58,10 +63,12 @@ public class ShmPool extends WaylandObject<Void> {
         return rv;
     }
     public boolean resize(int s) {
+        throw new UnsupportedOperationException("sorry - unable to resize shared memory buffers");
+        /*
         ByteBuffer b = newBuffer(4, RQ_RESIZE);
         b.putInt(s);
         log(false, "resize:size="+s);
         return _display.write(b);
-        // XXX:TODO: How to resize the local memory pool?
+        */
     }
 }

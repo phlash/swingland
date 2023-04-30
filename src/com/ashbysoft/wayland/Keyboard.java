@@ -38,7 +38,6 @@ public class Keyboard extends WaylandObject<Keyboard.Listener> {
         if (EV_KEYMAP == op) {
             int f = b.getInt();
             int s = b.getInt();
-            // XXX:TODO - recover FD from connection..
             log(true, "keymap:format="+f+" size="+s+" no fd yet :(");
             for (Listener l : listeners())
                 if (!l.keymap(f, -1, s))

@@ -20,14 +20,14 @@ public class Dialog extends Window {
     public String getTitle() { return super.getTitle(); }
     public void setTitle(String title) { super.setTitle(title); }
     public boolean isModal() { return _modal; }
-    public void setModal(boolean modal) {     // XXX:TODO: work out how to pass down to Wayland grab call.
+    public void setModal(boolean modal) {     // TODO: work out how to pass down to Wayland grab call.
         _log.info("Dialog:setModal("+modal+")");
         if (isModal() == modal)
             return;
         _modal = modal;
     }
     public boolean isResizable() { return _resizable; }
-    public void setResizable(boolean resizable) {   // XXX::TODO: work out how to inform Wayland we are now re-sizable
+    public void setResizable(boolean resizable) {   // :TODO: work out how to inform Wayland we are now re-sizable
         _log.info("Dialog:setResizeable("+resizable+")");
         if (isResizable() == resizable)
             return;
