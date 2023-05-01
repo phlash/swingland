@@ -2,7 +2,6 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.AbstractEvent;
 import com.ashbysoft.swingland.event.ActionEvent;
-import com.ashbysoft.swingland.event.InputEvent;
 import com.ashbysoft.swingland.event.KeyEvent;
 
 // horizontal menu bar to fit into a JRootPane

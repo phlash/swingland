@@ -1,7 +1,6 @@
 package com.ashbysoft.test;
 
 import java.io.IOException;
-import java.security.Key;
 
 import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
