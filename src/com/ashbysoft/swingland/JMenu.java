@@ -31,6 +31,13 @@ public class JMenu extends JMenuItem implements WindowListener {
     public void removeAll() {
         _items.clear();
     }
+    public int getItemCount() { return _items.size(); }
+    public JMenuItem getItem(int i) {
+        JComponent c = _items.get(i);
+        if (c instanceof JMenuItem)
+            return (JMenuItem)c;
+        return null;
+    }
     // post-intercept action performed, so we can pop up our sub-menu
     protected void fireActionPerformed(ActionEvent a) {
         // process all button behaviour (may adjust menu items, etc.)

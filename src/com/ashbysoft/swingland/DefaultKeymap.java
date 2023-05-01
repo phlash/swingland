@@ -2,6 +2,7 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.logger.Logger;
 import com.ashbysoft.wayland.Keyboard;
+import com.ashbysoft.swingland.event.InputEvent;
 import com.ashbysoft.swingland.event.KeyEvent;
 import java.util.List;
 
@@ -42,6 +43,27 @@ public class DefaultKeymap implements Keymap {
     public void modifiers(int depressed, int latched, int locked, int group) {
         _keymods = depressed | latched | locked;
     }
+    public int getModifiersEx() {
+        // translate from Wayland modifiers to Swing
+        return 
+            ((_keymods & Keyboard.MOD_SHIFT) != 0 ? InputEvent.SHIFT_DOWN_MASK : 0) |
+            ((_keymods & Keyboard.MOD_CTRL) != 0 ? InputEvent.CTRL_DOWN_MASK : 0) |
+            ((_keymods & Keyboard.MOD_SUPER) != 0 ? InputEvent.META_DOWN_MASK : 0) |
+            ((_keymods & Keyboard.MOD_ALT) != 0 ? InputEvent.ALT_DOWN_MASK : 0) |
+            ((_keymods & Keyboard.MOD_ALTGR) != 0 ? InputEvent.ALT_GRAPH_DOWN_MASK : 0);
+    }
+    public char mapUnmodified(int keyCode) {
+        int o = _AtoZ.indexOf(keyCode);
+        if (o >= 0)
+            return (char)('A'+o);
+        o = _Nums.indexOf(keyCode);
+        if (o >= 0)
+            return (char)('0'+o);
+        o = _Punc.indexOf(keyCode);
+        if (o >= 0)
+            return _PuncTo.get(o);
+        return KeyEvent.CHAR_UNDEFINED;
+    }
     public KeyEvent mapCode(int keyCode) {
         // A-Z can be affected by MOD_CTRL, MOD_SHIFT and MOD_CAPSLOCK
         // all printables can be affected by MOD_SHIFT
@@ -56,7 +78,7 @@ public class DefaultKeymap implements Keymap {
         if ((_keymods & Keyboard.MOD_CTRL) != 0) {
             int pos = _AtoZ.indexOf(keyCode);
             if (pos >= 0) {
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, (char)pos);
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, (char)pos);
             }
             return null;
         }
@@ -66,33 +88,33 @@ public class DefaultKeymap implements Keymap {
         if ((cl && !sh) || (sh && !cl)) {
             int pos = _AtoZ.indexOf(keyCode);
             if (pos >= 0) {
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, (char)('A'+pos));
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, (char)('A'+pos));
             }
         }
         // no CapsLock or Shift (or both) maps A-Z to lowercase
         if ((cl && sh) || (!cl && !sh)) {
             int pos = _AtoZ.indexOf(keyCode);
             if (pos >= 0) {
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, (char)('a'+pos));
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, (char)('a'+pos));
             }
         }
         // Numeric keys map when shifted or not
         {
             int pos = _Nums.indexOf(keyCode);
             if (pos >= 0)
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, sh ? _NumsShift.get(pos) : (char)('0'+pos));
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, sh ? _NumsShift.get(pos) : (char)('0'+pos));
         }
         // various punctuation keys map when shifted or not
         {
             int pos = _Punc.indexOf(keyCode);
             if (pos >= 0)
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, sh ? _PuncShift.get(pos) : _PuncTo.get(pos));
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, sh ? _PuncShift.get(pos) : _PuncTo.get(pos));
         }
         // NumLock maps keypad to numbers
         if ((_keymods & Keyboard.MOD_NUMLOCK) != 0) {
             int pos = _KPNums.indexOf(keyCode);
             if (pos >= 0) {
-                return new KeyEvent(this, KeyEvent.KEY_TYPED, keyCode, (char)('0'+pos));
+                return new KeyEvent(this, KeyEvent.KEY_TYPED, getModifiersEx(), keyCode, (char)('0'+pos));
             }
         }
         // or nowt.

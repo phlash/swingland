@@ -2,7 +2,7 @@ package com.ashbysoft.swingland.event;
 
 import com.ashbysoft.swingland.DefaultKeymap;
 
-public class KeyEvent extends AbstractEvent {
+public class KeyEvent extends InputEvent {
     public static final int VK_UNDEFINED = 0;
     public static final int VK_ESC = 1;
     public static final int VK_1 = 2;
@@ -124,7 +124,7 @@ public class KeyEvent extends AbstractEvent {
 
     private int _code;
     private char _char;
-    public KeyEvent(Object source, int id, int code, char ch) { super(source, id); _code = code; _char = ch; }
+    public KeyEvent(Object source, int id, int mask, int code, char ch) { super(source, id, mask); _code = code; _char = ch; }
     public int getKeyCode() { return _code; }
     public char getKeyChar() { return _char; }
     public String toString() {

@@ -3,10 +3,19 @@ package com.ashbysoft.swingland;
 // a button, with a simpler appearance for use in menus
 
 public class JMenuItem extends JButton {
+    private KeyStroke _accelerator;
     public JMenuItem() { this(""); }
     public JMenuItem(String text) {
         super(text);
         _log.info("<init>("+text+")");
+        _accelerator = null;
+    }
+    public KeyStroke getAccelerator() { return _accelerator; }
+    public void setAccelerator(KeyStroke a) { _accelerator = a; }
+    public String getText() {
+        if (_accelerator != null)
+            return super.getText() + " [" + _accelerator.toString() + "]";
+        return super.getText();
     }
     public void paintComponent(Graphics g) {
         if (isOpaque()) {

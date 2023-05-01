@@ -2,15 +2,15 @@ package com.ashbysoft.swingland;
 
 import com.ashbysoft.swingland.event.AbstractEvent;
 import com.ashbysoft.swingland.event.ActionEvent;
+import com.ashbysoft.swingland.event.InputEvent;
 import com.ashbysoft.swingland.event.KeyEvent;
 
 // horizontal menu bar to fit into a JRootPane
 
 public class JMenuBar extends JComponent {
-    public static final int BORDER_WIDTH =2;
+    public static final int BORDER_WIDTH = 2;
     private boolean _paintBorder;
     private boolean _hasHelp;
-    private boolean _altHeld;
     public JMenuBar() {
         _log.info("<init>()");
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -18,7 +18,6 @@ public class JMenuBar extends JComponent {
         setBorderPainted(true);
         add(new GlueComponent());
         _hasHelp = false;
-        _altHeld = false;
     }
     public int getMenuCount() { return getComponentCount() - 1; }
     public JMenu getMenu(int i) {
@@ -56,27 +55,46 @@ public class JMenuBar extends JComponent {
             _hasHelp = true;
         }
     }
-    // check for mnemonics to activate in the menu bar
+    // check for accelerator combos and mnemonics to activate in the menu bar
     protected void processEvent(AbstractEvent e) {
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
-            if (k.getKeyCode() == KeyEvent.VK_LEFTALT) {
-                _altHeld = k.getID() == KeyEvent.KEY_PRESSED;
-            } else if (_altHeld && k.getID() == KeyEvent.KEY_PRESSED) {
-                for (int i = 0; i < getComponentCount(); i += 1) {
-                    Component c = getComponent(i);
-                    if (c instanceof JMenu) {
-                        JMenu m = (JMenu)c;
-                        if (m.isEnabled() && m.getMnemonic() == k.getKeyCode()) {
-                            k.consume();
-                            m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
-                            _altHeld = false;
-                            break;
-                        }
+            for (int i = 0; i < getComponentCount(); i += 1) {
+                Component c = getComponent(i);
+                if (c instanceof JMenu) {
+                    JMenu m = (JMenu)c;
+                    if (checkAccelerators(k, m)) {
+                        k.consume();
+                        break;
+                    } else if (k.getID() == KeyEvent.KEY_PRESSED && k.getModifiersEx() == KeyEvent.ALT_DOWN_MASK &&
+                        m.isEnabled() && m.getMnemonic() == k.getKeyCode()) {
+                        k.consume();
+                        m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
+                        break;
                     }
                 }
             }
         }
+    }
+    // recursive menu descent, comparing accelerators to key event
+    private boolean checkAccelerators(KeyEvent k, JMenuItem m) {
+        if (!m.isEnabled())
+            return false;
+        if (m instanceof JMenu) {
+            JMenu jm = (JMenu)m;
+            for (int i = 0; i < jm.getItemCount(); i += 1) {
+                JMenuItem mi = jm.getItem(i);
+                if (mi != null && checkAccelerators(k, mi))
+                    return true;
+            }
+        } else {
+            KeyStroke ks = m.getAccelerator();
+            if (ks != null && ks.match(k)) {
+                m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
+                return true;
+            }
+        }
+        return false;
     }
 
     public Insets getMargin() { return getInsets(); }

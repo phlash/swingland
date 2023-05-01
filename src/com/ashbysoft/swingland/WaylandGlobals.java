@@ -237,7 +237,7 @@ class WaylandGlobals implements
         Window w = topPopup();
         if (null == w) w = findWindow(_keyboardWindow);
         if (w != null) {
-            KeyEvent e = new KeyEvent(this, state, keyCode, (char)KeyEvent.CHAR_UNDEFINED);
+            KeyEvent e = new KeyEvent(this, state, _keymap.getModifiersEx(), keyCode, (char)KeyEvent.CHAR_UNDEFINED);
             w.dispatchEvent(e);
             if (KeyEvent.KEY_PRESSED == state) {
                 e = _keymap.mapCode(keyCode);
@@ -282,19 +282,19 @@ class WaylandGlobals implements
     }
     public boolean pointerLeave(int serial, int surface) {
         _lastSerial = serial;
-        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_EXITED, _pointerX >> 8, _pointerY >> 8, -1, -1));
+        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_EXITED, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerMove(int time, int x, int y) {
         _pointerX = x;
         _pointerY = y;
-        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _pointerX >> 8, _pointerY >> 8, -1, -1));
+        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerButton(int serial, int time, int button, int state) {
         _lastSerial = serial;
         // map button codes & state
         int mbutton = Pointer.BUTTON_LEFT == button ? MouseEvent.BUTTON1 : Pointer.BUTTON_RIGHT == button ? MouseEvent.BUTTON2 : MouseEvent.BUTTON3;
         int mstate = Pointer.BUTTON_RELEASED == state ? MouseEvent.BUTTON_RELEASED : MouseEvent.BUTTON_PRESSED;
-        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
+        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
     public boolean pointerFrame() { return true; }
 

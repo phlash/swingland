@@ -8,7 +8,7 @@
             "type": "java",
             "name": "Swingland",
             "request": "launch",
-            "classPaths": [ "${workspaceFolder}/bin/swingland.jar" ],
+            "classPaths": [ "${workspaceFolder}/bin/test.jar" ],
             "cwd": "${workspaceFolder}",
             "sourcePaths": [ "src" ],
             "stopOnEntry": true,

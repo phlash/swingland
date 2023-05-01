@@ -1,6 +1,7 @@
 package com.ashbysoft.test;
 
 import java.io.IOException;
+import java.security.Key;
 
 import com.ashbysoft.swingland.*;
 import com.ashbysoft.swingland.event.*;
@@ -54,16 +55,19 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		fm.setMnemonic(KeyEvent.VK_F);
 		JMenuItem open = new JMenuItem("Open..");
 		open.setMnemonic(KeyEvent.VK_O);
+		open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
 		open.addActionListener(this);
 		fm.add(open);
 		JMenuItem close = new JMenuItem("Close");
 		close.setMnemonic(KeyEvent.VK_C);
+		close.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.CTRL_DOWN_MASK));
 		close.addActionListener(this);
 		close.setEnabled(false);
 		fm.add(close);
 		fm.addSeparator();
 		JMenuItem exit = new JMenuItem("Exit");
 		exit.setMnemonic(KeyEvent.VK_X);
+		exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK));
 		exit.setActionCommand("exit");
 		exit.addActionListener(this);
 		fm.add(exit);
@@ -80,6 +84,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		vm.setMnemonic(KeyEvent.VK_V);
 		JMenuItem dlg = new JMenuItem("Dialog");
 		dlg.setMnemonic(KeyEvent.VK_D);
+		dlg.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.ALT_DOWN_MASK));
 		dlg.setActionCommand("popup");
 		dlg.addActionListener(this);
 		vm.add(dlg);
@@ -87,10 +92,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		sub.setMnemonic(KeyEvent.VK_H);
 		JMenuItem t1 = new JMenuItem("Type #1");
 		t1.setMnemonic(KeyEvent.VK_1);
+		t1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 		t1.addActionListener(this);
 		sub.add(t1);
 		JMenuItem t2 = new JMenuItem("Type #2");
 		t2.setMnemonic(KeyEvent.VK_2);
+		t2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 		t2.addActionListener(this);
 		sub.add(t2);
 		vm.add(sub);
@@ -99,6 +106,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		help.setMnemonic(KeyEvent.VK_H);
 		JMenuItem about = new JMenuItem("About");
 		about.setMnemonic(KeyEvent.VK_A);
+		about.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
 		about.setActionCommand("about");
 		about.addActionListener(this);
 		help.add(about);

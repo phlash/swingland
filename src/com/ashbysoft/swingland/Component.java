@@ -252,7 +252,7 @@ public abstract class Component {
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
             // ensure we are the event source when transitioning from dispatch flow to handlers
-            k = new KeyEvent(this, k.getID(), k.getKeyCode(), k.getKeyChar());
+            k = new KeyEvent(this, k.getID(), k.getModifiersEx(), k.getKeyCode(), k.getKeyChar());
             // copy down event internal state
             k.copyState(e);
             for (KeyListener l : _keyListeners) {
@@ -271,7 +271,7 @@ public abstract class Component {
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             // ensure we are the event source when transitioning from dispatch flow to handlers
-            m = new MouseEvent(this, m.getID(), m.getX(), m.getY(), m.getButton(), m.getState());
+            m = new MouseEvent(this, m.getID(), m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), m.getState());
             // copy down event internal state
             m.copyState(e);
             // first mouse event? might need to synthesize MOUSE_ENTERED..
@@ -281,13 +281,13 @@ public abstract class Component {
                 if (s_lastEntered != null) {
                     _log.info("- synthesize EXITED -> "+s_lastEntered.getName());
                     // We supply invalid co-ordinates here, as the mouse has left the building!
-                    s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, -1, -1, 0, 0));
+                    s_lastEntered.dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_EXITED, m.getModifiersEx(), -1, -1, 0, 0));
                 }
                 // mark ourselves as the last notified Component
                 s_lastEntered = this;
                 // recursively notify ourselves of mouse entry
                 _log.info("- synthesize ENTERED (this)");
-                dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getX(), m.getY(), m.getButton(), m.getState()));
+                dispatchEventImpl(new MouseEvent(m.getSource(), MouseEvent.MOUSE_ENTERED, m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), m.getState()));
                 // update the cursor if required
                 drawCursor(this);
             }
@@ -319,7 +319,7 @@ public abstract class Component {
                     _mouseButtons.remove((Integer)m.getButton());
                     if (m.getCanSynthesize()) {
                         _log.info("- synthesize CLICKED (this)");
-                        dispatchEventImpl(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, m.getX(), m.getY(), m.getButton(), 0));
+                        dispatchEventImpl(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), 0));
                     }
                 }
             } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
