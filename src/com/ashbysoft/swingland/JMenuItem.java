@@ -14,9 +14,10 @@ public class JMenuItem extends JButton {
     public void setAccelerator(KeyStroke a) { _accelerator = a; }
     public String getText() {
         if (_accelerator != null)
-            return super.getText() + " [" + _accelerator.toString() + "]";
+            return super.getText() + getAcceleratorText();
         return super.getText();
     }
+    private String getAcceleratorText() { return (_accelerator != null) ? " [" + _accelerator.toString() + "]" : ""; }
     public void paintComponent(Graphics g) {
         if (isOpaque()) {
             g.setColor(getBackground());
@@ -27,13 +28,19 @@ public class JMenuItem extends JButton {
             g.fillRect(2, 2, getWidth()-3, getHeight()-3);
             g.setColor(getBackground());
         }
-        int w = g.getFont().getFontMetrics().stringWidth(getText());
-        int h = g.getFont().getFontMetrics().getHeight();
-        int x = (getWidth()-w)/2;
+        String t1 = super.getText();
+        String t2 = getAcceleratorText();
+        FontMetrics fm = g.getFont().getFontMetrics();
+        int w2 = fm.stringWidth(t2);
+        int h = fm.getHeight();
         int y = (getHeight()+h)/2;
-        g.drawString(getText(), x, y);
+        g.drawString(t1, PAD, y);
+        if (t2.length() > 0) {
+            g.setColor(Window.DEFAULT_DISABLED);
+            g.drawString(t2, getWidth() - w2 - PAD, y);
+        }
         int[] mx = findMnemonic(g);
         if (mx != null)
-            g.drawLine(x + mx[0], y, x + mx[1], y);
+            g.drawLine(PAD + mx[0], y, PAD + mx[1], y);
     }
 }
