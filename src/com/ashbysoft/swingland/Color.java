@@ -12,6 +12,7 @@ public class Color {
     public static final Color GRAY = new Color(128,128,128);
     public static final Color LIGHT_GRAY = new Color(224,224,224);
     public static final Color WHITE = new Color(255,255,255);
+    public static final Color PINK = new Color(255,175,175);
     public final int _r;
     public final int _g;
     public final int _b;
