@@ -272,9 +272,9 @@ public class Fed implements ActionListener, KeyListener, Runnable {
             actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, "left"));
         else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
             actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, "right"));
-        else if (e.getKeyCode() == KeyEvent.VK_PAGEUP)
+        else if (e.getKeyCode() == KeyEvent.VK_PAGE_UP)
             actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, "pageleft"));
-        else if (e.getKeyCode() == KeyEvent.VK_PAGEDOWN)
+        else if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN)
             actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, "pageright"));
         else if (e.getKeyCode() == KeyEvent.VK_INSERT)
             actionPerformed(new ActionEvent(this, ActionEvent.ACTION_FIRED, "add"));

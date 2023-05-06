@@ -98,12 +98,12 @@ public class KeyEvent extends InputEvent {
     public static final int VK_LINEFEED = 101;
     public static final int VK_HOME = 102;
     public static final int VK_UP = 103;
-    public static final int VK_PAGEUP = 104;
+    public static final int VK_PAGE_UP = 104;
     public static final int VK_LEFT = 105;
     public static final int VK_RIGHT = 106;
     public static final int VK_END = 107;
     public static final int VK_DOWN = 108;
-    public static final int VK_PAGEDOWN = 109;
+    public static final int VK_PAGE_DOWN = 109;
     public static final int VK_INSERT = 110;
     public static final int VK_DELETE = 111;
     public static final int VK_MACRO = 112;
