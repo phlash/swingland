@@ -10,6 +10,7 @@
 		<jar destfile="bin/swingland.jar">
 			<fileset dir="bin/classes" excludes="com/ashbysoft/test/** com/ashbysoft/fed/**"/>
 			<fileset dir="res"/>
+			<fileset dir="." includes="bin/libnative.so"/>
 		</jar>
 		<jar destfile="bin/test.jar">
 			<manifest>

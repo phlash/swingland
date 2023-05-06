@@ -1,10 +1,38 @@
 package com.ashbysoft.wayland;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.SocketChannel;
 
 public class Native {
     static {
-        System.loadLibrary("native");
+        try {
+            // Try external file (in java.libray.path) first, allows development override
+            System.loadLibrary("native");
+        } catch (UnsatisfiedLinkError lx) {
+            // Nope? Try embedded package..
+            try {
+                File tmp = File.createTempFile("swg", ".lib");
+                tmp.deleteOnExit();
+                try (InputStream is = Native.class.getResourceAsStream("/bin/"+System.mapLibraryName("native"));
+                    FileOutputStream os = new FileOutputStream(tmp)) {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = is.read(buf)) > 0) {
+                        os.write(buf, 0, n);
+                    }
+                }
+                System.load(tmp.getAbsolutePath());
+            } catch (IOException ix) {
+                ix.printStackTrace(System.err);
+                System.exit(1);
+            } catch (UnsatisfiedLinkError ux) {
+                ux.printStackTrace(System.err);
+                System.exit(1);
+            }
+        }
     }
     // creates a new shared memory handle, and sets the allocated size (shm_open, ftruncate)
     public static native int createSHM(String name, int size);
