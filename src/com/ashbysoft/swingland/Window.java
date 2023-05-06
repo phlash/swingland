@@ -72,11 +72,11 @@ public class Window extends Container implements
             throw new IllegalArgumentException("popup windows require an owner");
         }
         _isPopup = isPopup;
+        // grab a reference to Wayland *before* we go looking for display devices!
+        _g = WaylandGlobals.instance();
         _config = (config != null) ? config : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         _owned = new LinkedList<>();
         _listeners = new LinkedList<>();
-        // grab a reference to Wayland
-        _g = WaylandGlobals.instance();
         // default rendering properties
         setBackground(DEFAULT_BACKGROUND);
         setForeground(DEFAULT_FOREGROUND);
