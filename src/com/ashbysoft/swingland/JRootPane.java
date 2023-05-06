@@ -91,7 +91,7 @@ public class JRootPane extends JComponent {
         lp.setLayout(getLayout());
         return lp;
     }
-    protected Container createContentPane() { return new JPanel(); }
+    protected Container createContentPane() { return new JPanel(new BorderLayout()); }
     protected LayoutManager createRootLayout() { return new RootLayout(); }
 
     protected class RootLayout extends NullLayout {
