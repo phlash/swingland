@@ -205,7 +205,9 @@ public class Container extends Component {
                 Rectangle b = c.getBounds();
                 int ex = m.getX() - b._x;
                 int ey = m.getY() - b._y;
-                m = new MouseEvent(m.getSource(), m.getID(), m.getModifiersEx(), ex, ey, m.getButton(), m.getState());
+                m = e instanceof MouseWheelEvent ?
+                    new MouseWheelEvent(m.getSource(), m.getID(), m.getModifiersEx(), ex, ey, m.getButton(), m.getState(), ((MouseWheelEvent)m).getWheelRotation()) :
+                    new MouseEvent(m.getSource(), m.getID(), m.getModifiersEx(), ex, ey, m.getButton(), m.getState());
                 // copy down event internal state
                 m.copyState(e);
                 c.dispatchEvent(m);

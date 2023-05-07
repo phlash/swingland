@@ -301,6 +301,11 @@ class WaylandGlobals implements
         _bdragged = MouseEvent.BUTTON_PRESSED == mstate ? mbutton : 0;
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
+    public boolean pointerAxis(int time, int axis, int clicks) {
+        // for horizontal scrolling, we add a fake shift key modifier (this is undocumented but has been noted on MacOS under X11)
+        return pointerSend(new MouseWheelEvent(this, MouseEvent.MOUSE_WHEEL, Pointer.AXIS_HORIZONTAL == axis ? InputEvent.SHIFT_DOWN_MASK : 0,
+            _pointerX >> 8, _pointerY >> 8, -1, -1, clicks >> 8));
+    }
     public boolean pointerFrame() { return true; }
 
     // cursor update

@@ -17,6 +17,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	private Image _duke;
 	private int _x = 0;
 	private int _y = 0;
+	private int _c = 0;
 	private int _b = 0;
 
     public void run(String[] args) {
@@ -146,6 +147,10 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			} else if (k.getKeyCode() == KeyEvent.VK_R) {
 				_frame.setSize(800, 600);
 			}
+		} else if (e instanceof MouseWheelEvent) {
+			MouseWheelEvent w = (MouseWheelEvent)e;
+			w.consume();
+			_c = w.getWheelRotation();
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
 			if (m.getID() == MouseEvent.MOUSE_MOVE | m.getID() == MouseEvent.MOUSE_DRAGGED) {
@@ -304,7 +309,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		// instructions
 		g.setColor(Color.MAGENTA);
 		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, U to toggle fUllscreen, R to resize to 800x600)", l+5, b-5);
-		String m = "Mouse("+_x+","+_y+")="+_b;
+		String m = "Mouse("+_x+","+_y+","+_c+")="+_b;
 		g.drawString(m, getWidth()-getFont().stringWidth(m)-10, t+20);
 		// show our current graphics config
 		GraphicsConfiguration gc = getGraphicsConfiguration();

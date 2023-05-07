@@ -24,6 +24,7 @@ public abstract class Component {
     private Cursor _cursor;
     private ArrayList<KeyListener> _keyListeners;
     private ArrayList<MouseInputListener> _mouseListeners;
+    private ArrayList<MouseWheelListener> _wheelListeners;
     private ArrayList<Integer> _mouseButtons;
     private boolean _seenMouse;
     private static Component s_lastEntered;
@@ -35,9 +36,10 @@ public abstract class Component {
         _visible = true;
         _enabled = true;
         _valid = false;
-        _keyListeners = new ArrayList<KeyListener>();
-        _mouseListeners = new ArrayList<MouseInputListener>();
-        _mouseButtons = new ArrayList<Integer>();
+        _keyListeners = new ArrayList<>();
+        _mouseListeners = new ArrayList<>();
+        _wheelListeners = new ArrayList<>();
+        _mouseButtons = new ArrayList<>();
         _seenMouse = false;
     }
     public Container getParent() { return _parent; }
@@ -241,6 +243,16 @@ public abstract class Component {
         if (_mouseListeners.contains(l))
             _mouseListeners.remove(l);
     }
+    public void addMouseWheelListener(MouseWheelListener l) {
+        _log.info("Component:addMouseWheelListener("+l.getClass().getSimpleName()+")");
+        if (!_wheelListeners.contains(l))
+            _wheelListeners.add(l);
+    }
+    public void removeMouseWheelListener(MouseWheelListener l) {
+        _log.info("Component:removeMouseWheelListener("+l.getClass().getSimpleName()+")");
+        if (_wheelListeners.contains(l))
+            _wheelListeners.remove(l);
+    }
     // separate public method so we can recurse internally via a private method without
     // invoking overridden public methods
     public void dispatchEvent(AbstractEvent e) {
@@ -271,11 +283,13 @@ public abstract class Component {
         } else if (e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             // ensure we are the event source when transitioning from dispatch flow to handlers
-            m = new MouseEvent(this, m.getID(), m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), m.getState());
+            m = m instanceof MouseWheelEvent ?
+                new MouseWheelEvent(this, m.getID(), m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), m.getState(), ((MouseWheelEvent)m).getWheelRotation()) :
+                new MouseEvent(this, m.getID(), m.getModifiersEx(), m.getX(), m.getY(), m.getButton(), m.getState());
             // copy down event internal state
             m.copyState(e);
             // first mouse event? might need to synthesize MOUSE_ENTERED..
-            if (!_seenMouse && m.getCanSynthesize() && (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_DRAGGED == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID())) {
+            if (!_seenMouse && m.getCanSynthesize() && MouseEvent.MOUSE_ENTERED != m.getID() && MouseEvent.MOUSE_EXITED != m.getID()) {
                 _seenMouse = true;
                 // notify the previously entered Component that the mouse has left the building..
                 if (s_lastEntered != null) {
@@ -292,22 +306,27 @@ public abstract class Component {
                 drawCursor(this);
             }
             // process the listeners
-            for (MouseInputListener l : _mouseListeners) {
-                if (MouseEvent.MOUSE_MOVE == m.getID()) {
-                    l.mouseMoved(m);
-                } else if (MouseEvent.MOUSE_BUTTON == m.getID()) {
-                    if (MouseEvent.BUTTON_RELEASED == m.getState())
-                        l.mouseReleased(m);
-                    else
-                        l.mousePressed(m);
-                } else if (MouseEvent.MOUSE_ENTERED == m.getID()) {
-                    l.mouseEntered(m);
-                } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
-                    l.mouseExited(m);
-                } else if (MouseEvent.MOUSE_CLICKED == m.getID()) {
-                    l.mouseClicked(m);
-                } else if (MouseEvent.MOUSE_DRAGGED == m.getID()) {
-                    l.mouseDragged(m);
+            if (m instanceof MouseWheelEvent) {
+                for (var l : _wheelListeners)
+                    l.mouseWheelMoved((MouseWheelEvent)m);
+            } else {
+                for (var l : _mouseListeners) {
+                    if (MouseEvent.MOUSE_MOVE == m.getID()) {
+                        l.mouseMoved(m);
+                    } else if (MouseEvent.MOUSE_BUTTON == m.getID()) {
+                        if (MouseEvent.BUTTON_RELEASED == m.getState())
+                            l.mouseReleased(m);
+                        else
+                            l.mousePressed(m);
+                    } else if (MouseEvent.MOUSE_ENTERED == m.getID()) {
+                        l.mouseEntered(m);
+                    } else if (MouseEvent.MOUSE_EXITED == m.getID()) {
+                        l.mouseExited(m);
+                    } else if (MouseEvent.MOUSE_CLICKED == m.getID()) {
+                        l.mouseClicked(m);
+                    } else if (MouseEvent.MOUSE_DRAGGED == m.getID()) {
+                        l.mouseDragged(m);
+                    }
                 }
             }
             // local processing (if any) after listeners

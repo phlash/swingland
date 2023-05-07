@@ -8,6 +8,7 @@ public class MouseEvent extends InputEvent {
     public static final int MOUSE_EXITED = 3;
     public static final int MOUSE_CLICKED = 4;
     public static final int MOUSE_DRAGGED = 5;
+    public static final int MOUSE_WHEEL = 6;
     // button IDs
     public static final int NOBUTTON = 0;
     public static final int BUTTON1 = 1;    // left
