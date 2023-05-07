@@ -148,7 +148,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			}
 		} else if (e instanceof MouseEvent) {
 			MouseEvent m = (MouseEvent)e;
-			if (m.getID() == MouseEvent.MOUSE_MOVE) {
+			if (m.getID() == MouseEvent.MOUSE_MOVE | m.getID() == MouseEvent.MOUSE_DRAGGED) {
 				m.consume();
 				_x = m.getX();
 				_y = m.getY();

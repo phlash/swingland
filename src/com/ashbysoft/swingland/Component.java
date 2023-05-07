@@ -275,7 +275,7 @@ public abstract class Component {
             // copy down event internal state
             m.copyState(e);
             // first mouse event? might need to synthesize MOUSE_ENTERED..
-            if (!_seenMouse && m.getCanSynthesize() && (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID())) {
+            if (!_seenMouse && m.getCanSynthesize() && (MouseEvent.MOUSE_MOVE == m.getID() || MouseEvent.MOUSE_DRAGGED == m.getID() || MouseEvent.MOUSE_BUTTON == m.getID())) {
                 _seenMouse = true;
                 // notify the previously entered Component that the mouse has left the building..
                 if (s_lastEntered != null) {
@@ -306,6 +306,8 @@ public abstract class Component {
                     l.mouseExited(m);
                 } else if (MouseEvent.MOUSE_CLICKED == m.getID()) {
                     l.mouseClicked(m);
+                } else if (MouseEvent.MOUSE_DRAGGED == m.getID()) {
+                    l.mouseDragged(m);
                 }
             }
             // local processing (if any) after listeners

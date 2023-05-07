@@ -47,7 +47,7 @@ public class Frame extends Window {
         if (!isUndecorated() && isFloating() && e instanceof MouseEvent) {
             MouseEvent m = (MouseEvent)e;
             Insets i = getInsets();
-            if (e.getID() == MouseEvent.MOUSE_MOVE) {
+            if (e.getID() == MouseEvent.MOUSE_MOVE || e.getID() == MouseEvent.MOUSE_DRAGGED) {
                 // which cursor do we show?
                 int d = m.getY() < i._t ?
                     m.getY() < i._l ?

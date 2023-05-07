@@ -255,6 +255,7 @@ class WaylandGlobals implements
     // Pointer.Listener
     private int _pointerX;
     private int _pointerY;
+    private int _bdragged;
     private int _lastEnter;
     private int _lastSerial;
     private Surface _cursorSurface;
@@ -282,18 +283,22 @@ class WaylandGlobals implements
     }
     public boolean pointerLeave(int serial, int surface) {
         _lastSerial = serial;
+        _bdragged = 0;
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_EXITED, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, -1, -1));
     }
     public boolean pointerMove(int time, int x, int y) {
         _pointerX = x;
         _pointerY = y;
-        return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_MOVE, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, -1, -1));
+        return pointerSend(new MouseEvent(this, _bdragged != 0 ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVE,
+            _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, -_bdragged != 0 ? _bdragged : -1, _bdragged != 0 ? MouseEvent.BUTTON_PRESSED : -1));
     }
     public boolean pointerButton(int serial, int time, int button, int state) {
         _lastSerial = serial;
         // map button codes & state
         int mbutton = Pointer.BUTTON_LEFT == button ? MouseEvent.BUTTON1 : Pointer.BUTTON_RIGHT == button ? MouseEvent.BUTTON2 : MouseEvent.BUTTON3;
         int mstate = Pointer.BUTTON_RELEASED == state ? MouseEvent.BUTTON_RELEASED : MouseEvent.BUTTON_PRESSED;
+        // update drag button
+        _bdragged = MouseEvent.BUTTON_PRESSED == mstate ? mbutton : 0;
         return pointerSend(new MouseEvent(this, MouseEvent.MOUSE_BUTTON, _keymap.getModifiersEx(), _pointerX >> 8, _pointerY >> 8, mbutton, mstate));
     }
     public boolean pointerFrame() { return true; }
