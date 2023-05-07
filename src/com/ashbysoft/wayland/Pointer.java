@@ -8,8 +8,8 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
         boolean pointerLeave(int serial, int surface);
         boolean pointerMove(int time, int x, int y);
         boolean pointerButton(int serial, int time, int button, int state);
+        boolean pointerAxis(int time, int axis, int clicks);
         boolean pointerFrame();
-        // TODO axis stuff
     }
     public static final int RQ_SET_CURSOR = 0;
     public static final int RQ_RELEASE = 1;
@@ -27,6 +27,8 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
     public static final int BUTTON_MIDDLE = 274;
     public static final int BUTTON_RELEASED = 0;
     public static final int BUTTON_PRESSED = 1;
+    public static final int AXIS_VERTICAL = 0;
+    public static final int AXIS_HORIZONTAL = 1;
 
     public Pointer(Display d) { super(d); }
     public boolean handle(int oid, int op, int size, ByteBuffer b) {
@@ -63,6 +65,14 @@ public class Pointer extends WaylandObject<Pointer.Listener> {
             log(true, "button:serial="+serial+" time="+time+" button="+button+" state="+state);
             for (Listener l : listeners())
                 if (!l.pointerButton(serial, time, button, state))
+                    rv = false;
+        } else if (EV_AXIS == op) {
+            int time = b.getInt();
+            int axis = b.getInt();
+            int clicks = b.getInt();
+            log(true, "axis:time="+time+",axis="+axis+",clicks="+clicks);
+            for (Listener l : listeners())
+                if (!l.pointerAxis(time, axis, clicks))
                     rv = false;
         } else if (EV_FRAME == op) {
             log(true, "frame");

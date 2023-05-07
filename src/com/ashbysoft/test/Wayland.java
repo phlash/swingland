@@ -313,7 +313,15 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         }
         return true;
     }
-    public boolean pointerButton(int serial, int time, int button, int state) { return true; }
+    public boolean pointerButton(int serial, int time, int button, int state) {
+        _log.error("pointerButton("+button+","+state+")");
+        return true;
+    }
+    public boolean pointerAxis(int time, int axis, int clicks) {
+        clicks >>= 8;
+        _log.error("pointerAxis("+axis+","+clicks+")");
+        return true;
+    }
     public boolean pointerFrame() { return true; }
 
     public boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans) { return true; }
