@@ -22,7 +22,7 @@ public class Timer {
     private long _nextRun;
 
     public Timer(int delay, ActionListener listener) {
-        _log.error("<init>("+delay+","+listener.toString()+")");
+        _log.info("<init>("+delay+","+listener.toString()+")");
         _listeners.add(listener);
         _delay = delay;
         _nextRun = -1L;
@@ -60,7 +60,7 @@ public class Timer {
     }
     public boolean isRunning() { return _doRunning; }
     public void start() {
-        _log.error("start()");
+        _log.info("start()");
         synchronized (_lock) {
             _doRunning = true;
             // only schedule once..
@@ -71,7 +71,7 @@ public class Timer {
         }
     }
     public void stop() {
-        _log.error("stop()");
+        _log.info("stop()");
         synchronized (_lock) {
             _doRunning = false;
             synchronized (_timers) {
@@ -80,7 +80,7 @@ public class Timer {
         }
     }
     public void restart() {
-        _log.error("restart()");
+        _log.info("restart()");
         synchronized (_lock) {
             _doRunning = true;
             synchronized (_timers) {
@@ -90,7 +90,7 @@ public class Timer {
         }
     }
     protected void fireActionPerformed() {
-        _log.error("fireActionPerformed()");
+        _log.info("fireActionPerformed()");
         LinkedList<ActionListener> safe;
         ActionEvent e;
         synchronized (_lock) {
@@ -103,7 +103,7 @@ public class Timer {
 
     private void reschedule(long now) {
         // put ourselves back in the queue at the right point
-        _log.error("reschedule("+now+")");
+        _log.info("reschedule("+now+")");
         _nextRun = now + _delay;
         synchronized (_timers) {
             for (int i = 0; i < _timers.size(); i += 1) {
