@@ -400,6 +400,8 @@ class WaylandGlobals implements
                     _log.info("<-- key repeat("+_repeatCode+")");
                 }
             }
+            // Timer processing
+            Timer.runTimers();
             // termination check
             int count;
             synchronized(_windows) {
