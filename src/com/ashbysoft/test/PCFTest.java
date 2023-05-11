@@ -1,12 +1,14 @@
 package com.ashbysoft.test;
 
 // Based on specification: https://fontforge.org/docs/techref/pcf-format.html
+// with considerable help from: https://github.com/tdm/android-x-server/blob/master/src/tdm/xserver/FontDataPCF.java
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 public class PCFTest {
@@ -67,6 +69,13 @@ public class PCFTest {
     }
     private PCFBitmap[] _bitmaps = null;
     private byte[] _rawbits = null;
+    // PCF encodings table (2 dimensional for 2-byte encodings)
+    class PCFEncoding {
+        public int minb1, maxb1, minb2, maxb2, dflt;
+        public int[][] map;
+        public PCFEncoding(int mb1, int xb1, int mb2, int xb2, int d, int[][] e) { minb1 = mb1; maxb1 = xb1; minb2 = mb2; maxb2 = xb2; dflt = d; map = e; }
+    }
+    private PCFEncoding _encoding = null;
 
     private void load(InputStream is) throws IOException {
         int pos = 0;
@@ -111,12 +120,24 @@ public class PCFTest {
                 default -> pos += skip(is, te.size);
             }
         }
-        // ASCII Art dump of first few glyphs
-        for (int i = 0; i < 5 && i < _metrics.length; i += 1)
-            pcfDump(i);
+        // ASCII Art dump of some random encodings
+        int r2 = _encoding.maxb2 - _encoding.minb2 + 1;
+        Random rnd = new Random();
+        for (int i = 0; i < 10; i+= 1)
+            pcfDump((_encoding.minb1 << 8) | ((rnd.nextInt(r2) + _encoding.minb2)));
     }
-    private void pcfDump(int glyph) {
-        log("-- glyph:"+glyph);
+    private void pcfDump(int enc) throws IOException {
+        // map to glyph
+        int b1 = (enc >> 8) & 0xff;
+        int b2 = enc & 0xff;
+        if (b1 < _encoding.minb1 || b1 > _encoding.maxb1 || b2 < _encoding.minb2 || b2 > _encoding.maxb2)
+            throw new IOException("encoding out of range: 0x"+Integer.toHexString(enc));
+        int glyph = _encoding.map[b1 - _encoding.minb1][b2 - _encoding.minb2];
+        // check for default
+        if (0xffff == glyph)
+            glyph = _encoding.dflt;
+        log("-- enc: 0x"+Integer.toHexString(enc)+", glyph:"+glyph+", left="+_metrics[glyph].lbearing+", right="+_metrics[glyph].rbearing+", width="+_metrics[glyph].width+
+            ", ascent="+_metrics[glyph].ascent+", descent="+_metrics[glyph].descent);
         // calculate glyph pixel size
         int gw = _metrics[glyph].width;
         int gh = _metrics[glyph].ascent + _metrics[glyph].descent;
@@ -245,7 +266,28 @@ public class PCFTest {
         pos += _rawbits.length;
         return pos;
     }
-    private int pcfEncodings(InputStream is, int size, int format) throws IOException { return skip(is, size); }
+    private int pcfEncodings(InputStream is, int size, int format) throws IOException {
+        int fmt = getI(is, 4, false);
+        int pos = 4;
+        if (fmt != format)
+            throw new IOException("encodings: mismatched format: 0x"+Integer.toHexString(fmt)+"!=0x"+Integer.toHexString(format));
+        boolean big = (fmt & PCF_BYTE_MASK) > 0;
+        int minb2 = getI(is, 2, big);
+        int maxb2 = getI(is, 2, big);
+        int minb1 = getI(is, 2, big);
+        int maxb1 = getI(is, 2, big);
+        int defaultGlyph = getI(is, 2, big);
+        pos += 10;
+        int nhgh = (maxb1 - minb1 + 1);
+        int nlow = (maxb2 - minb2 + 1);
+        log("- encodings: big="+big+", b1="+minb1+"-"+maxb1+", b2="+minb2+"-"+maxb2+" default="+defaultGlyph);
+        _encoding = new PCFEncoding(minb1, maxb1, minb2, maxb2, defaultGlyph, new int[nhgh][nlow]);
+        for (int h = 0; h < nhgh; h += 1)
+            for (int l = 0; l < nlow; l += 1)
+                _encoding.map[h][l] = getI(is, 2, big);
+        pos += 2 * nhgh * nlow;
+        return pos;
+    }
     private int skip(InputStream is, int size) throws IOException {
         log("- skipping: 0x"+Integer.toHexString(size));
         for (int i = 0; i < size; i += 1)
