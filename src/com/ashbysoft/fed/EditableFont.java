@@ -8,9 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.ashbysoft.logger.Logger;
-import com.ashbysoft.swingland.Font;
+import com.ashbysoft.swingland.SwinglandFont;
 
-public class EditableFont extends Font {
+public class EditableFont extends SwinglandFont {
     private Logger _log;
     private File _fontfile;
     private int _current;
