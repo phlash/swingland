@@ -34,7 +34,9 @@ public abstract class Font {
             return;
         int cx = 0;
         for (int i = 0; i < s.length(); i += 1) {
-            cx += renderGlyph(g, mapCodePoint(s.codePointAt(i)), x+cx, y);
+            int gl = mapCodePoint(s.codePointAt(i));
+            if (gl < 0) gl = missingGlyph();
+            cx += renderGlyph(g, gl, x+cx, y);
         }
     }
     void renderCodePoint(Graphics g, int cp, int x, int y) {

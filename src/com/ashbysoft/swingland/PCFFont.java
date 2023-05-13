@@ -118,7 +118,8 @@ public class PCFFont extends Font implements FontMetrics {
                     default -> pos += skip(is, te.size);
                 }
             }
-            _log.info("lazy loaded: "+_name+" max="+_maxMetrics.width+"x"+(_maxMetrics.ascent+_maxMetrics.descent)+" glyphs="+_encoding.map.length);
+            int en = _encoding.map.length * _encoding.map[0].length;
+            _log.info("lazy loaded: "+_name+" max="+_maxMetrics.width+"x"+(_maxMetrics.ascent+_maxMetrics.descent)+" encs="+en+" glyphs="+_metrics.length);
             _loaded = true;
         } catch (IOException ex) {
             _log.error("Unable to load PCF font: "+ _name+": "+ex.toString());
@@ -265,17 +266,25 @@ public class PCFFont extends Font implements FontMetrics {
         int maxb2 = getI(is, 2, big);
         int minb1 = getI(is, 2, big);
         int maxb1 = getI(is, 2, big);
-        int defaultGlyph = getI(is, 2, big);
+        int dfltC = getI(is, 2, big);   // NB: default char / code point, not glyph..
         pos += 10;
         int nhgh = (maxb1 - minb1 + 1);
         int nlow = (maxb2 - minb2 + 1);
-        _log.detail("- encodings: big="+big+", b1="+minb1+"-"+maxb1+", b2="+minb2+"-"+maxb2+" default="+defaultGlyph);
-        _encoding = new PCFEncoding(minb1, maxb1, minb2, maxb2, defaultGlyph, new int[nhgh][nlow]);
-        for (int h = 0; h < nhgh; h += 1)
+        int[][] map = new int[nhgh][nlow];
+        for (int h = 0; h < nhgh; h += 1) {
             for (int l = 0; l < nlow; l += 1) {
                 int v = getI(is, 2, big);
-                _encoding.map[h][l] = v < 0xffff ? v : -1;  // adjust 16bit -1 to int
+                map[h][l] = v < 0xffff ? v : -1;  // adjust 16bit -1 to int
             }
+        }
+        _encoding = new PCFEncoding(minb1, maxb1, minb2, maxb2, 0, map);
+        int dfltG = mapCodePoint(dfltC);
+        if (dfltG < 0) {
+            _log.error("encodings: default char does not have a mapping, using glyph 0");
+        } else {
+            _encoding.dflt = dfltG;
+        }
+        _log.detail("- encodings: big="+big+", b1="+minb1+"-"+maxb1+", b2="+minb2+"-"+maxb2+" default="+_encoding.dflt);
         pos += 2 * nhgh * nlow;
         return pos;
     }

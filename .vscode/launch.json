@@ -30,14 +30,15 @@
         },
         {
             "type": "java",
-            "name": "ToplevelDemo",
+            "name": "PCFTest",
             "request": "launch",
             "classPaths": [ "${workspaceFolder}/bin/test.jar" ],
             "cwd": "${workspaceFolder}",
             "sourcePaths": [ "src" ],
             "stopOnEntry": true,
             "vmArgs": "-Djava.library.path=bin",
-            "mainClass": "com.ashbysoft.test.TopLevelDemo"
+            "mainClass": "com.ashbysoft.test.PCFTest",
+            "args": "X11/misc/jiskan24.pcf.gz"
         }
 
     ]
