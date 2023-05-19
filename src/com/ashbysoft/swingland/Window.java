@@ -9,6 +9,7 @@ import com.ashbysoft.wayland.XdgSurface;
 import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.XdgPopup;
 import com.ashbysoft.wayland.ShmPool;
+import com.ashbysoft.wayland.SubSurface;
 import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Positioner;
 import com.ashbysoft.swingland.event.WindowEvent;
@@ -33,6 +34,7 @@ public class Window extends Container implements
     private WaylandGlobals _g;
     private GraphicsConfiguration _config;
     private Surface _surface;
+    private SubSurface _subSurface;
     private XdgSurface _xdgSurface;
     private XdgToplevel _xdgToplevel;
     private XdgPopup _xdgPopup;
@@ -189,28 +191,43 @@ public class Window extends Container implements
         _surface.addListener(this);
         _g.compositor().createSurface(_surface);
         _g.register(_surface.getID(), this);
-        _xdgSurface = new XdgSurface(_g.display());
-        _xdgSurface.addListener(this);
-        _g.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
-        // if requested, create a popup rather than a top level window
-        if (_isPopup) {
-            _xdgPopup = new XdgPopup(_g.display());
-            _xdgPopup.addListener(this);
-            _xdgSurface.getPopup(_xdgPopup, _owner._xdgSurface, positioner);
-            _g.pushPopup(this);
-            positioner.destroy();
+        if (_owner != null && !_isPopup && System.getenv("SWINGLAND_SUBSURFACES") != null) {
+            // owned, non-popup windows are displayed as a SubSurface, ensuring they remain on top of parent
+            _subSurface = new SubSurface(_g.display());
+            _g.subCompositor().getSubSurface(_subSurface, _surface, _owner._surface);
+            _subSurface.setDesync();
+            // if we've been positioned apply it, otherwise allow compositor to use defaults
+            if (getX() != 0 || getY() != 0)
+                _subSurface.setPosition(getX(), getY());
+            // fix display state, we'll never see a configure request and our state is pre-determined
+            _isActive = _isFloating = true;
+            _isFullscreen = _isMaximized = _isResizing = false;
         } else {
-            _xdgToplevel = new XdgToplevel(_g.display());
-            _xdgToplevel.addListener(this);
-            _xdgSurface.getTopLevel(_xdgToplevel);
-            if (_owner != null)
-                _xdgToplevel.setParent(_owner._xdgToplevel);
-            if (_title != null)
-                _xdgToplevel.setTitle(_title);
-            if (getWidth() > 0 && getHeight() > 0) {
-                // fix size - this also makes it float in Sway
-                _xdgToplevel.setMaxSize(getWidth(), getHeight());
-                _xdgToplevel.setMinSize(getWidth(), getHeight());
+            // otherwise we are some form of XDG surface
+            _xdgSurface = new XdgSurface(_g.display());
+            _xdgSurface.addListener(this);
+            _g.xdgWmBase().getXdgSurface(_xdgSurface, _surface);
+            // if requested, create a popup (typically a menu)
+            if (_isPopup) {
+                _xdgPopup = new XdgPopup(_g.display());
+                _xdgPopup.addListener(this);
+                _xdgSurface.getPopup(_xdgPopup, _owner._xdgSurface, positioner);
+                _g.pushPopup(this);
+                positioner.destroy();
+            // Top level window
+            } else {
+                _xdgToplevel = new XdgToplevel(_g.display());
+                _xdgToplevel.addListener(this);
+                _xdgSurface.getTopLevel(_xdgToplevel);
+                if (_owner != null)
+                    _xdgToplevel.setParent(_owner._xdgToplevel);
+                if (_title != null)
+                    _xdgToplevel.setTitle(_title);
+                if (getWidth() > 0 && getHeight() > 0) {
+                    // fix size - this also makes it float in Sway
+                    _xdgToplevel.setMaxSize(getWidth(), getHeight());
+                    _xdgToplevel.setMinSize(getWidth(), getHeight());
+                }
             }
         }
         _surface.commit();
@@ -239,6 +256,10 @@ public class Window extends Container implements
         if (_xdgSurface != null) {
             _xdgSurface.destroy();
             _xdgSurface = null;
+        }
+        if (_subSurface != null) {
+            _subSurface.destroy();
+            _subSurface = null;
         }
         if (_surface != null) {
             _g.unregister(_surface.getID());

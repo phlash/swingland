@@ -1,21 +1,18 @@
 package com.ashbysoft.swingland;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+
 public class Dialog extends Window {
-    public static final int BORDER_WIDTH = 2;
-    public static final int TITLE_HEIGHT = 20;
+    private FrameDialogImpl _impl;
     private boolean _modal;
     private boolean _resizable;
-    private boolean _undecorated;
-
     public Dialog(Window owner) { this(owner, ""); }
     public Dialog(Window owner, String title) { this(owner, title, false); }
     public Dialog(Window owner, String title, boolean modal) {
         super(owner);
         _log.info("Dialog:<init>("+owner.getName()+",'"+title+"',"+modal+")");
-        setVisible(false);
-        setTitle(title);
+        _impl = new FrameDialogImpl(this, title);
         setModal(modal);
-        setUndecorated(false);
     }
     public String getTitle() { return super.getTitle(); }
     public void setTitle(String title) { super.setTitle(title); }
@@ -33,32 +30,20 @@ public class Dialog extends Window {
             return;
         _resizable = resizable;
     }
-    public boolean isUndecorated() { return _undecorated; }
-    public void setUndecorated(boolean undecorated) {
-        _log.info("Dialog:setUndecorated("+undecorated+")");
-        _undecorated = undecorated;
-        if (undecorated)
-            setInsets(null);
-        else
-            setInsets(new Insets(TITLE_HEIGHT, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
-        invalidate();
+    public boolean isUndecorated() { return _impl.isUndecorated(); }
+    public void setUndecorated(boolean undecorated) { _impl.setUndecorated(undecorated); }
+    protected void processEvent(AbstractEvent e) {
+        super.processEvent(e);
+        _impl.processEvent(e);
+    }
+    public Cursor getCursor() {
+        Cursor c = _impl.getCursor();
+        if (c != null)
+            return c;
+        return super.getCursor();
     }
     public void paint(Graphics g) {
-        if (!isVisible())
-            return;
-        _log.info("Dialog:paint()");
-        // paint our background, border (unless undecorated) then delegate to Window/Container
-        g.setColor(getBackground());
-        g.fillRect(0, 0, getWidth(), getHeight());
-        if (!isUndecorated()) {
-            g.setColor(getForeground());
-            g.fillRect(0, 0, getWidth(), TITLE_HEIGHT);
-            g.fillRect(0, TITLE_HEIGHT, BORDER_WIDTH, getHeight()-TITLE_HEIGHT-BORDER_WIDTH);
-            g.fillRect(getWidth()-BORDER_WIDTH, TITLE_HEIGHT, BORDER_WIDTH, getHeight()-TITLE_HEIGHT-BORDER_WIDTH);
-            g.fillRect(0, getHeight()-BORDER_WIDTH, getWidth(), BORDER_WIDTH);
-            g.setColor(getBackground());
-            g.drawString(getTitle(), BORDER_WIDTH, TITLE_HEIGHT-BORDER_WIDTH);
-        }
+        _impl.paint(g);
         super.paint(g);
     }
 }

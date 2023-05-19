@@ -177,7 +177,6 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			_dialog = new JDialog(_frame, "Test dialog");
 			_dialog.setLayout(new BorderLayout());
 			_dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
 			JLabel label = new JLabel("Label..");
 			label.setForeground(Color.WHITE);
 			_dialog.add(label, BorderLayout.NORTH);
@@ -192,6 +191,8 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			JLabel dead = new JLabel("Disabled label");
 			dead.setEnabled(false);
 			_dialog.add(dead, BorderLayout.SOUTH);
+			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
+			//_dialog.pack();
 			_dialog.setVisible(true);
 		}
 	}

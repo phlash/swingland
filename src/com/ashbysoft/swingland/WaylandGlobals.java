@@ -7,6 +7,7 @@ import com.ashbysoft.wayland.Buffer;
 import com.ashbysoft.wayland.Compositor;
 import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
+import com.ashbysoft.wayland.SubCompositor;
 import com.ashbysoft.wayland.Surface;
 import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.Seat;
@@ -42,6 +43,7 @@ class WaylandGlobals implements
     private Display _display;
     private Registry _registry;
     private Compositor _compositor;
+    private SubCompositor _subCompositor;
     private XdgWmBase _xdgWmBase;
     private Shm _shm;
     private Seat _seat;
@@ -66,8 +68,8 @@ class WaylandGlobals implements
         _display.getRegistry(_registry);
         // wait for all registry info
         _display.roundtrip();
-        if (null == _compositor || null == _xdgWmBase || null == _shm) {
-            String oops = "missing a required global object in Wayland: compositor="+_compositor+" xdgWmBase="+_xdgWmBase+" shm="+_shm;
+        if (null == _compositor || null == _subCompositor || null == _xdgWmBase || null == _shm) {
+            String oops = "missing a required global object in Wayland: compositor="+_compositor+" subCompositor="+_subCompositor+" xdgWmBase="+_xdgWmBase+" shm="+_shm;
             _log.error(oops);
             throw new RuntimeException(oops);
         }
@@ -101,6 +103,7 @@ class WaylandGlobals implements
     }
     public Display display() { return _display; }
     public Compositor compositor() { return _compositor; }
+    public SubCompositor subCompositor() { return _subCompositor; }
     public XdgWmBase xdgWmBase() { return _xdgWmBase; }
     public Shm shm() { return _shm; }
     public Output[] outputs() { return (Output[])_outputs.toArray(); }
@@ -164,6 +167,9 @@ class WaylandGlobals implements
         if (iface.equals("wl_compositor")) {
             _compositor = new Compositor(_display);
             _registry.bind(name, iface, version, _compositor);
+        } else if (iface.equals("wl_subcompositor")) {
+            _subCompositor = new SubCompositor(_display);
+            _registry.bind(name, iface, version, _subCompositor);
         } else if (iface.equals("wl_shm")) {
             _shm = new Shm(_display);
             _registry.bind(name, iface, version, _shm);

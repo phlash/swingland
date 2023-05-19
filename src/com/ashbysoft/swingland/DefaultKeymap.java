@@ -35,9 +35,16 @@ public class DefaultKeymap implements Keymap {
     private List<Character> _PuncShift = List.of(
         '¬', '\t', '|', '_', '+', '{', '}', ':', '@', '~', '\r', '<', '>', '?', '\b', '/', '*', '-', '+', '\r', ' '
     );
+    private List<String> _PuncNames = List.of(
+        "`", "Tab", "\\", "-", "=", "[", "]", ";", "'", "#", "Enter", ",", ".", "/", "Bksp", "/", "*", "-", "+", "Enter", "Space"
+    );
     private List<Integer> _KPNums = List.of(
         KeyEvent.VK_KP0, KeyEvent.VK_KP1, KeyEvent.VK_KP2, KeyEvent.VK_KP3, KeyEvent.VK_KP4,
         KeyEvent.VK_KP5, KeyEvent.VK_KP6, KeyEvent.VK_KP7, KeyEvent.VK_KP8, KeyEvent.VK_KP9
+    );
+    private List<Integer> _FKeys = List.of(
+        KeyEvent.VK_F1, KeyEvent.VK_F2, KeyEvent.VK_F3, KeyEvent.VK_F4, KeyEvent.VK_F5, KeyEvent.VK_F6,
+        KeyEvent.VK_F7, KeyEvent.VK_F8, KeyEvent.VK_F9, KeyEvent.VK_F10, KeyEvent.VK_F11, KeyEvent.VK_F12
     );
     private int _keymods;
     public void modifiers(int depressed, int latched, int locked, int group) {
@@ -52,17 +59,18 @@ public class DefaultKeymap implements Keymap {
             ((_keymods & Keyboard.MOD_ALT) != 0 ? InputEvent.ALT_DOWN_MASK : 0) |
             ((_keymods & Keyboard.MOD_ALTGR) != 0 ? InputEvent.ALT_GRAPH_DOWN_MASK : 0);
     }
-    public char mapUnmodified(int keyCode) {
+    public String getKeyName(int keyCode) {
+        StringBuffer sb = new StringBuffer();
         int o = _AtoZ.indexOf(keyCode);
         if (o >= 0)
-            return (char)('A'+o);
-        o = _Nums.indexOf(keyCode);
-        if (o >= 0)
-            return (char)('0'+o);
-        o = _Punc.indexOf(keyCode);
-        if (o >= 0)
-            return _PuncTo.get(o);
-        return KeyEvent.CHAR_UNDEFINED;
+            sb.append((char)('A'+o));
+        else if ((o = _Nums.indexOf(keyCode)) >= 0)
+            sb.append((char)('0'+o));
+        else if ((o = _Punc.indexOf(keyCode)) >= 0)
+            sb.append(_PuncNames.get(o));
+        else if ((o = _FKeys.indexOf(keyCode)) >= 0)
+            sb.append('F').append(o+1);
+        return sb.toString();
     }
     public KeyEvent mapCode(int keyCode) {
         // A-Z can be affected by MOD_CTRL, MOD_SHIFT and MOD_CAPSLOCK

@@ -29,32 +29,26 @@ public class KeyStroke {
         if ((_mods & KeyEvent.ALT_DOWN_MASK) != 0) sb.append("Alt+");
         if ((_mods & KeyEvent.ALT_GRAPH_DOWN_MASK) != 0) sb.append("AltGr+");
         if (_code != KeyEvent.VK_UNDEFINED) {
-            char c = DefaultKeymap.instance().mapUnmodified(_code);
-            // fixups for control chars!
-            switch (c) {
-                case '\t' -> sb.append("Tab");
-                case '\r' -> sb.append("Enter");
-                case '\b' -> sb.append("Bksp");
-                case ' ' -> sb.append("Space");
-                default -> sb.append(c);
-            }
+            String s = DefaultKeymap.instance().getKeyName(_code);
+            sb.append(s.length() > 0 ? s : "Unknown");
         } else {
             sb.append(_char);
         }
         return sb.toString();
     }
     boolean match(KeyEvent k) {
-        _log.info("match("+k.toString()+")");
+        boolean rv = false;
         if (_code != KeyEvent.VK_UNDEFINED) {
             // we're checking a code
             if (k.getKeyCode() == _code && k.getModifiersEx() == _mods && k.getID() == (_onRel ? KeyEvent.KEY_RELEASED : KeyEvent.KEY_PRESSED))
-                return true;
+                rv = true;
         } else {
             // we're checking  a char
             if (k.getKeyChar() == _char && k.getModifiersEx() == _mods && k.getID() == KeyEvent.KEY_TYPED)
-                return true;
+                rv = true;
         }
-        return false;
+        if (rv) _log.info("match("+k.toString()+")="+rv);
+        return rv;
     }
     public static KeyStroke getKeyStroke(char c) {
         return new KeyStroke(c, KeyEvent.VK_UNDEFINED, 0, true);

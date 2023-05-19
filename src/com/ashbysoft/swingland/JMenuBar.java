@@ -58,22 +58,35 @@ public class JMenuBar extends JComponent {
     protected void processEvent(AbstractEvent e) {
         if (e instanceof KeyEvent) {
             KeyEvent k = (KeyEvent)e;
+            // two iterations, once for accelerators (higher precedence), then mnemonics
             for (int i = 0; i < getComponentCount(); i += 1) {
                 Component c = getComponent(i);
                 if (c instanceof JMenu) {
                     JMenu m = (JMenu)c;
                     if (checkAccelerators(k, m)) {
                         k.consume();
-                        break;
-                    } else if (k.getID() == KeyEvent.KEY_PRESSED && k.getModifiersEx() == KeyEvent.ALT_DOWN_MASK &&
-                        m.isEnabled() && m.getMnemonic() == k.getKeyCode()) {
+                        return;
+                    }
+                }
+            }
+            for (int i = 0; i < getComponentCount(); i += 1) {
+                Component c = getComponent(i);
+                if (c instanceof JMenu) {
+                    JMenu m = (JMenu)c;
+                    if (checkMnemonic(k, m)) {
                         k.consume();
                         m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
-                        break;
+                        return;
                     }
                 }
             }
         }
+    }
+    private boolean checkMnemonic(KeyEvent k, JMenu m) {
+        boolean rv = k.getID() == KeyEvent.KEY_PRESSED && k.getModifiersEx() == KeyEvent.ALT_DOWN_MASK &&
+        m.isEnabled() && m.getMnemonic() == k.getKeyCode();
+        if (rv) _log.info("checkMnemonic("+m.getMnemonic()+")="+rv);
+        return rv;
     }
     // recursive menu descent, comparing accelerators to key event
     private boolean checkAccelerators(KeyEvent k, JMenuItem m) {
