@@ -119,7 +119,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             return true;
         }
         public boolean xdgSurfaceConfigure(int serial) { return _xdgSurface.ackConfigure(serial); }
-        private void render() {
+        protected void render() {
             // new buffer required?
             int nextsize = _width * _height * 4;
             if (nextsize != _poolsize) {
@@ -142,10 +142,10 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         }
         protected int getPixel(int x, int y) { return 0xff000000; }
     }
-    private class Toplevel extends XdgCommon implements XdgToplevel.Listener {
+    private interface GetCursor { Cursor getCursor(int x, int y); }
+    private class Toplevel extends XdgCommon implements XdgToplevel.Listener, GetCursor {
         private Random _rand;
         private XdgToplevel _xdgToplevel;
-        protected Surface _cursorSurface;
         private Cursor _cursorOut;
         private Cursor _cursorIn;
         private final int _boxWidth  = 100;
@@ -162,9 +162,10 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _display.roundtrip();
             _cursorOut = new Cursor(0);
             _cursorIn = new Cursor(1);
-            done(0);
+            //done(0);
+            render();
         }
-        public boolean xdgToplevelConfigure(int w, int h, int[] states) { if (w>0 && h>0) { _width = w; _height = h; } return true; }
+        public boolean xdgToplevelConfigure(int w, int h, int[] states) { if (w>0 && h>0) { _width = w; _height = h; render(); } return true; }
         public boolean xdgToplevelClose() { return true; }
         public int destroy() {
             if (_buffer != null) _buffer.destroy();
@@ -193,14 +194,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             }
             return (_rand.nextInt() & 0x00ffffff) | 0xff000000;
         }
-        protected Surface getCursorSurface() {
-            if (null == _cursorSurface) {
-                _cursorSurface = new Surface(_display);
-                _compositor.createSurface(_cursorSurface);
-            }
-            return _cursorSurface;
-        }
-        protected Cursor getCursor(int x, int y) {
+        public Cursor getCursor(int x, int y) {
             // box boundary where cursor changes..
             int bxl = (_width-_boxWidth)/2;
             int bxr = (_width+_boxWidth)/2;
@@ -211,16 +205,48 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             return _cursorOut;
         }
     }
-
+    private class Sub implements GetCursor {
+        private final int _W = 200;
+        private final int _H = 100;
+        private Surface _surface;
+        private SubSurface _subSurface;
+        private Cursor _cursor;
+        private ShmPool _pool;
+        private Buffer _buffer;
+        public Sub() {
+            _cursor = new Cursor(1);
+            _surface = new Surface(_display);
+            _subSurface = new SubSurface(_display);
+            _compositor.createSurface(_surface);
+            _subCompositor.getSubSurface(_subSurface, _surface, _toplevel._surface);
+            _subSurface.setDesync();
+            _subSurface.setPosition(100, 100);
+            //_subSurface.placeAbove(_toplevel._surface);
+            int sz = _W * _H * 4;
+            _pool = _shm.createPool(sz);
+            _buffer = _pool.createBuffer(0, _W, _H, _W * 4, 0);
+            ByteBuffer b= _buffer.get();
+            for (int y = 0; y < _H; y += 1)
+                for (int x = 0; x < _W; x += 1)
+                    b.putInt(0xff000000|x);
+            _surface.attach(_buffer, 0, 0);
+            _surface.damageBuffer(0, 0, _W, _H);
+            _surface.commit();
+        }
+        public Cursor getCursor(int x, int y) { return _cursor; }
+    }
     private Display _display;
     private Registry _registry;
     private Compositor _compositor;
+    private SubCompositor _subCompositor;
     private XdgWmBase _xdgWmBase;
     private Shm _shm;
     private Seat _seat;
     private Pointer _pointer;
     private ArrayList<Output> _outputs = new ArrayList<>();
     private Toplevel _toplevel;
+    private Sub _sub;
+    private Surface _cursorSurface;
     private Cursor _lastCursor;
     public void run(String[] args) {
         int timeout = 2000;
@@ -239,6 +265,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _display.roundtrip();
         if (null == _compositor)
             throw new RuntimeException("oops: did not see a compositor!");
+            if (null == _subCompositor)
+            throw new RuntimeException("oops: did not see a subcompositor!");
         if (null == _shm)
             throw new RuntimeException("oops: did not see an shm");
         if (null == _xdgWmBase)
@@ -248,6 +276,8 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _display.roundtrip();
         _toplevel = new Toplevel();
         _display.roundtrip();
+        _sub = new Sub();
+        _display.roundtrip();
         if (_seat != null) {
             _pointer = new Pointer(_display);
             _pointer.addListener(this);
@@ -256,7 +286,11 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _display.roundtrip();
         long start = System.currentTimeMillis();
         long now = 0;
-        while (_display.dispatch() >= 0) {
+        int evts = 0;
+        _log.info("-- event loop");
+        while ((evts = _display.dispatch()) >= 0) {
+            if (evts > 0)
+                _log.info("-- events: "+evts);
             try { Thread.sleep(10); } catch (Exception e) {}
             now = System.currentTimeMillis();
             if (now > start+timeout)
@@ -276,6 +310,9 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         if (iface.equals("wl_compositor")) {
             _compositor = new Compositor(_display);
             _registry.bind(name, iface, version, _compositor);
+        } else if (iface.equals("wl_subcompositor")) {
+            _subCompositor = new SubCompositor(_display);
+            _registry.bind(name, iface, version, _subCompositor);
         } else if (iface.equals("wl_shm")) {
             _shm = new Shm(_display);
             _registry.bind(name, iface, version, _shm);
@@ -296,20 +333,26 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         return true;
     }
     public boolean ping(int serial) { return _xdgWmBase.pong(serial); }
+    private GetCursor _lastGC;
     public boolean pointerEnter(int serial, int surface, int x, int y) {
         _log.error("pointerEnter()");
-        _pointer.setCursor(serial, _toplevel.getCursorSurface(), 0, 0);
+        if (null == _cursorSurface) {
+            _cursorSurface = new Surface(_display);
+            _compositor.createSurface(_cursorSurface);
+        }
+        _pointer.setCursor(serial, _cursorSurface, 0, 0);
+        _lastGC = _toplevel._surface.getID() == surface ? _toplevel : _sub;
         return pointerMove(0, x, y);
     }
     public boolean pointerLeave(int serial, int surface) { return true; }
     public boolean pointerMove(int time, int x, int y) {
         x >>= 8;
         y >>= 8;
-        Cursor c = _toplevel.getCursor(x, y);
+        Cursor c = _lastGC.getCursor(x, y);
         if (c != _lastCursor) {
             _log.error("pointerMove("+x+","+y+"):new cursor");
             _lastCursor = c;
-            c.attach(_toplevel.getCursorSurface());
+            c.attach(_cursorSurface);
         }
         return true;
     }
