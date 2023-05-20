@@ -86,20 +86,14 @@ public class SwinglandFont extends Font implements FontMetrics {
             return cp;
         return -1;
     }
-    protected int renderGlyph(Graphics g, int gl, int x, int y) {
+    protected int renderGlyph(RenderContext c, int gl) {
         gl = gl < 0 ? _missing : gl;
         int o = gl * _glyphBytes;
         int p = 7;
-        Rectangle b = g.getBounds();
         for (int gy = 0; gy < _height; gy += 1) {
             for (int gx = 0; gx < _width; gx += 1) {
-                if ((_buffer[o] & (1 << p)) != 0) {
-                    // stay within bounds
-                    int rx = x+gx;
-                    int ry = y+gy-_height;
-                    if (rx >= 0 & rx < b._w && ry >= 0 && ry < b._h)
-                        g.setPixel(rx, ry);
-                }
+                if ((_buffer[o] & (1 << p)) != 0)
+                    c.setPixel(gx, gy - _height);
                 p -= 1;
                 if (p < 0) {
                     p = 7;

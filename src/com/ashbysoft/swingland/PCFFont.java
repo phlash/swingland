@@ -331,13 +331,13 @@ public class PCFFont extends Font implements FontMetrics {
         int l = cp & 0xff;
         return (h < _encoding.minb1 || h > _encoding.maxb1 || l < _encoding.minb2 || l > _encoding.maxb2) ? -1 : _encoding.map[h-_encoding.minb1][l-_encoding.minb2];
     }
-    protected int renderGlyph(Graphics g, int glyph, int x, int y) {
+    protected int renderGlyph(RenderContext ctx, int glyph) {
         _log.detail("render glyph:"+glyph+", left="+_metrics[glyph].lbearing+", right="+_metrics[glyph].rbearing+", width="+_metrics[glyph].width+
             ", ascent="+_metrics[glyph].ascent+", descent="+_metrics[glyph].descent);
             glyph = glyph < 0 ? missingGlyph() : glyph;
-        // adjust starting point from origin to top left of bounding box
-        x += _metrics[glyph].lbearing;
-        y -= _metrics[glyph].ascent;
+        // set starting point from origin to top left of bounding box
+        int x = _metrics[glyph].lbearing;
+        int y = -_metrics[glyph].ascent;
         // calculate glyph pixel size
         int gw = _metrics[glyph].width;
         int gh = _metrics[glyph].ascent + _metrics[glyph].descent;
@@ -355,7 +355,7 @@ public class PCFFont extends Font implements FontMetrics {
                 int bo = _bitmaps[glyph].lsbit ? 7 - (c % 8) : c % 8;
                 byte b = _rawbits[o + eo + eb];
                 if (((b >> bo) & 1) > 0)
-                    g.setPixel(x + c, y + r);
+                    ctx.setPixel(x + c, y + r);
             }
         }
         return gw;

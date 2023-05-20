@@ -41,7 +41,7 @@
             "stopOnEntry": true,
             "vmArgs": "-Djava.library.path=bin",
             "mainClass": "com.ashbysoft.test.PCFTest",
-            "args": "X11/misc/jiskan24.pcf.gz"
+            "args": "X11/misc/10x20.pcf.gz"
         }
 
     ]

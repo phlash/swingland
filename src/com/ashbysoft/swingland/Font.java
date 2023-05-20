@@ -1,6 +1,8 @@
 package com.ashbysoft.swingland;
 
 import com.ashbysoft.logger.Logger;
+import com.ashbysoft.swingland.geom.AffineTransform;
+
 import java.util.HashMap;
 
 public abstract class Font {
@@ -11,8 +13,31 @@ public abstract class Font {
     protected final Logger _log = new Logger("["+getClass().getSimpleName()+"]:");
     protected final String _name;
 
+    protected class RenderContext {
+        public final Graphics _g;
+        private final AffineTransform _t;
+        public final int _x, _y;
+        public int _a;
+        public RenderContext(Graphics g, AffineTransform t, int x, int y) { _g = g; _t = t; _x = x; _y = y; _a = 0; }
+        public void setPixel(int x, int y) {
+            // add accumulated advance width
+            double[] tp = { (double)(x + _a), (double)y };
+            // apply transform (if any)
+            if (_t != null)
+                tp = _t.transform(tp[0], tp[1]);
+            // offset to origin
+            int px = (int)tp[0] + _x;
+            int py = (int)tp[1] + _y;
+            // stay within graphics bounds
+            Rectangle r = _g.getBounds();
+            if (px >= 0 && px < r._w && py >= 0 && py < r._h)
+                _g.setPixel(px, py);
+        }
+    }
+
     protected Font(String name) { _name = name; }
     public String getFontName() { return _name; }
+    public AffineTransform getTransform() { return null; }
     public int getMissingGlyphCode() {
         if (!ensureLoaded())
             return -1;
@@ -32,17 +57,18 @@ public abstract class Font {
     void renderString(Graphics g, String s, int x, int y) {
         if (!ensureLoaded())
             return;
-        int cx = 0;
+        RenderContext ctx = new RenderContext(g, getTransform(), x, y);
         for (int i = 0; i < s.length(); i += 1) {
             int gl = mapCodePoint(s.codePointAt(i));
             if (gl < 0) gl = missingGlyph();
-            cx += renderGlyph(g, gl, x+cx, y);
+            ctx._a += renderGlyph(ctx, gl);
         }
     }
     void renderCodePoint(Graphics g, int cp, int x, int y) {
         if (!ensureLoaded())
             return;
-        renderGlyph(g, mapCodePoint(cp), x, y);
+        RenderContext ctx = new RenderContext(g, getTransform(), x, y);
+        renderGlyph(ctx, mapCodePoint(cp));
     }
 
     // FontMetrics API
@@ -58,7 +84,7 @@ public abstract class Font {
     // Implementation methods
     protected abstract int missingGlyph();                                  // glyph id to render if mapping does not exist
     protected abstract int mapCodePoint(int cp);                            // return glyph id, or -1 if not mappable
-    protected abstract int renderGlyph(Graphics g, int gl, int x, int y);   // (x,y) => origin point on baseline, returns x advance to next origin
+    protected abstract int renderGlyph(RenderContext ctx, int gl);          // returns advance width to next origin
     protected abstract FontMetrics metrics();                               // return metrics for implementation (can be same instance)
 
     // Factory method
@@ -76,5 +102,29 @@ public abstract class Font {
             return new PCFFont(name);
         else
             return new SwinglandFont(name);
+    }
+    public Font deriveFont(AffineTransform transform) {
+        String derivedName = getFontName()+"-"+transform.toString();
+        synchronized (_fontCache) {
+            if (!_fontCache.containsKey(derivedName)) {
+                _fontCache.put(derivedName, new DerivedFont(this, transform));
+            }
+            return _fontCache.get(derivedName);
+        }
+    }
+    static class DerivedFont extends Font {
+        private Font _base;
+        private AffineTransform _transform;
+        private DerivedFont(Font base, AffineTransform transform) {
+            super(base.getFontName());
+            _base = base;
+            _transform = transform;
+        }
+        public AffineTransform getTransform() { return _transform; }
+        protected boolean ensureLoaded() { return _base.ensureLoaded(); }
+        protected int missingGlyph() { return _base.missingGlyph(); }
+        protected int mapCodePoint(int cp) { return _base.mapCodePoint(cp); }
+        protected int renderGlyph(RenderContext ctx, int gl) { return _base.renderGlyph(ctx, gl); }
+        protected FontMetrics metrics() { return _base.metrics(); }
     }
 }
