@@ -16,7 +16,7 @@ public class KeyEvent extends InputEvent {
     public static final int VK_9 = 10;
     public static final int VK_0 = 11;
     public static final int VK_MINUS = 12;
-    public static final int VK_EQUAL = 13;
+    public static final int VK_EQUALS = 13;
     public static final int VK_BACKSPACE = 14;
     public static final int VK_TAB = 15;
     public static final int VK_Q = 16;

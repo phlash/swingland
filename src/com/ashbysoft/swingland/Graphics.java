@@ -17,6 +17,7 @@ package com.ashbysoft.swingland;
 import com.ashbysoft.logger.Logger;
 import com.ashbysoft.swingland.image.ColorModel;
 import com.ashbysoft.swingland.image.ImageConsumer;
+import com.ashbysoft.swingland.image.ImageObserver;
 
 import java.nio.ByteBuffer;
 
@@ -269,6 +270,7 @@ public class Graphics implements ImageConsumer {
     }
     private int _imageX;
     private int _imageY;
+    public void drawImage(Image img, int x, int y, ImageObserver o) { drawImage(img, x, y); }
     public void drawImage(Image img, int x, int y) {
         _log.info("drawImage:("+img.getWidth(null)+"x"+img.getHeight(null)+"@"+x+","+y+")");
         _imageX = x;

@@ -23,7 +23,7 @@ public class DefaultKeymap implements Keymap {
         ')', '!', '"', '£', '$', '%', '^', '&', '*', '('
     );
     private List<Integer> _Punc = List.of(
-        KeyEvent.VK_GRAVE, KeyEvent.VK_TAB, KeyEvent.VK_102ND, KeyEvent.VK_MINUS, KeyEvent.VK_EQUAL,
+        KeyEvent.VK_GRAVE, KeyEvent.VK_TAB, KeyEvent.VK_102ND, KeyEvent.VK_MINUS, KeyEvent.VK_EQUALS,
         KeyEvent.VK_LEFTBRACE, KeyEvent.VK_RIGHTBRACE, KeyEvent.VK_SEMICOLON, KeyEvent.VK_APOSTROPHE,
         KeyEvent.VK_BACKSLASH, KeyEvent.VK_ENTER, KeyEvent.VK_COMMA, KeyEvent.VK_DOT, KeyEvent.VK_SLASH,
         KeyEvent.VK_BACKSPACE, KeyEvent.VK_KPSLASH, KeyEvent.VK_KPASTERISK, KeyEvent.VK_KPMINUS,
