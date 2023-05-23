@@ -5,9 +5,12 @@ package com.ashbysoft.swingland;
 public class JMenuItem extends JButton {
     private KeyStroke _accelerator;
     public JMenuItem() { this(""); }
-    public JMenuItem(String text) {
+    public JMenuItem(String text) { this(text, -1); }
+    public JMenuItem(String text, int mnemonic) {
         super(text);
         _log.info("<init>("+text+")");
+        if (mnemonic >= 0)
+            setMnemonic(mnemonic);
         _accelerator = null;
     }
     public KeyStroke getAccelerator() { return _accelerator; }
