@@ -60,6 +60,8 @@ public class Container extends Component {
     }
     public void remove(int i) {
         _log.info("Container:remove("+i+")");
+        if ( i < 0 || i >= _components.size())
+            return;
         // remove from component list
         Component c = _components.remove(i);
         // notify layout manager
@@ -184,6 +186,7 @@ public class Container extends Component {
             c.validate();
         }
     }
+    protected boolean isValidateRoot() { return false; }
 
     public void dispatchEvent(AbstractEvent e) {
         _log.info("Container:dispatchEvent("+e.toString()+")");

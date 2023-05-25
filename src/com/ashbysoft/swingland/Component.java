@@ -208,10 +208,10 @@ public abstract class Component {
         // ignore if already invalid
         if (!_valid)
             return;
-        // if we are part of a component tree, invalidate upwards
+        // if we are part of a component tree, invalidate upwards (unless our parent is a root)
         _log.info("Component:invalidate()");
-        Component p = getParent();
-        if (p!=null)
+        Container p = getParent();
+        if (p!=null && !p.isValidateRoot())
             p.invalidate();
         // mark ourselves as invalid
         _valid = false;

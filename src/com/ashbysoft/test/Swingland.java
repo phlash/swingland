@@ -183,11 +183,15 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			JButton button = new JButton("Press me!");
 			button.setActionCommand("dialog");
 			button.addActionListener(this);
-			_dialog.add(button, BorderLayout.CENTER);
-			_dialog.getContentPane().setFocus(button);
 			JButton nope = new JButton("Not me..");
 			nope.setEnabled(false);
-			_dialog.add(nope, BorderLayout.EAST);
+			JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, false, button, nope);
+			split.setBorder(new ColorBorder(2, 2, 2, 2, Color.PINK));
+			split.setForeground(Color.RED);
+			split.setResizeWeight(0.5);
+			split.setFocus(button);
+			_dialog.add(split, BorderLayout.CENTER);
+			_dialog.getContentPane().setFocus(split);
 			JLabel dead = new JLabel("Disabled label");
 			dead.setEnabled(false);
 			_dialog.add(dead, BorderLayout.SOUTH);
