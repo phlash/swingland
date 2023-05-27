@@ -89,6 +89,7 @@ public class JSplitPane extends JComponent {
     }
     public double getResizeWeight() { return _resizeWeight; }
     public void setResizeWeight(double w) { _resizeWeight = w; invalidate(); }
+    public Dimension getPreferredSize() { return getMinimumSize(); }
     public Dimension getMinimumSize() {
         // base our minimum size on components, plus insets/border and divider
         Dimension ld = _left.getMinimumSize();
@@ -142,7 +143,6 @@ public class JSplitPane extends JComponent {
                     setCursor(_drag);
                     drawCursor(this);
                     _offset = p - _divpos;
-                    _log.error("drag start: o="+_offset);
                     e.consume();
                     return;
                 } else if (m.getID() == MouseEvent.MOUSE_MOVE || m.getID() == MouseEvent.MOUSE_BUTTON) {
@@ -150,7 +150,6 @@ public class JSplitPane extends JComponent {
                     setCursor(_hover);
                     drawCursor(this);
                     _offset = -1;
-                    _log.error("drag stop (div):");
                     e.consume();
                     return;
                 }

@@ -14,10 +14,7 @@
             "stopOnEntry": true,
             "vmArgs": "-Djava.library.path=bin",
             "mainClass": "com.ashbysoft.test.Test",
-            "args": [ "swingland" ],
-            "env": {
-                "SWINGLAND_SUBSURFACES": "True"
-            }
+            "args": [ "swingland" ]
         },
         {
             "type": "java",

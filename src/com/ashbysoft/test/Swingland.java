@@ -192,10 +192,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			split.setFocus(button);
 			_dialog.add(split, BorderLayout.CENTER);
 			_dialog.getContentPane().setFocus(split);
-			JLabel dead = new JLabel("Disabled label");
-			dead.setEnabled(false);
-			_dialog.add(dead, BorderLayout.SOUTH);
-			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 200);
+			JTabbedPane tab = new JTabbedPane();
+			tab.addTab("Woot!", new JLabel("woot tab"));
+			tab.addTab("Yeah", new JLabel("baby!"));
+			tab.addTab("Neat", new JLabel("stuff"));
+			_dialog.add(tab, BorderLayout.SOUTH);
+			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 300);
 			//_dialog.pack();
 			_dialog.setVisible(true);
 		}
