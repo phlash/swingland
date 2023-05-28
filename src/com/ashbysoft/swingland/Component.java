@@ -128,6 +128,7 @@ public abstract class Component {
     public void setFont(Font f) {
         _log.info("Component:setFont("+f+")");
         _font = f;
+        invalidate();
     }
     public void setCursor(Cursor c) {
         _log.info("Component:setCursor("+c+")");

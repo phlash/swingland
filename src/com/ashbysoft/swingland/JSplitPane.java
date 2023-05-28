@@ -134,41 +134,41 @@ public class JSplitPane extends JComponent {
     // mouse interaction
     protected void processEvent(AbstractEvent e) {
         super.processEvent(e);
-        if (!e.isConsumed() && e instanceof MouseEvent) {
-            MouseEvent m = (MouseEvent)e;
-            int p = HORIZONTAL_SPLIT == _orientation ? m.getX() : m.getY();
-            if (p >= _divpos && p < _divpos + _divsize) {
-                // within the divider bar
-                if (m.getID() == MouseEvent.MOUSE_BUTTON && m.getState() == MouseEvent.BUTTON_PRESSED) {
-                    // button down, set drag cursor, save offset
-                    setCursor(_drag);
-                    drawCursor(this);
-                    _offset = p - _divpos;
-                    e.consume();
-                    return;
-                } else if (m.getID() == MouseEvent.MOUSE_MOVE || m.getID() == MouseEvent.MOUSE_BUTTON) {
-                    // move or button change (thus not dragging), set hover cursor, clear drag offset
-                    setCursor(_hover);
-                    drawCursor(this);
-                    _offset = -1;
-                    e.consume();
-                    return;
-                }
-            } else if (_offset < 0) {
-                // outside divider bar, not dragging, restore cursor
-                setCursor(null);
+        if (e.isConsumed() || !(e instanceof MouseEvent))
+            return;
+        MouseEvent m = (MouseEvent)e;
+        int p = HORIZONTAL_SPLIT == _orientation ? m.getX() : m.getY();
+        if (p >= _divpos && p < _divpos + _divsize) {
+            // within the divider bar
+            if (m.getID() == MouseEvent.MOUSE_BUTTON && m.getState() == MouseEvent.BUTTON_PRESSED) {
+                // button down, set drag cursor, save offset
+                setCursor(_drag);
                 drawCursor(this);
-            }
-            if (m.getID() == MouseEvent.MOUSE_DRAGGED && _offset >= 0) {
-                // dragging, track mouse with divider within limits
-                setDividerLocation(p + _offset);
+                _offset = p - _divpos;
                 e.consume();
+                return;
             } else if (m.getID() == MouseEvent.MOUSE_MOVE || m.getID() == MouseEvent.MOUSE_BUTTON) {
-                // move or button (thus not dragging), reset cursor and clear drag offset
-                setCursor(null);
+                // move or button change (thus not dragging), set hover cursor, clear drag offset
+                setCursor(_hover);
                 drawCursor(this);
                 _offset = -1;
+                e.consume();
+                return;
             }
+        } else if (_offset < 0) {
+            // outside divider bar, not dragging, restore cursor
+            setCursor(null);
+            drawCursor(this);
+        }
+        if (m.getID() == MouseEvent.MOUSE_DRAGGED && _offset >= 0) {
+            // dragging, track mouse with divider within limits
+            setDividerLocation(p + _offset);
+            e.consume();
+        } else if (m.getID() == MouseEvent.MOUSE_MOVE || m.getID() == MouseEvent.MOUSE_BUTTON) {
+            // move or button (thus not dragging), reset cursor and clear drag offset
+            setCursor(null);
+            drawCursor(this);
+            _offset = -1;
         }
     }
     // paint the divider..

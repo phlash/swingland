@@ -16,6 +16,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	private Timer _timer;
 	private int _place;
 	private int[] _places = { SwingConstants.TOP, SwingConstants.LEFT, SwingConstants.BOTTOM, SwingConstants.RIGHT };
+	private boolean _paused;
 	private Border _border;
 	private Image _testcard;
 	private Image _duke;
@@ -155,7 +156,11 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 					setBorder(null);
 				else
 					setBorder(_border);
-			} else if (k.getKeyCode() == KeyEvent.VK_U) {
+				} else if (k.getKeyCode() == KeyEvent.VK_SPACE) {
+					_log.info("[un]pause");
+					k.consume();
+					_paused = !_paused;
+				} else if (k.getKeyCode() == KeyEvent.VK_U) {
 				k.consume();
 				if (getGraphicsConfiguration().getDevice().getFullScreenWindow() != null)
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);
@@ -229,8 +234,17 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		_tabbed.addWindowListener(this);
 		JTabbedPane tab = new JTabbedPane();
 		tab.addTab("Woot!", new JLabel("woot tab"));
+		tab.getComponentAt(0).setBackground(Color.CYAN);
+		tab.setBackgroundAt(0, Color.CYAN);
+		tab.setForegroundAt(0, Color.RED);
 		tab.addTab("Yeah", new JLabel("baby!"));
+		tab.getComponentAt(1).setBackground(Color.MAGENTA);
+		tab.setBackgroundAt(1, Color.MAGENTA);
+		tab.setForegroundAt(1, Color.GREEN);
 		tab.addTab("Neat", new JLabel("stuff"));
+		tab.getComponentAt(2).setBackground(Color.YELLOW);
+		tab.setBackgroundAt(2, Color.YELLOW);
+		tab.setForegroundAt(2, Color.BLUE);
 		_tabbed.add(tab);
 		_tabbed.setBounds(getWidth()/3-100, getHeight()/3-100, 300, 300);
 		_tabbed.setVisible(true);
@@ -270,7 +284,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 				toggleTabbedDialog();
 				break;
 			case "timer":
-				if (_tabbed != null) {
+				if (_tabbed != null && !_paused) {
 					_place = (_place + 1) % _places.length;
 					((JTabbedPane)_tabbed.getContentPane().getComponent(0)).setTabPlacement(_places[_place]);
 					_log.error("tabPlacement:"+_places[_place]);

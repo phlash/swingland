@@ -2,6 +2,8 @@ package com.ashbysoft.swingland;
 
 import java.util.LinkedList;
 
+import com.ashbysoft.swingland.event.AbstractEvent;
+import com.ashbysoft.swingland.event.MouseEvent;
 import com.ashbysoft.swingland.geom.AffineTransform;
 
 public class JTabbedPane extends JComponent implements SwingConstants {
@@ -23,6 +25,7 @@ public class JTabbedPane extends JComponent implements SwingConstants {
     private int _tabPlace;
     private int _tabLayout;
     private LinkedList<Tab> _tabs;
+    private LinkedList<Rectangle> _bounds;
     private Font _cachedFont;
 
     public JTabbedPane() { this(SwingConstants.TOP); }
@@ -34,6 +37,7 @@ public class JTabbedPane extends JComponent implements SwingConstants {
         _tabLayout = tabLayout;
         _tabs = new LinkedList<>();
         _selected = -1;
+        _bounds = new LinkedList<>();
         _cachedFont = null;
     }
     // override add implementation, divert to insertTab()
@@ -102,6 +106,16 @@ public class JTabbedPane extends JComponent implements SwingConstants {
                 return i;
         return -1;
     }
+    public int indexAtLocation(int x, int y) {
+        if (!isValid())
+            return -1;
+        for (int i = 0; i < getTabCount(); i += 1) {
+            Rectangle tb = _bounds.get(i);
+            if (x >= tb._x && x < tb._x+tb._w && y >= tb._y && y < tb._y+tb._h)
+                return i;
+        }
+        return -1;
+    }
     public Component getSelectedComponent() { return _selected < 0 ? null : getComponentAt(_selected); }
     public void setSelectedComponent(Component c) { setSelectedIndex(indexOfComponent(c)); }
     public int getSelectedIndex() { return _selected; }
@@ -161,98 +175,121 @@ public class JTabbedPane extends JComponent implements SwingConstants {
     }
     // override normal layout manager interaction
     protected void validateTree() {
-        // iterate all tabs, ensure selected component is visible, others not
-        for (int i = 0; i < getTabCount(); i += 1)
+        // no tabs? nothing to do
+        if (getTabCount() == 0)
+            return;
+        // cache font, possibly rotated
+        boolean rot = SwingConstants.LEFT == getTabPlacement() || SwingConstants.RIGHT == getTabPlacement();
+        if (rot) {
+            AffineTransform tr = new AffineTransform();
+            tr.rotate(-0.5 * Math.PI);
+            _cachedFont = getFont().deriveFont(tr);
+        } else {
+            _cachedFont = getFont();
+        }
+        // iterate all tabs, ensure selected component is visible, others not. Calculate tab bounds
+        Insets ins = getInsets();
+        FontMetrics fm = _cachedFont.getFontMetrics();
+        int fh = fm.getHeight();
+        int tp = 0;
+        int th = fm.getHeight() + 2 * PAD;
+        _bounds.clear();
+        for (int i = 0; i < getTabCount(); i += 1) {
             getComponentAt(i).setVisible(getSelectedIndex() == i);
+            Tab t = _tabs.get(i);
+            int tl = t._title != null ? fm.stringWidth(t._title) : 0;
+            tl += t._icon != null ? rot ? t._icon.getIconHeight() : t._icon.getIconWidth() : 0;
+            tl += 2 * PAD;
+            Rectangle tb = switch (getTabPlacement()) {
+                case SwingConstants.TOP -> new Rectangle(tp + ins._l, ins._t, tl, th);
+                case SwingConstants.BOTTOM -> new Rectangle(tp + ins._l, getHeight() - ins._b - th, tl, th);
+                case SwingConstants.LEFT -> new Rectangle(ins._l, getHeight() - ins._b - tp - tl, th, tl);
+                case SwingConstants.RIGHT -> new Rectangle(getWidth() - ins._r - th, getHeight() - ins._b - tp - tl, th, tl);
+                default -> null;
+            };
+            _bounds.add(tb);
+            tp += tl;
+        }
         // size selected component & validate (if any)
         Component s = getSelectedComponent();
-        if (s != null) {
-            Insets ins = getInsets();
-            int fh = getFont().getFontMetrics().getHeight();
-            switch (getTabPlacement()) {
-                case SwingConstants.TOP -> s.setBounds(ins._l, ins._t + fh + 2 * PAD, getWidth() - ins._l - ins._r, getHeight() - fh - 2 * PAD - ins._t - ins._b);
-                case SwingConstants.BOTTOM -> s.setBounds(ins._l, ins._t, getWidth() - ins._l - ins._r, getHeight() - fh - 2 * PAD - ins._t - ins._b);
-                case SwingConstants.LEFT -> s.setBounds(ins._l + fh + 2 * PAD, ins._t, getWidth() - fh - 2 * PAD - ins._l - ins._r, getHeight() - ins._t - ins._b);
-                case SwingConstants.RIGHT -> s.setBounds(ins._l, ins._t, getWidth() - fh - 2 * PAD - ins._l - ins._r, getHeight() - ins._t - ins._b);
-                default -> throw new IllegalArgumentException("tab placement invalid: "+getTabPlacement());
-            }
-            _log.error("validated:tabPlacement:"+getTabPlacement());
-            s.validate();
+        switch (getTabPlacement()) {
+            case SwingConstants.TOP -> s.setBounds(ins._l, ins._t + fh + 2 * PAD, getWidth() - ins._l - ins._r, getHeight() - fh - 2 * PAD - ins._t - ins._b);
+            case SwingConstants.BOTTOM -> s.setBounds(ins._l, ins._t, getWidth() - ins._l - ins._r, getHeight() - fh - 2 * PAD - ins._t - ins._b);
+            case SwingConstants.LEFT -> s.setBounds(ins._l + fh + 2 * PAD, ins._t, getWidth() - fh - 2 * PAD - ins._l - ins._r, getHeight() - ins._t - ins._b);
+            case SwingConstants.RIGHT -> s.setBounds(ins._l, ins._t, getWidth() - fh - 2 * PAD - ins._l - ins._r, getHeight() - ins._t - ins._b);
         }
-        // drop our cached font (if any)
-        _cachedFont = null;
+        s.validate();
+    }
+    // input handling
+    protected void processEvent(AbstractEvent e) {
+        super.processEvent(e);
+        if (e.isConsumed() || !(e instanceof MouseEvent))
+            return;
+        MouseEvent m = (MouseEvent)e;
+        if (m.getID() != MouseEvent.MOUSE_BUTTON || m.getState() != MouseEvent.BUTTON_PRESSED)
+            return;
+        int i = indexAtLocation(m.getX(), m.getY());
+        if (i < 0)
+            return;
+        // ok, we have a button press on a tab, adjust selection
+        m.consume();
+        if (i != getSelectedIndex())
+            setSelectedIndex(i);
     }
     // paint the tabs
     protected void paintComponent(Graphics g) {
         _log.error("JTabbedPane:paintComponent()");
         super.paintComponent(g);
         // bail early if nothing to draw
-        if (getSelectedIndex() < 0)
+        if (getTabCount() == 0)
             return;
-        // cache font, possibly rotated
-        boolean rot = SwingConstants.LEFT == getTabPlacement() || SwingConstants.RIGHT == getTabPlacement();
-        if (null == _cachedFont) {
-            if (rot) {
-                AffineTransform tr = new AffineTransform();
-                tr.rotate(-0.5 * Math.PI);
-                _cachedFont = getFont().deriveFont(tr);
-            } else {
-                _cachedFont = getFont();
-            }
-        }
         // draw separator line to component
+        boolean rot = SwingConstants.LEFT == getTabPlacement() || SwingConstants.RIGHT == getTabPlacement();
+        boolean istl = SwingConstants.TOP == getTabPlacement() || SwingConstants.LEFT == getTabPlacement();
         g.setColor(getForeground());
         Insets ins = getInsets();
         Rectangle cb = getSelectedComponent().getBounds();
         if (rot)
-            g.fillRect(SwingConstants.LEFT == getTabPlacement() ? cb._x - 1 : cb._x + cb._w + 1, ins._t, 1, getHeight() - ins._t - ins._b);
+            g.fillRect(istl ? cb._x - 1 : cb._x + cb._w, ins._t, 1, getHeight() - ins._t - ins._b);
         else
-            g.fillRect(ins._l, SwingConstants.TOP == getTabPlacement() ? cb._y - 1 : cb._y + cb._h + 1, getWidth() - ins._l - ins._r, 1);
+            g.fillRect(ins._l, istl ? cb._y - 1 : cb._y + cb._h, getWidth() - ins._l - ins._r, 1);
         // draw tabs
         Font old = g.getFont();
         g.setFont(_cachedFont);
-        FontMetrics fm = _cachedFont.getFontMetrics();
-        int p = 0;
-        int th = fm.getHeight() + 2 * PAD;
-        for (var t : _tabs) {
-            int tl = t._title != null ? fm.stringWidth(t._title) : 0;
-            tl += t._icon != null ? rot ? t._icon.getIconHeight() : t._icon.getIconWidth() : 0;
-            tl += 2 * PAD;
-            switch (getTabPlacement()) {
-                case SwingConstants.TOP -> p += paintHTab(g, t, p + ins._l, ins._t, tl, th, true);
-                case SwingConstants.BOTTOM -> p += paintHTab(g, t, p + ins._l, getHeight() - ins._b - th, tl, th, false);
-                case SwingConstants.LEFT -> p += paintVTab(g, t, ins._l, getHeight() - ins._b - p, th, tl, true);
-                case SwingConstants.RIGHT -> p += paintVTab(g, t, getWidth() - ins._r - th, getHeight() - ins._b - p, th, tl, false);
-                default -> {}
-            }
+        for (int i = 0; i < getTabCount(); i += 1) {
+            Rectangle tb = _bounds.get(i);
+            if (rot)
+                paintVTab(g, _tabs.get(i), tb._x, tb._y, tb._w, tb._h, istl);
+            else
+                paintHTab(g, _tabs.get(i), tb._x, tb._y, tb._w, tb._h, istl);
         }
         g.setFont(old);
     }
-    private int paintHTab(Graphics g, Tab t, int x, int y, int w, int h, boolean l) {
+    private int paintHTab(Graphics g, Tab t, int x, int y, int w, int h, boolean ist) {
         g.setColor(t._bg != null ? t._bg : getBackground());
         g.fillRect(x, y, w, h);
         g.setColor(getForeground());
         g.drawRect(x, y, w-1, h-1);
         g.setColor(t._fg != null ? t._fg : getForeground());
         g.drawString(t._title, x + PAD, y + h - PAD);
-        // selected tab - erase boundary with content
+        // selected tab - erase boundary to content
         if (t._comp.isVisible()) {
             g.setColor(t._bg != null ? t._bg : getBackground());
-            g.fillRect(x+1, l ? y+h-1 : y, w-2, 1);
+            g.fillRect(x+1, ist ? y+h-1 : y, w-2, 1);
         }
         return w;
     }
-    private int paintVTab(Graphics g, Tab t, int x, int y, int w, int h, boolean l) {
+    private int paintVTab(Graphics g, Tab t, int x, int y, int w, int h, boolean isl) {
         g.setColor(t._bg != null ? t._bg : getBackground());
-        g.fillRect(x, y-h, w, h);
+        g.fillRect(x, y, w, h);
         g.setColor(getForeground());
-        g.drawRect(x, y-h, w-1, h-1);
+        g.drawRect(x, y, w-1, h-1);
         g.setColor(t._fg != null ? t._fg : getForeground());
-        g.drawString(t._title, x + w - PAD, y - PAD);
-        // selected tab - erase boundary with content
+        g.drawString(t._title, x + w - PAD, y + h - PAD - 1);
+        // selected tab - erase boundary to content
         if (t._comp.isVisible()) {
             g.setColor(t._bg != null ? t._bg : getBackground());
-            g.fillRect(l ? x+w-1 : x, y-1, h-2, 1);
+            g.fillRect(isl ? x+w-1 : x, y+1, 1, h-2);
         }
         return h;
     }
