@@ -47,7 +47,6 @@ public abstract class Component {
     void setParent(Container p) {
         _log.info("Component:setParent("+(p!=null?p.getName():"null")+")");
         _parent = p;
-        invalidate();
     }
     // are we enabled (will process input events / generate action events, often 'greys out' when disabled)
     public boolean isEnabled() { return _enabled; }
@@ -223,6 +222,10 @@ public abstract class Component {
             _valid = true;
         }
     }
+    protected void refresh() {
+        invalidate();
+        repaint();
+    }
     public void addKeyListener(KeyListener l) {
         _log.info("Component:addKeyListener("+l.getClass().getSimpleName()+")");
         if (!_keyListeners.contains(l))
@@ -359,6 +362,9 @@ public abstract class Component {
 
     // Request a repaint later
     public void repaint() {
+        // only if showing
+        if (!isShowing())
+            return;
         _log.info("Component:repaint()");
         // delegate to container by default
         Container p = getParent();

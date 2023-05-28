@@ -36,29 +36,21 @@ public class JButton extends JComponent implements SwingConstants {
     public void addActionListener(ActionListener l) { addEventListener(l); }
     public void removeActionListener(ActionListener l) { removeEventListener(l); }
     public String getText() { return _text; }
-    public void setText(String text) {
-        _text = text;
-        invalidate();
-    }
+    public void setText(String text) { _text = text; refresh(); }
     public Icon getIcon() { return _icon; }
-    public void setIcon(Icon icon) {
-        _icon = icon;
-        invalidate();
-    }
+    public void setIcon(Icon icon) { _icon = icon; refresh(); }
     public String getActionCommand() { return _command; }
-    public void setActionCommand(String command) {
-        _command = command;
-    }
+    public void setActionCommand(String command) { _command = command; }
     public int getMnemonic() { return _mnemonic; }
-    public void setMnemonic(int m) { _mnemonic = m; }
+    public void setMnemonic(int m) { _mnemonic = m; refresh(); }
     public int getHorizontalAlignment() { return _hAlign; }
-    public void setHorizontalAlignment(int a) { _hAlign = a; }
+    public void setHorizontalAlignment(int a) { _hAlign = a; refresh(); }
     public int getHorizontalTextPosition() { return _hTextPos; }
-    public void setHorizontalTextPosition(int p) { _hTextPos = p; }
+    public void setHorizontalTextPosition(int p) { _hTextPos = p; refresh(); }
     public int getVerticalAlignment() { return _vAlign; }
-    public void setVerticalAlignment(int a) { _vAlign = a; }
+    public void setVerticalAlignment(int a) { _vAlign = a; refresh(); }
     public int getVerticalTextPosition() { return _vTextPos; }
-    public void setVerticalTextPosition(int p) { _vTextPos = p; }
+    public void setVerticalTextPosition(int p) { _vTextPos = p; refresh(); }
     // prevent use as a container.. for now
     protected void addImpl(Component c, Object s, int i) {
         throw new IllegalArgumentException("cannot add components to JButton");

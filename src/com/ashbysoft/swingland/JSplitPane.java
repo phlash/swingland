@@ -79,16 +79,17 @@ public class JSplitPane extends JComponent {
             return;
         if (p >= _minpos && p <= _maxpos) {
             _divpos = p;
+            layoutSplit();
             repaint();
         }
     }
     public int getDividerSize() { return _divsize; }
     public void setDividerSize(int s) {
         _divsize = s;
-        invalidate();
+        refresh();
     }
     public double getResizeWeight() { return _resizeWeight; }
-    public void setResizeWeight(double w) { _resizeWeight = w; invalidate(); }
+    public void setResizeWeight(double w) { _resizeWeight = w; refresh(); }
     public Dimension getPreferredSize() { return getMinimumSize(); }
     public Dimension getMinimumSize() {
         // base our minimum size on components, plus insets/border and divider
@@ -113,7 +114,7 @@ public class JSplitPane extends JComponent {
         _right.validate();
     }
     // override standard layout manager interaction
-    protected boolean isValidateRoot() { return true; }
+    public boolean isValidateRoot() { return true; }
     protected void validateTree() {
         // layout our components, honour their minimum size, leaving room for the insets/border and divider
         // NB: we are only called when invalid, thus a user set divider position does not apply..
@@ -161,8 +162,6 @@ public class JSplitPane extends JComponent {
             if (m.getID() == MouseEvent.MOUSE_DRAGGED && _offset >= 0) {
                 // dragging, track mouse with divider within limits
                 setDividerLocation(p + _offset);
-                layoutSplit();
-                repaint();
                 e.consume();
             } else if (m.getID() == MouseEvent.MOUSE_MOVE || m.getID() == MouseEvent.MOUSE_BUTTON) {
                 // move or button (thus not dragging), reset cursor and clear drag offset

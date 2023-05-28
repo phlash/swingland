@@ -14,7 +14,7 @@ public class JMenuItem extends JButton {
         _accelerator = null;
     }
     public KeyStroke getAccelerator() { return _accelerator; }
-    public void setAccelerator(KeyStroke a) { _accelerator = a; }
+    public void setAccelerator(KeyStroke a) { _accelerator = a; refresh(); }
     public String getText() {
         if (_accelerator != null)
             return super.getText() + getAcceleratorText();

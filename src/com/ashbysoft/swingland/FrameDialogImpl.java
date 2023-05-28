@@ -27,7 +27,7 @@ public class FrameDialogImpl {
             _window.setInsets(null);
         else
             _window.setInsets(new Insets(TITLE_HEIGHT, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
-        _window.invalidate();
+        _window.refresh();
     }
     // intercept local event processing - detect mouse over decorated frame of re-sizeable window and update cursor
     private int _resizeDir;

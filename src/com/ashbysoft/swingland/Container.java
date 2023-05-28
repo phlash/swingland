@@ -153,11 +153,7 @@ public class Container extends Component {
             return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
         return _cacheMaxSize;
     }
-    public void invalidate() {
-        // ignore if we are already invalid
-        if (!isValid())
-            return;
-        _log.info("Container:invalidate()");
+    private void clearLayout() {
         // invalidate our layout
         if (_layoutManager instanceof LayoutManager2)
             ((LayoutManager2)_layoutManager).invalidateLayout(this);
@@ -165,13 +161,21 @@ public class Container extends Component {
         _cachePrefSize = null;
         _cacheMinSize = null;
         _cacheMaxSize = null;
+    }
+    public void invalidate() {
+        // ignore if we are already invalid
+        if (!isValid())
+            return;
+        _log.info("Container:invalidate()");
+        clearLayout();
         // now invoke component behaviour
         super.invalidate();
     }
     public void validate() {
-        // if we are not valid, validate down the component tree
-        if (!isValid()) {
+        // if we are not valid, or are a validate root, validate down the component tree
+        if (!isValid() || isValidateRoot()) {
             _log.info("Container:validate()");
+            clearLayout();
             validateTree();
             // now invoke component behaviour
             super.validate();

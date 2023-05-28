@@ -75,7 +75,6 @@ public class JMenuBar extends JComponent {
                     JMenu m = (JMenu)c;
                     if (checkMnemonic(k, m)) {
                         k.consume();
-                        m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
                         return;
                     }
                 }
@@ -85,7 +84,10 @@ public class JMenuBar extends JComponent {
     private boolean checkMnemonic(KeyEvent k, JMenu m) {
         boolean rv = k.getID() == KeyEvent.KEY_PRESSED && k.getModifiersEx() == KeyEvent.ALT_DOWN_MASK &&
         m.isEnabled() && m.getMnemonic() == k.getKeyCode();
-        if (rv) _log.info("checkMnemonic("+m.getMnemonic()+")="+rv);
+        if (rv) {
+            _log.info("checkMnemonic("+m.getMnemonic()+")=true");
+            m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
+        }
         return rv;
     }
     // recursive menu descent, comparing accelerators to key event
@@ -102,6 +104,7 @@ public class JMenuBar extends JComponent {
         } else {
             KeyStroke ks = m.getAccelerator();
             if (ks != null && ks.match(k)) {
+                _log.info("checkAccelerators("+ks+")=true");
                 m.fireActionPerformed(new ActionEvent(m, ActionEvent.ACTION_FIRED, m.getActionCommand()));
                 return true;
             }
@@ -115,7 +118,7 @@ public class JMenuBar extends JComponent {
     public void setBorderPainted(boolean b) {
         if (b != _paintBorder) {
             _paintBorder = b;
-            invalidate();
+            refresh();
         }
     }
     public void paintBorder(Graphics g) {

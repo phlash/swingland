@@ -302,6 +302,8 @@ public class Window extends Container implements
             else if (XdgToplevel.STATE_RESIZING == s) _isResizing = true;
             else _isFloating = false;
         }
+        // queue a repaint, in Swing parlance this is a 'system-triggered repaint'
+        repaint();
         return true;
     }
     public boolean xdgToplevelClose() {
@@ -314,6 +316,7 @@ public class Window extends Container implements
         if (w>0 && h>0) {
             setLocation(x, y);
             super.setSize(w, h);
+            repaint();
         }
         return true;
     }
@@ -366,7 +369,9 @@ public class Window extends Container implements
         for (WindowListener l : _listeners) {
             if (w.getID() == WindowEvent.WINDOW_OPENED)
                 l.windowOpened(w);
-            else if (w.getID() == WindowEvent.WINDOW_CLOSED)
+            else if (w.getID() == WindowEvent.WINDOW_CLOSING)
+                l.windowClosing(w);
+            else
                 l.windowClosed(w);
         }
         if (!w.isConsumed())
@@ -396,6 +401,7 @@ public class Window extends Container implements
             setMinimumSize(m);
         } else
             setSize(getMinimumSize());
+        repaint();
     }
     // intercept setSize/setBounds to inform Wayland
     public void setSize(int w, int h) {
@@ -443,15 +449,6 @@ public class Window extends Container implements
             fromWayland();
             super.setVisible(v);
         }
-    }
-
-    // intercept invalidate calls to queue a repaint
-    public void invalidate() {
-        if (!isValid())
-            return;
-        _log.info("Window:invalidate()");
-        super.invalidate();
-        repaint();
     }
 
     // intercept repaint calls, this is where we process them

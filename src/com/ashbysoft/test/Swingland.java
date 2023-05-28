@@ -12,6 +12,10 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	private JMenuBar _mbar;
 	private JPopupMenu _popup;
 	private JDialog _dialog;
+	private JDialog _tabbed;
+	private Timer _timer;
+	private int _place;
+	private int[] _places = { SwingConstants.TOP, SwingConstants.LEFT, SwingConstants.BOTTOM, SwingConstants.RIGHT };
 	private Border _border;
 	private Image _testcard;
 	private Image _duke;
@@ -88,6 +92,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		dlg.setActionCommand("popup");
 		dlg.addActionListener(this);
 		vm.add(dlg);
+		JMenuItem tab = new JMenuItem("Tabbed");
+		tab.setMnemonic(KeyEvent.VK_T);
+		tab.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.ALT_DOWN_MASK));
+		tab.setActionCommand("tabbed");
+		tab.addActionListener(this);
+		vm.add(tab);
 		JMenu sub = new JMenu("Choose >");
 		sub.setMnemonic(KeyEvent.VK_H);
 		JMenuItem t1 = new JMenuItem("Type #1");
@@ -114,6 +124,9 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		_frame.setJMenuBar(_mbar);
 		_frame.setVisible(true);
 		_border = new ColorBorder(10, 10, 10, 10, Color.LIGHT_GRAY);
+		_timer = new Timer(3000, this);
+		_timer.setActionCommand("timer");
+		_timer.start();
 		_log.info("<--run()");
     }
 
@@ -131,6 +144,10 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 				_log.info("dialog");
 				k.consume();
 				toggleDialog();
+			} else if (k.getKeyCode() == KeyEvent.VK_T) {
+				_log.info("tabbed");
+				k.consume();
+				toggleTabbedDialog();
 			} else if (k.getKeyCode() == KeyEvent.VK_B) {
 				_log.info("border");
 				k.consume();
@@ -175,8 +192,8 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			_dialog = null;
 		} else {
 			_dialog = new JDialog(_frame, "Test dialog");
-			_dialog.setLayout(new BorderLayout());
 			_dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			_dialog.addWindowListener(this);
 			JLabel label = new JLabel("Label..");
 			label.setForeground(Color.WHITE);
 			_dialog.add(label, BorderLayout.NORTH);
@@ -192,15 +209,32 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			split.setFocus(button);
 			_dialog.add(split, BorderLayout.CENTER);
 			_dialog.getContentPane().setFocus(split);
-			JTabbedPane tab = new JTabbedPane();
-			tab.addTab("Woot!", new JLabel("woot tab"));
-			tab.addTab("Yeah", new JLabel("baby!"));
-			tab.addTab("Neat", new JLabel("stuff"));
-			_dialog.add(tab, BorderLayout.SOUTH);
+			JLabel dead = new JLabel("Disabled label");
+			dead.setEnabled(false);
+			_dialog.add(dead, BorderLayout.SOUTH);
 			_dialog.setBounds(getWidth()/2-150, getHeight()/2-100, 300, 300);
 			//_dialog.pack();
 			_dialog.setVisible(true);
 		}
+	}
+
+	private void toggleTabbedDialog() {
+		if (_tabbed != null) {
+			_tabbed.dispose();
+			_tabbed = null;
+			return;
+		}
+		_tabbed = new JDialog(_frame, "Tabbed dialog..");
+		_tabbed.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		_tabbed.addWindowListener(this);
+		JTabbedPane tab = new JTabbedPane();
+		tab.addTab("Woot!", new JLabel("woot tab"));
+		tab.addTab("Yeah", new JLabel("baby!"));
+		tab.addTab("Neat", new JLabel("stuff"));
+		_tabbed.add(tab);
+		_tabbed.setBounds(getWidth()/3-100, getHeight()/3-100, 300, 300);
+		_tabbed.setVisible(true);
+		_place = 0;
 	}
 
 	private void showPopup(int x, int y) {
@@ -221,7 +255,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 	}
 
 	public void actionPerformed(ActionEvent a) {
-		_log.error("action:src="+((JButton)a.getSource()).getText()+",cmd="+a.getActionCommand());
+		_log.error("action:src="+a.getSource().toString()+",cmd="+a.getActionCommand());
 		if (a.getActionCommand() == null)
 			return;
 		switch (a.getActionCommand()) {
@@ -231,6 +265,16 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 			case "dialog":
 				_dialog.dispose();
 				_dialog = null;
+				break;
+			case "tabbed":
+				toggleTabbedDialog();
+				break;
+			case "timer":
+				if (_tabbed != null) {
+					_place = (_place + 1) % _places.length;
+					((JTabbedPane)_tabbed.getContentPane().getComponent(0)).setTabPlacement(_places[_place]);
+					_log.error("tabPlacement:"+_places[_place]);
+				}
 				break;
 			case "exit":
 				SwingUtilities.invokeLater(new Runnable() {
@@ -242,7 +286,14 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
     public void windowOpened(WindowEvent w) {}
     public void windowClosing(WindowEvent w) {}
     public void windowClosed(WindowEvent w) {
-		_popup = null;
+		_log.error("windowEvent:src="+w.getSource().toString());
+		// check who closed and tidy up
+		if (w.getSource().equals(_dialog))
+			_dialog = null;
+		else if (w.getSource().equals(_tabbed))
+			_tabbed = null;
+		else if (w.getSource().equals((_popup)))
+			_popup = null;
 	}
 
 	public Dimension getPreferredSize() {

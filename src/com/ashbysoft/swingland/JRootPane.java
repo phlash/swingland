@@ -72,10 +72,10 @@ public class JRootPane extends JComponent {
     public void setWindowDecorationStyle(int ds) {
         _log.info("setWindowDecorationStyle("+ds+")");
         _decorationStyle = ds;
+        refresh();
     }
     // weird: https://docs.oracle.com/javase/10/docs/api/javax/swing/JRootPane.html
     public boolean isOptimizedDrawingEnabled() { return false; }
-    public boolean isValidateRoot() { return true; }
 
     protected Component createGlassPane() {
         Component gp = new GlassPane();

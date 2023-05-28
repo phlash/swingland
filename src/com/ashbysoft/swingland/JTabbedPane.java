@@ -7,7 +7,7 @@ import com.ashbysoft.swingland.geom.AffineTransform;
 public class JTabbedPane extends JComponent implements SwingConstants {
     public static final int WRAP_TAB_LAYOUT = 0;
     public static final int SCROLL_TAB_LAYOUT = 1;
-    public static final int PAD = 3;
+    public static final int PAD = 2;
 
     class Tab {
         String _title;
@@ -30,7 +30,6 @@ public class JTabbedPane extends JComponent implements SwingConstants {
     public JTabbedPane(int tabPlace, int tabLayout) {
         _log.info("<init>("+tabPlace+","+tabLayout+")");
         setLayout(new NullLayout());
-        setBorder(new ColorBorder(2, 2, 2, 2, Color.BLUE));
         _tabPlace = tabPlace;
         _tabLayout = tabLayout;
         _tabs = new LinkedList<>();
@@ -60,7 +59,8 @@ public class JTabbedPane extends JComponent implements SwingConstants {
         _tabs.add(i, new Tab(title, icon, comp, tip));
         if (_selected < 0)
             setSelectedIndex(0);
-        invalidate();
+        else
+            refresh();
     }
     // override remove operations
     public void remove(Component c) { remove(indexOfComponent(c)); }
@@ -73,14 +73,15 @@ public class JTabbedPane extends JComponent implements SwingConstants {
             int s = _selected >= i ? _selected >= getTabCount() ? _selected - 1 : _selected : _selected;
             if (s != _selected)
                 setSelectedIndex(s);
-            invalidate();
+            else
+                refresh();
         }
     }
     public void removeAll() {
         _log.info("removeAll()");
         _tabs.clear();
         _selected = -1;
-        invalidate();
+        refresh();
     }
     // general find and manipulate methods..
     public int indexOfComponent(Component c) {
@@ -110,29 +111,28 @@ public class JTabbedPane extends JComponent implements SwingConstants {
             _selected = i;
             super.remove(0);
             super.addImpl(getSelectedComponent(), null, -1);
-            invalidate();
+            refresh();
         }
     }
     public int getTabPlacement() { return _tabPlace; }
-    public void setTabPlacement(int p) { _tabPlace = p; invalidate(); }
+    public void setTabPlacement(int p) { _tabPlace = p; refresh(); }
     public int getTabLayoutPolicy() { return _tabLayout; }
-    public void setTabLayoutPolicy(int p) { _tabLayout = p; invalidate(); }
+    public void setTabLayoutPolicy(int p) { _tabLayout = p; refresh(); }
     public int getTabCount() { return _tabs.size(); }
     public Color getBackgroundAt(int i) { return _tabs.get(i)._bg; }
-    public void setBackgroundAt(int i, Color c) { _tabs.get(i)._bg = c; checkRepaint(i); }
+    public void setBackgroundAt(int i, Color c) { _tabs.get(i)._bg = c; repaint(); }
     public Color getForegrondAt(int i) { return _tabs.get(i)._fg; }
-    public void setForegroundAt(int i, Color c) { _tabs.get(i)._fg = c; checkRepaint(i); }
+    public void setForegroundAt(int i, Color c) { _tabs.get(i)._fg = c; repaint(); }
     public Component getComponentAt(int i) { return _tabs.get(i)._comp; }
-    public void setComponentAt(int i, Component c) { _tabs.get(i)._comp = c; checkRepaint(i); }
+    public void setComponentAt(int i, Component c) { _tabs.get(i)._comp = c; if (_selected == i) refresh(); }
     public Icon getIconAt(int i) { return _tabs.get(i)._icon; }
-    public void setIconAt(int i, Icon n) { _tabs.get(i)._icon = n; checkRepaint(i); }
+    public void setIconAt(int i, Icon n) { _tabs.get(i)._icon = n; refresh(); }
     public String getTitleAt(int i) { return _tabs.get(i)._title; }
-    public void setTitleAt(int i, String t) { _tabs.get(i)._title = t; checkRepaint(i); }
+    public void setTitleAt(int i, String t) { _tabs.get(i)._title = t; refresh(); }
     public String getToolTipTextAt(int i) { return _tabs.get(i)._tip; }
-    public void setToopTipTextAt(int i, String t) { _tabs.get(i)._tip = t; checkRepaint(i); }
+    public void setToopTipTextAt(int i, String t) { _tabs.get(i)._tip = t; }
     public boolean isEnabledAt(int i) { return _tabs.get(i)._en; }
-    public void setEnabledAt(int i, boolean e) { _tabs.get(i)._en = e; checkRepaint(i); }
-    private void checkRepaint(int i) { if (_selected == i) repaint(); }
+    public void setEnabledAt(int i, boolean e) { _tabs.get(i)._en = e; repaint(); }
 
     // minimum size is just big enough for selected tab component + tabs themselves
     // TODO: _tabLayout support
@@ -160,7 +160,6 @@ public class JTabbedPane extends JComponent implements SwingConstants {
         return new Dimension(w, h);
     }
     // override normal layout manager interaction
-    protected boolean isValidateRoot() { return true; }
     protected void validateTree() {
         // iterate all tabs, ensure selected component is visible, others not
         for (int i = 0; i < getTabCount(); i += 1)
@@ -177,6 +176,7 @@ public class JTabbedPane extends JComponent implements SwingConstants {
                 case SwingConstants.RIGHT -> s.setBounds(ins._l, ins._t, getWidth() - fh - 2 * PAD - ins._l - ins._r, getHeight() - ins._t - ins._b);
                 default -> throw new IllegalArgumentException("tab placement invalid: "+getTabPlacement());
             }
+            _log.error("validated:tabPlacement:"+getTabPlacement());
             s.validate();
         }
         // drop our cached font (if any)
@@ -184,6 +184,11 @@ public class JTabbedPane extends JComponent implements SwingConstants {
     }
     // paint the tabs
     protected void paintComponent(Graphics g) {
+        _log.error("JTabbedPane:paintComponent()");
+        super.paintComponent(g);
+        // bail early if nothing to draw
+        if (getSelectedIndex() < 0)
+            return;
         // cache font, possibly rotated
         boolean rot = SwingConstants.LEFT == getTabPlacement() || SwingConstants.RIGHT == getTabPlacement();
         if (null == _cachedFont) {
@@ -195,10 +200,18 @@ public class JTabbedPane extends JComponent implements SwingConstants {
                 _cachedFont = getFont();
             }
         }
+        // draw separator line to component
+        g.setColor(getForeground());
+        Insets ins = getInsets();
+        Rectangle cb = getSelectedComponent().getBounds();
+        if (rot)
+            g.fillRect(SwingConstants.LEFT == getTabPlacement() ? cb._x - 1 : cb._x + cb._w + 1, ins._t, 1, getHeight() - ins._t - ins._b);
+        else
+            g.fillRect(ins._l, SwingConstants.TOP == getTabPlacement() ? cb._y - 1 : cb._y + cb._h + 1, getWidth() - ins._l - ins._r, 1);
+        // draw tabs
         Font old = g.getFont();
         g.setFont(_cachedFont);
         FontMetrics fm = _cachedFont.getFontMetrics();
-        Insets ins = getInsets();
         int p = 0;
         int th = fm.getHeight() + 2 * PAD;
         for (var t : _tabs) {
@@ -206,35 +219,41 @@ public class JTabbedPane extends JComponent implements SwingConstants {
             tl += t._icon != null ? rot ? t._icon.getIconHeight() : t._icon.getIconWidth() : 0;
             tl += 2 * PAD;
             switch (getTabPlacement()) {
-                case SwingConstants.TOP -> p += paintHTab(g, t, p + ins._l, ins._t, tl, th);
-                case SwingConstants.BOTTOM -> p += paintHTab(g, t, p + ins._l, getHeight() - ins._b - th, tl, th);
-                case SwingConstants.LEFT -> p += paintVTab(g, t, ins._l, getHeight() - ins._b - p, th, tl);
-                case SwingConstants.RIGHT -> p += paintVTab(g, t, getWidth() - ins._r - th, getHeight() - ins._b - p, th, tl);
+                case SwingConstants.TOP -> p += paintHTab(g, t, p + ins._l, ins._t, tl, th, true);
+                case SwingConstants.BOTTOM -> p += paintHTab(g, t, p + ins._l, getHeight() - ins._b - th, tl, th, false);
+                case SwingConstants.LEFT -> p += paintVTab(g, t, ins._l, getHeight() - ins._b - p, th, tl, true);
+                case SwingConstants.RIGHT -> p += paintVTab(g, t, getWidth() - ins._r - th, getHeight() - ins._b - p, th, tl, false);
                 default -> {}
             }
         }
         g.setFont(old);
     }
-    private int paintHTab(Graphics g, Tab t, int x, int y, int w, int h) {
+    private int paintHTab(Graphics g, Tab t, int x, int y, int w, int h, boolean l) {
         g.setColor(t._bg != null ? t._bg : getBackground());
         g.fillRect(x, y, w, h);
-        g.setColor(t._fg != null ? t._fg : getForeground());
-        // selected tab - wider border
-        if (t._comp.isVisible())
-            g.drawRect(x+1, y+1, w-3, h-3);
+        g.setColor(getForeground());
         g.drawRect(x, y, w-1, h-1);
+        g.setColor(t._fg != null ? t._fg : getForeground());
         g.drawString(t._title, x + PAD, y + h - PAD);
+        // selected tab - erase boundary with content
+        if (t._comp.isVisible()) {
+            g.setColor(t._bg != null ? t._bg : getBackground());
+            g.fillRect(x+1, l ? y+h-1 : y, w-2, 1);
+        }
         return w;
     }
-    private int paintVTab(Graphics g, Tab t, int x, int y, int w, int h) {
+    private int paintVTab(Graphics g, Tab t, int x, int y, int w, int h, boolean l) {
         g.setColor(t._bg != null ? t._bg : getBackground());
         g.fillRect(x, y-h, w, h);
-        g.setColor(t._fg != null ? t._fg : getForeground());
-        // selected tab - wider border
-        if (t._comp.isVisible())
-            g.drawRect(x+1, y-h+1, w-3, h-3);
+        g.setColor(getForeground());
         g.drawRect(x, y-h, w-1, h-1);
+        g.setColor(t._fg != null ? t._fg : getForeground());
         g.drawString(t._title, x + w - PAD, y - PAD);
+        // selected tab - erase boundary with content
+        if (t._comp.isVisible()) {
+            g.setColor(t._bg != null ? t._bg : getBackground());
+            g.fillRect(l ? x+w-1 : x, y-1, h-2, 1);
+        }
         return h;
     }
 }

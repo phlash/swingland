@@ -7,10 +7,10 @@ public class JLabel extends JComponent {
     public JLabel(String text) { this(text, SwingConstants.LEADING); }
     public JLabel(String text, int align) { _text = text; _align = align; }
     public String getText() { return _text; }
-    public void setText(String text) { _text = text; invalidate(); }
+    public void setText(String text) { _text = text; refresh(); }
     public int getHorizontalAlignment() { return _align; }
     public int getVerticalAlignment() { return SwingConstants.CENTER; }
-    public void setHorizontalAlignment(int align) { if (_align != align) invalidate(); _align = align; }
+    public void setHorizontalAlignment(int align) { if (_align != align) refresh(); _align = align; }
     public void setVerticalAlignment(int align) { throw new IllegalArgumentException("unsupported :("); }
     // prevent use as a container.. for now
     protected void addImpl(Component c, Object s, int i) {
