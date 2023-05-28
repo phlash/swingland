@@ -223,8 +223,19 @@ public abstract class Component {
             _valid = true;
         }
     }
-    protected void refresh() {
+    public void revalidate() {
         invalidate();
+        Container p = this instanceof Container ? (Container)this : getParent();
+        while (!p.isValidateRoot()) {
+            Container t = p.getParent();
+            if (null == t)
+                break;
+            p = t;
+        }
+        p.validate();
+    }
+    protected void refresh() {
+        revalidate();
         repaint();
     }
     public void addKeyListener(KeyListener l) {

@@ -178,6 +178,7 @@ public class JTabbedPane extends JComponent implements SwingConstants {
         // no tabs? nothing to do
         if (getTabCount() == 0)
             return;
+        _log.info("JTabbedPane:validateTree()");
         // cache font, possibly rotated
         boolean rot = SwingConstants.LEFT == getTabPlacement() || SwingConstants.RIGHT == getTabPlacement();
         if (rot) {
