@@ -238,7 +238,7 @@ public class JTabbedPane extends JComponent implements SwingConstants {
     }
     // paint the tabs
     protected void paintComponent(Graphics g) {
-        _log.error("JTabbedPane:paintComponent()");
+        _log.info("JTabbedPane:paintComponent()");
         super.paintComponent(g);
         // bail early if nothing to draw
         if (getTabCount() == 0)
