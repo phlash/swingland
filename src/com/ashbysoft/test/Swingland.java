@@ -156,11 +156,16 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 					setBorder(null);
 				else
 					setBorder(_border);
-				} else if (k.getKeyCode() == KeyEvent.VK_SPACE) {
-					_log.info("[un]pause");
-					k.consume();
-					_paused = !_paused;
-				} else if (k.getKeyCode() == KeyEvent.VK_U) {
+			} else if (k.getKeyCode() == KeyEvent.VK_SPACE) {
+				_log.info("[un]pause");
+				k.consume();
+				_paused = !_paused;
+			} else if (k.getKeyCode() == KeyEvent.VK_V) {
+				_log.info("splitV");
+				k.consume();
+				if (_dialog != null)
+					((JSplitPane)_dialog.getContentPane().getComponent(1)).setOrientation(JSplitPane.VERTICAL_SPLIT);
+			} else if (k.getKeyCode() == KeyEvent.VK_U) {
 				k.consume();
 				if (getGraphicsConfiguration().getDevice().getFullScreenWindow() != null)
 					getGraphicsConfiguration().getDevice().setFullScreenWindow(null);

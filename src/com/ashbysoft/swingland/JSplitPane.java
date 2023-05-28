@@ -41,7 +41,7 @@ public class JSplitPane extends JComponent {
         _drag = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
     }
     public int getOrientation() { return _orientation; }
-    public void setOrientation(int o) { _orientation = o; }
+    public void setOrientation(int o) { _orientation = o; refresh(); }
     public boolean isContinuousLayout() { return _continuous; }
     public void setContinuousLayout(boolean c) { _continuous = c; }
     public Component getLeftComponent() { return _left; }
@@ -122,7 +122,7 @@ public class JSplitPane extends JComponent {
         Dimension rd = _right.getMinimumSize();
         Insets ins = getInsets();
         _minpos = HORIZONTAL_SPLIT == _orientation ? ins._l + ld._w : ins._t + ld._h;
-        _maxpos = HORIZONTAL_SPLIT == _orientation ? getWidth() - ins._r - rd._w - _divsize: getHeight() - ins._b - rd._h - _divsize;
+        _maxpos = HORIZONTAL_SPLIT == _orientation ? getWidth() - ins._r - rd._w - _divsize : getHeight() - ins._b - rd._h - _divsize;
         // distribute remaining distance (if any) according to resizeWeight
         int rem = HORIZONTAL_SPLIT == _orientation ?
             getWidth() - ld._w - rd._w - ins._l - ins._r - _divsize :
@@ -179,6 +179,6 @@ public class JSplitPane extends JComponent {
         if (HORIZONTAL_SPLIT == _orientation)
             g.fillRect(_divpos, ins._t, _divsize, getHeight() - ins._t - ins._b);
         else
-            g.fillRect(_divpos, ins._l, _divsize, getWidth() - ins._l - ins._r);
+            g.fillRect(ins._l, _divpos, getWidth() - ins._l - ins._r, _divsize);
     }
 }
