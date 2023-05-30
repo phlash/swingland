@@ -273,6 +273,8 @@ public class Window extends Container implements
         GraphicsDevice gd = _g.findDevice(outputID);
         if (gd != null)
             _config = gd.getDefaultConfiguration();
+        else
+            _log.error("Window:enter:unknown output ID:"+outputID);
         return true;
     }
     public boolean leave(int outputID) { return true; }

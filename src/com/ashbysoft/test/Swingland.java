@@ -391,7 +391,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		// show our current graphics config
 		GraphicsConfiguration gc = getGraphicsConfiguration();
 		Rectangle gcr = gc.getBounds();
-		String gcs = "GC:x="+gcr._x+",y="+gcr._y+",w="+gcr._w+",h="+gcr._h;
+		String gcs = "GC("+gc.getDevice().getIDstring()+"):x="+gcr._x+",y="+gcr._y+",w="+gcr._w+",h="+gcr._h;
 		g.drawString(gcs, getWidth()-getFont().getFontMetrics().stringWidth(gcs)-10, t+45);
 		if (_testcard != null)
 			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);

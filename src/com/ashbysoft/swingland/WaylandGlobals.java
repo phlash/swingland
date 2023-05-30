@@ -89,7 +89,7 @@ class WaylandGlobals implements
                 _log.error("output("+o.getID()+") is not done");
                 continue;
             }
-            GraphicsDevice gd = new GraphicsDevice();
+            GraphicsDevice gd = new GraphicsDevice(o.getScreenMake(), o.getScreenModel());
             gd.addMode(new DisplayMode(o.getGeometryW(), o.getGeometryH(), 32, o.getRefreshRate()));
             gd.addConfig(new GraphicsConfiguration(gd, new Rectangle(o.getGeometryX(), o.getGeometryY(), o.getModeWidth(), o.getModeHeight())));
             ge.addDevice(gd);
