@@ -37,8 +37,12 @@ public abstract class Font {
 
     protected Font(String name) { _name = name; }
     public String getFontName() { return _name; }
-    public String getFamilyName() { return familyName(); }
     public AffineTransform getTransform() { return null; }
+    public String getFamilyName() {
+        if (!ensureLoaded())
+            return null;
+        return familyName();
+    }
     public int getMissingGlyphCode() {
         if (!ensureLoaded())
             return -1;
