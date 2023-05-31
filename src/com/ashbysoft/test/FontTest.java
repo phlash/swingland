@@ -47,7 +47,7 @@ public class FontTest extends JComponent implements Runnable {
         int y = doRotate ? getHeight()/2 : 0;
         for (var f : fontNames) {
             Font fn = Font.getFont(f);
-            FontMetrics fm = fn.getFontMetrics();
+            FontMetrics fm = g.getFontMetrics(fn);
             if (null == fm) {
                 _log.error("Unable to load font: "+f);
                 continue;

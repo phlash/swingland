@@ -108,6 +108,7 @@ public abstract class Component {
             return p.getFont();
         return null;
     }
+    public FontMetrics getFontMetrics(Font f) { return f.getFontMetrics(); }
     public boolean isCursorSet() { return _cursor != null; }
     public Cursor getCursor() {
         if (_cursor != null)

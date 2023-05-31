@@ -79,6 +79,7 @@ public class SwinglandFont extends Font implements FontMetrics {
         }
         return false;
     }
+    protected String familyName() { return "Fixed"; }   // all Swingland fonts are fixed width
     protected int missingGlyph() { return _missing; }
     protected int mapCodePoint(int cp) {
         cp -= _offset;

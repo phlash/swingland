@@ -46,6 +46,7 @@ public class Graphics implements ImageConsumer {
     }
     public Font getFont() { return _font; }
     public void setFont(Font font) { _font = font; }
+    public FontMetrics getFontMetrics(Font f) { return f.getFontMetrics(); }
     public void setColor(Color c) { _log.info("setColor:"+c); _color = c; }
     public void drawLine(int x1, int y1, int x2, int y2) {
         _log.info("drawLine:("+x1+","+y1+")->("+x2+","+y2+")");

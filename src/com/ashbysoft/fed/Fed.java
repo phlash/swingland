@@ -17,6 +17,7 @@ import com.ashbysoft.logger.Logger;
 import com.ashbysoft.swingland.BorderLayout;
 import com.ashbysoft.swingland.Color;
 import com.ashbysoft.swingland.ColorBorder;
+import com.ashbysoft.swingland.Component;
 import com.ashbysoft.swingland.Cursor;
 import com.ashbysoft.swingland.Dimension;
 import com.ashbysoft.swingland.Font;
@@ -93,9 +94,9 @@ public class Fed implements ActionListener, KeyListener, Runnable {
         if (_cursor != null)
             Cursor.setTheme(_cursor);
         // build the UI
-        FontMetrics fm = _font.getFontMetrics();
-        String title = "Fed: "+_font.getFontName()+" ("+fm.charWidth(_font.getMissingGlyphCode())+"x"+fm.getHeight()+")";
-        _frame = new JFrame(title);
+        _frame = new JFrame("Fed");
+        FontMetrics fm = _frame.getFontMetrics(_font);
+        _frame.setTitle("Fed: "+_font.getFontName()+" ("+fm.charWidth(_font.getMissingGlyphCode())+"x"+fm.getHeight()+")");
         // fix frame size, set border layout for content pane
         _frame.setSize(800, 800);
         _frame.setLayout(new BorderLayout());
@@ -135,20 +136,20 @@ public class Fed implements ActionListener, KeyListener, Runnable {
         fp.setForeground(Color.CYAN);
         _frame.add(fp, BorderLayout.CENTER);
         // status bar along bottom
-        _status = new JLabel(getStatus());
+        _status = new JLabel("");
         _status.setBorder(new ColorBorder(1, 1, 1, 1, Color.WHITE));
         _frame.add(_status, BorderLayout.SOUTH);
         _frame.setVisible(true);
     }
-    private String getStatus() {
-        FontMetrics fm = _font.getFontMetrics();
+    private String getStatus(Component c) {
+        FontMetrics fm = c.getFontMetrics(_font);
         return "  Glyph: "+(_font.getCurrent()+1)+"/"+_font.getCount()+" | codepoint: 0x"+Integer.toHexString(_font.getCurrent() + _font.getOffset())+
             " | offset: "+Integer.toHexString(_font.getOffset())+" | baseline: "+fm.getDescent()+" | leading:"+fm.getLeading();
     }
     private class FontStrip extends JComponent {
         private int _start = 0;
         public Dimension getMinimumSize() {
-            FontMetrics fm = _font.getFontMetrics();
+            FontMetrics fm = getFontMetrics(_font);
             return new Dimension(fm.charWidth(_font.getMissingGlyphCode()), fm.getHeight()+6);
         }
         public void paintComponent(Graphics g) {
@@ -157,7 +158,7 @@ public class Fed implements ActionListener, KeyListener, Runnable {
             g.setColor(getForeground());
             Font save = g.getFont();
             g.setFont(_font);
-            FontMetrics fm = _font.getFontMetrics();
+            FontMetrics fm = getFontMetrics(_font);
             int oy = (getHeight() - fm.getHeight()) / 2;
             // adjust start glyph if current is offscreen
             if (_font.getCurrent() < _start)
@@ -203,7 +204,7 @@ public class Fed implements ActionListener, KeyListener, Runnable {
             addMouseInputListener(this);
         }
         public void paintComponent(Graphics g) {
-            FontMetrics fm = _font.getFontMetrics();
+            FontMetrics fm = getFontMetrics(_font);
             _px = fm.charWidth(_font.getCurrent() + _font.getOffset());
             _py = fm.getHeight();
             _ppx = getWidth() / _px;
@@ -261,7 +262,7 @@ public class Fed implements ActionListener, KeyListener, Runnable {
         } else if (e.getActionCommand().equals("rem")) {
             _font.remGlyph(_font.getCurrent());
         }
-        _status.setText(getStatus());
+        _status.setText(getStatus(_frame));
         _frame.repaint();
     }
 

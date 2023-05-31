@@ -387,12 +387,12 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.setColor(Color.MAGENTA);
 		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, U to toggle fUllscreen, R to resize to 800x600)", l+5, b-5);
 		String m = "Mouse("+_x+","+_y+","+_c+")="+_b;
-		g.drawString(m, getWidth()-getFont().getFontMetrics().stringWidth(m)-10, t+20);
+		g.drawString(m, getWidth()-getFontMetrics(getFont()).stringWidth(m)-10, t+20);
 		// show our current graphics config
 		GraphicsConfiguration gc = getGraphicsConfiguration();
 		Rectangle gcr = gc.getBounds();
 		String gcs = "GC("+gc.getDevice().getIDstring()+"):x="+gcr._x+",y="+gcr._y+",w="+gcr._w+",h="+gcr._h;
-		g.drawString(gcs, getWidth()-getFont().getFontMetrics().stringWidth(gcs)-10, t+45);
+		g.drawString(gcs, getWidth()-getFontMetrics(getFont()).stringWidth(gcs)-10, t+45);
 		if (_testcard != null)
 			g.drawImage(_testcard, (getWidth()-_testcard.getWidth(null))/2, (getHeight()-_testcard.getHeight(null))/2);
 		if (_duke != null)

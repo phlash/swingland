@@ -37,6 +37,7 @@ public class PCFFont extends Font implements FontMetrics {
     }
     private HashMap<Integer, PCFProp> _props = new HashMap<>();
     private HashMap<Integer, String> _pstrs = new HashMap<>();
+    private String _family;
     // PCF font metrics
     class PCFMetrics {
         public int lbearing, rbearing, width, ascent, descent, attributes;
@@ -192,8 +193,13 @@ public class PCFFont extends Font implements FontMetrics {
             sidx += 1;
             pidx = sidx;
         }
-        for (var p : _props.values())
+        for (var p : _props.values()) {
+            if (_pstrs.get(p.offset).equals("FAMILY_NAME"))
+                _family = _pstrs.get(p.value);
             _log.detail("\t"+_pstrs.get(p.offset)+"="+ (p.isString ? "\""+_pstrs.get(p.value)+"\"" : "0x"+Integer.toHexString(p.value)));
+        }
+        if (null == _family)
+            _family = "Unknown";
         return pos;
     }
     private int pcfMetrics(InputStream is, int size, int format) throws IOException {
@@ -323,6 +329,7 @@ public class PCFFont extends Font implements FontMetrics {
     }
 
     // Implementation of Font
+    protected String familyName() { return _family; }
     protected int missingGlyph() {
         return _encoding.dflt;
     }

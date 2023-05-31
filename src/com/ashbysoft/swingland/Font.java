@@ -37,6 +37,7 @@ public abstract class Font {
 
     protected Font(String name) { _name = name; }
     public String getFontName() { return _name; }
+    public String getFamilyName() { return familyName(); }
     public AffineTransform getTransform() { return null; }
     public int getMissingGlyphCode() {
         if (!ensureLoaded())
@@ -71,9 +72,8 @@ public abstract class Font {
         renderGlyph(ctx, mapCodePoint(cp));
     }
 
-    // FontMetrics API
-    // NB: getAscent()+getDescent()+getLeading() == getHeight()
-    public FontMetrics getFontMetrics() {
+    // package-private accessor for FontMetrics
+    FontMetrics getFontMetrics() {
         if (!ensureLoaded())
             return null;
         return metrics();
@@ -82,6 +82,7 @@ public abstract class Font {
     // Lazy loader
     protected abstract boolean ensureLoaded();
     // Implementation methods
+    protected abstract String familyName();                                 // return font family name
     protected abstract int missingGlyph();                                  // glyph id to render if mapping does not exist
     protected abstract int mapCodePoint(int cp);                            // return glyph id, or -1 if not mappable
     protected abstract int renderGlyph(RenderContext ctx, int gl);          // returns advance width to next origin
@@ -122,6 +123,7 @@ public abstract class Font {
         }
         public AffineTransform getTransform() { return _transform; }
         protected boolean ensureLoaded() { return _base.ensureLoaded(); }
+        protected String familyName() { return _base.familyName(); }
         protected int missingGlyph() { return _base.missingGlyph(); }
         protected int mapCodePoint(int cp) { return _base.mapCodePoint(cp); }
         protected int renderGlyph(RenderContext ctx, int gl) { return _base.renderGlyph(ctx, gl); }
