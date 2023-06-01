@@ -62,6 +62,12 @@ Run it:
 % java -Djava.library.path=bin -jar bin/fed.jar -f <font file> [--help]
 ```
 
+### More Dogfood..
+
+I've ported my own applications to Swingland, noteably:
+ * [java-sdr](/phlash/java-sdr) My pure Java software defined radio toy..
+ * [powermonitor](/phlash/powermonitor) The two data display apps for my home electricity monitoring setup
+
 ## Licence
 
 See [LICENCE.md](LICENCE.md)
