@@ -65,8 +65,8 @@ Run it:
 ### More Dogfood..
 
 I've ported my own applications to Swingland, noteably:
- * [java-sdr](/phlash/java-sdr) My pure Java software defined radio toy..
- * [powermonitor](/phlash/powermonitor) The two data display apps for my home electricity monitoring setup
+ * [java-sdr](https://github.com/phlash/java-sdr) My pure Java software defined radio toy..
+ * [powermonitor](https://github.com/phlash/powermonitor) The two data display apps for my home electricity monitoring setup
 
 ## Licence
 
