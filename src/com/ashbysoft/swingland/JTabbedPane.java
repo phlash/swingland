@@ -157,26 +157,28 @@ public class JTabbedPane extends JComponent implements SwingConstants {
         int w = sd != null ? sd._w + ins._l + ins._r : ins._l + ins._r;
         int h = sd != null ? sd._h + ins._t + ins._b : ins._t + ins._b;
         boolean isw = SwingConstants.TOP == getTabPlacement() || SwingConstants.BOTTOM == getTabPlacement();
-        FontMetrics fm = getFont().getFontMetrics();
-        int tl = 0;
-        for (var t : _tabs) {
-            tl += t._title != null ? fm.stringWidth(t._title) : 0;
-            tl += t._icon != null ? isw ? t._icon.getIconWidth() : t._icon.getIconHeight() : 0;
-            tl += 2 * PAD;
-        }
-        if (isw) {
-            w = Math.max(w, tl);
-            h += fm.getHeight() + 2 * PAD;
-        } else {
-            w = fm.getHeight() + 2 * PAD;
-            h = Math.max(h, tl);
+        if (getFont() != null) {
+            FontMetrics fm = getFont().getFontMetrics();
+            int tl = 0;
+            for (var t : _tabs) {
+                tl += t._title != null ? fm.stringWidth(t._title) : 0;
+                tl += t._icon != null ? isw ? t._icon.getIconWidth() : t._icon.getIconHeight() : 0;
+                tl += 2 * PAD;
+            }
+            if (isw) {
+                w = Math.max(w, tl);
+                h += fm.getHeight() + 2 * PAD;
+            } else {
+                w = fm.getHeight() + 2 * PAD;
+                h = Math.max(h, tl);
+            }
         }
         return new Dimension(w, h);
     }
     // override normal layout manager interaction
     protected void validateTree() {
-        // no tabs? nothing to do
-        if (getTabCount() == 0)
+        // no tabs or font? nothing to do
+        if (getTabCount() == 0 || null == getFont())
             return;
         _log.info("JTabbedPane:validateTree()");
         // cache font, possibly rotated

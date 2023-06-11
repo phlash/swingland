@@ -68,7 +68,7 @@ public class JButton extends JComponent implements SwingConstants {
         else
             i = new Dimension(0,0);
         Dimension t;
-        if (getText().length() > 0)
+        if (getText().length() > 0 && getFont() != null)
             t = new Dimension(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());
         else
             t = new Dimension(0,0);

@@ -20,7 +20,7 @@ public class JLabel extends JComponent {
         if (isPreferredSizeSet())
             return super.getPreferredSize();
         Point p;
-        if (_text.length() > 0) {
+        if (_text.length() > 0 && getFont() != null) {
             p = new Point(getFont().getFontMetrics().stringWidth(getText()), getFont().getFontMetrics().getHeight());
         } else {
             // not on screen yet or no text, default to smallish
@@ -36,7 +36,7 @@ public class JLabel extends JComponent {
         super.paintComponent(g);
         String s = getText();
         if (s.length() > 0) {
-            FontMetrics fm = getFont().getFontMetrics();
+            FontMetrics fm = g.getFont().getFontMetrics();
             int w= fm.stringWidth(s);
             int h = fm.getHeight();
             Insets ins = getInsets();
