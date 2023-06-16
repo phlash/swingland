@@ -24,7 +24,10 @@ public class FontTest extends JComponent implements Runnable {
         for (var s: args) {
             if (s.startsWith("-r"))
                 doRotate = true;
-            else
+            else if (s.startsWith("-h") || s.startsWith("--h")) {
+                _log.error("usage: FontTest [-r] [-h] <font name / path> [...]");
+                System.exit(0);
+            } else
                 fontNames.add(s);
         }
     }

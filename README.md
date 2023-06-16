@@ -38,8 +38,8 @@ Test:
 where the `test-wayland` target directly creates a Wayland window on screen, fills it with random dots for a few seconds and terminates.
 The `test-swingland` target runs a Swing GUI application that extends a `JComponent` and draws stuff in the `paintComponent()` method.
 It has a working menu bar that demonstrates the popup windows and menuing logic, you can exit via it! `test-swingland` also demonstrates
-a simple pop up `JDialog` (Swing flavour), with some `JLabel`s and `JButton`s in... more to come as I write it!
-The `test` target runs both tests.
+a couple of pop up `JDialog`s (Swing flavour), one with some `JLabel`s and `JButton`s in a `JSplitPane`, one with a `JTabbedPane`...
+more to come as I write it! The `test` target runs both tests.
 
 ## Other apps
 
@@ -50,7 +50,7 @@ test applications, they _should_ work largely unaltered apart from import statem
 
 Run one:
 ```bash
-% java -Djava.library.path=bin -cp bin/test.jar com.ashbysoft.test.[TopLevelDemo|ButtonDemo]
+% java -cp bin/test.jar com.ashbysoft.test.[TopLevelDemo|ButtonDemo]
 ```
 
 ### Font Editor (in `fed.jar`)
@@ -59,8 +59,18 @@ Font EDitor is a dogfooding application written with `swingland` to edit bitmap 
 
 Run it:
 ```bash
-% java -Djava.library.path=bin -jar bin/fed.jar -f <font file> [--help]
+% java -jar bin/fed.jar -f <font file> [--help]
 ```
+
+### Font Display (in `test.jar`)
+
+FontTest was written to test both the PCF font support and font transformations (ie: rotation), run it:
+```bash
+% java -cp bin/test.jar [--help] [-r] <font name> [...]
+```
+where `-r` rotates the specified fonts instead of simply printing a line of each, `font name` can be one of: a logical name eg: `MONOSPACED`;
+a resource path in the `swingland.jar` file for built-in bitmap fonts eg: `/cursors/CURLY`; a file path for PCF fonts, either absolute or
+relative to paths in `XDG_DATA_DIRS` (by default: `/usr/local/share:/usr/share`), eg: `/path/to/font.pcf`, `X11/fonts/misc/10x20.pcf.gz`.
 
 ### More Dogfood..
 
@@ -71,3 +81,7 @@ I've ported my own applications to Swingland, noteably:
 ## Licence
 
 See [LICENCE.md](LICENCE.md)
+
+## Blog
+
+[I wrote up my development experience](https://www.ashbysoft.com/articles/swingland/)
