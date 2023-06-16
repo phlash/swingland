@@ -7,6 +7,8 @@ public class Output extends WaylandObject<Output.Listener> {
         boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans);
         boolean outputMode(int flags, int w, int h, int refresh);
         boolean outputScale(int s);
+        boolean outputName(String s);
+        boolean outputDescription(String s);
         boolean outputDone();
     }
     public static final int RQ_RELEASE = 0;
@@ -14,6 +16,8 @@ public class Output extends WaylandObject<Output.Listener> {
     public static final int EV_MODE = 1;
     public static final int EV_DONE = 2;
     public static final int EV_SCALE = 3;
+    public static final int EV_NAME = 4;
+    public static final int EV_DESCRIPTION = 5;
     // subpixel layout
     public static final int SUBPIXEL_UNKNOWN = 0;
     public static final int SUBPIXEL_NONE = 1;
@@ -46,6 +50,8 @@ public class Output extends WaylandObject<Output.Listener> {
     private int _sc;
     private String _make;
     private String _model;
+    private String _name;
+    private String _description;
     private boolean _done = false;
 
     public Output(Display d) { super(d); }
@@ -79,6 +85,18 @@ public class Output extends WaylandObject<Output.Listener> {
             for (Listener l : listeners())
                 if (!l.outputScale(_sc))
                     rv = false;
+        } else if (EV_NAME == op) {
+            _name = getString(b);
+            log(true, "name("+_name+")");
+            for (Listener l : listeners())
+                if (!l.outputName(_name))
+                    rv = false;
+        } else if (EV_DESCRIPTION == op) {
+            _description = getString(b);
+            log(true, "description("+_description+")");
+            for (Listener l : listeners())
+                if (!l.outputDescription(_description))
+                    rv = false;
         } else if (EV_DONE == op) {
             _done = true;
             log(true, "done");
@@ -103,6 +121,8 @@ public class Output extends WaylandObject<Output.Listener> {
     public int getScaleFactor() { return _sc; }
     public String getScreenMake() { return _make; }
     public String getScreenModel() { return _model; }
+    public String getName() { return _name; }
+    public String getDescription() { return _description; }
     public boolean release() {
         log(false, "release()");
         ByteBuffer b = newBuffer(0, RQ_RELEASE);

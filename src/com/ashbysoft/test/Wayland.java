@@ -370,5 +370,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     public boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans) { return true; }
     public boolean outputMode(int flags, int w, int h, int refresh) { return true; }
     public boolean outputScale(int s) { return true; }
+    public boolean outputName(String n) { return true; }
+    public boolean outputDescription(String d) { return true; }
     public boolean outputDone() { return true; }
 }
