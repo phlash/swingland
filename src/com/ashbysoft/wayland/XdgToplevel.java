@@ -7,6 +7,7 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     public interface Listener {
         boolean xdgToplevelConfigure(int w, int h, int[] states);
         boolean xdgToplevelClose();
+        boolean xdgToplevelBounds(int w, int h);
     }
     public static final int RQ_DESTROY = 0;
     public static final int RQ_SET_PARENT = 1;
@@ -24,6 +25,7 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
     public static final int RQ_SET_MINIMIZED = 13;
     public static final int EV_CONFIGURE = 0;
     public static final int EV_CLOSE = 1;
+    public static final int EV_CONF_BOUNDS = 2;
     // configure states
     public static final int STATE_MAXIMIZED = 1;
     public static final int STATE_FULLSCREEN = 2;
@@ -60,6 +62,13 @@ public class XdgToplevel extends WaylandObject<XdgToplevel.Listener> {
             log(true, "close");
             for (Listener l : listeners())
                 if (!l.xdgToplevelClose())
+                    rv = false;
+        } else if (EV_CONF_BOUNDS == op) {
+            int w = b.getInt();
+            int h = b.getInt();
+            log(true, "configureBounds:w="+w+" h="+h);
+            for (Listener l : listeners())
+                if (!l.xdgToplevelBounds(w, h))
                     rv = false;
         } else {
             rv = unknownOpcode(op);

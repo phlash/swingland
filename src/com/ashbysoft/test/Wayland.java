@@ -89,7 +89,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         protected Surface _surface;
         protected XdgSurface _xdgSurface;
         protected ShmPool _shmpool;
-        protected Buffer _buffer;
+        protected Buffer _buffer0, _buffer1;
         protected Callback _frame;
         protected int _width;
         protected int _height;
@@ -123,20 +123,29 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             // new buffer required?
             int nextsize = _width * _height * 4;
             if (nextsize != _poolsize) {
-                if (_buffer != null)
-                    _buffer.destroy();
+                if (_buffer0 != null)
+                    _buffer0.destroy();
+                if (_buffer1 != null)
+                    _buffer1.destroy();
                 if (_shmpool != null)
                     _shmpool.destroy();
                 _poolsize = nextsize;
-                _shmpool = _shm.createPool(_poolsize);
-                _buffer = _shmpool.createBuffer(0, _width, _height, _width*4, 0);
+                _shmpool = _shm.createPool(_poolsize * 2);  // allocate double buffer
+                _buffer0 = _shmpool.createBuffer(0, _width, _height, _width*4, 0);
+                _buffer1 = _shmpool.createBuffer(_poolsize, _width, _height, _width*4, 0);
             }
-            ByteBuffer pixels = _buffer.get();
+            // choose non-busy buffer
+            Buffer buf = _buffer0.isBusy() ? _buffer1.isBusy() ? null : _buffer1 : _buffer0;
+            if (null == buf) {
+                System.err.println("oops: render overrun");
+                return;
+            }
+            ByteBuffer pixels = buf.get();
             pixels.rewind();
             for (int y=0; y<_height; y++)
                 for (int x=0; x<_width; x++)
                     pixels.putInt(getPixel(x, y));
-            _surface.attach(_buffer, 0, 0);
+            _surface.attach(buf, 0, 0);
             _surface.damageBuffer(0, 0, _width, _height);
             _surface.commit();
         }
@@ -162,13 +171,15 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
             _display.roundtrip();
             _cursorOut = new Cursor(0);
             _cursorIn = new Cursor(1);
-            //done(0);
-            render();
+            done(0);
+            //render();
         }
         public boolean xdgToplevelConfigure(int w, int h, int[] states) { if (w>0 && h>0) { _width = w; _height = h; render(); } return true; }
+        public boolean xdgToplevelBounds(int w, int h) { return true; }
         public boolean xdgToplevelClose() { return true; }
         public int destroy() {
-            if (_buffer != null) _buffer.destroy();
+            if (_buffer0 != null) _buffer0.destroy();
+            if (_buffer1 != null) _buffer1.destroy();
             if (_shmpool != null) _shmpool.destroy();
             _cursorIn.destroy();
             _cursorOut.destroy();

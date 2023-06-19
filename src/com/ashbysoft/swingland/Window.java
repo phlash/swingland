@@ -40,7 +40,7 @@ public class Window extends Container implements
     private XdgPopup _xdgPopup;
     private int _poolsize;
     private ShmPool _shmpool;
-    private Buffer _buffer;
+    private Buffer _buffer0, _buffer1;
     private int _lastCursor;
     // original size (if any), used during configure callback
     private int _origWidth;
@@ -91,37 +91,40 @@ public class Window extends Container implements
     // package-private UI thread callback to render things!
     void render() {
         _log.info("-->render()");
-        // check Wayland is done with previous buffer (if any)
-        if (_buffer != null && _buffer.isBusy()) {
-            _log.error("render overrun");
-            // pop ourselves back on the queue for later
-            repaint();
-            return;
-        }
         // buffer size changed?
         int psize = getWidth() * getHeight() * 4;
         if (psize != _poolsize) {
             _log.info("-size:"+_poolsize+"->"+psize);
             // drop existing pool if any
-            if (_buffer != null)
-                _buffer.destroy();
+            if (_buffer0 != null)
+                _buffer0.destroy();
+            if (_buffer1 != null)
+                _buffer1.destroy();
             if (_shmpool != null)
                 _shmpool.destroy();
             _poolsize = psize;
-            _shmpool = _g.shm().createPool(_poolsize);
-            _buffer = _shmpool.createBuffer(0, getWidth(), getHeight(), getWidth() * 4, 0);
-        } else if (_buffer != null) {
+            _shmpool = _g.shm().createPool(_poolsize * 2);  // allocate double buffer
+            _buffer0 = _shmpool.createBuffer(0, getWidth(), getHeight(), getWidth() * 4, 0);
+            _buffer1 = _shmpool.createBuffer(_poolsize, getWidth(), getHeight(), getWidth() * 4, 0);
+        }
+        // choose first available buffer
+        Buffer buf = (null == _buffer0 || _buffer0.isBusy()) ?
+                    (null == _buffer1 ||  _buffer1.isBusy()) ? null : _buffer1 : _buffer0;
+        if (buf != null) {
             // always start with an empty buffer, avoids issues with alpha compositing over earlier frames!
-            ByteBuffer b = _buffer.get();
+            ByteBuffer b = buf.get();
             b.clear();
             for (int i = 0; i < b.limit(); i += 1)
                 b.put(i, (byte)0);
-        }
-        if (_buffer != null) {
             validate();
             paint(getGraphics());
-            _surface.attach(_buffer, 0, 0);
+            _surface.attach(buf, 0, 0);
             _surface.damageBuffer(0, 0, getWidth(), getHeight());
+        } else if (_poolsize > 0) {
+            _log.error("render overrun");
+            // pop ourselves back on the queue for later
+            repaint();
+            return;
         }
         _surface.commit();
         _log.info("<--render()");
@@ -235,9 +238,13 @@ public class Window extends Container implements
     private void fromWayland() {
         _log.info("fromWayland()");
         // run away!
-        if (_buffer != null) {
-            _buffer.destroy();
-            _buffer = null;
+        if (_buffer0 != null) {
+            _buffer0.destroy();
+            _buffer0 = null;
+        }
+        if (_buffer1 != null) {
+            _buffer1.destroy();
+            _buffer1 = null;
         }
         if (_shmpool != null) {
             _shmpool.destroy();
@@ -312,6 +319,7 @@ public class Window extends Container implements
         sendEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         return true;
     }
+    public boolean xdgToplevelBounds(int w, int h) { return true; }
     // XdgPopup listener
     public boolean xdgPopupConfigure(int x, int y, int w, int h) {
         // ignore zero sizes
@@ -463,8 +471,10 @@ public class Window extends Container implements
 
     // get a Graphics context for drawing on this window
     public Graphics getGraphics() {
-        if (_buffer != null)
-            return new Graphics(_buffer.get(), getWidth(), getHeight(), getForeground(), getFont());
+        Buffer buf = (null == _buffer0 || _buffer0.isBusy()) ?
+                    (null == _buffer1 ||  _buffer1.isBusy()) ? null : _buffer1 : _buffer0;
+        if (buf != null)
+            return new Graphics(buf.get(), getWidth(), getHeight(), getForeground(), getFont());
         return null;
     }
 
