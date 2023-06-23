@@ -8,6 +8,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
@@ -127,16 +131,19 @@ public class PCFFont extends Font implements FontMetrics {
         }
         return _loaded;
     }
-    private InputStream findFont(String name) throws IOException {
-        String fullPath = _name.startsWith("/") ? _name : FONT_PATH + _name;
-        // First, try absolute path, then look in $XDG_DATA_DIRS
+    private String getXdgPath() {
+        // First, try absolute path (empty first path component), then look in $XDG_DATA_DIRS
         String xdg = System.getenv("XDG_DATA_DIRS");
         if (null == xdg)
             xdg = ":/usr/local/share:/usr/share";
         else
             xdg = ":"+xdg;
+        return xdg;
+    }
+    private InputStream findFont(String name) throws IOException {
+        String fullPath = _name.startsWith("/") ? _name : FONT_PATH + _name;
         InputStream is = null;
-        for (String s: xdg.split(":")) {
+        for (String s: getXdgPath().split(":")) {
             File f = new File(s + fullPath);
             if (f.canRead()) {
                 is = new FileInputStream(f);
@@ -286,7 +293,7 @@ public class PCFFont extends Font implements FontMetrics {
         _encoding = new PCFEncoding(minb1, maxb1, minb2, maxb2, 0, map);
         int dfltG = mapCodePoint(dfltC);
         if (dfltG < 0) {
-            _log.error("encodings: default char does not have a mapping, using glyph 0");
+            _log.error(_name +": encodings: default char does not have a mapping, using glyph 0");
         } else {
             _encoding.dflt = dfltG;
         }
@@ -329,6 +336,39 @@ public class PCFFont extends Font implements FontMetrics {
     }
 
     // Implementation of Font
+    protected String[] findFonts() {
+        ArrayList<String> rv = new ArrayList<>();
+        // as per the findFont order above - files first, then any resources
+        String[] flds = { FONT_PATH+"X11/misc", FONT_PATH+"X11/100dpi" };
+        for (var p : getXdgPath().split(":")) {
+            for (var s : flds) {
+                File t = new File(p, s);
+                if (!t.exists())
+                    continue;
+                for (var f : new File(p, s).listFiles()) {
+                    if (f.getName().endsWith(".pcf") || f.getName().endsWith(".pcf.gz")) {
+                        rv.add(f.getAbsolutePath());
+                        _log.detail("findFonts(disk): "+f.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        // https://stackoverflow.com/questions/50469600/how-do-you-list-all-files-in-the-resources-folder-java-scala
+        try (var fs = FileSystems.newFileSystem(getClass().getResource(FONT_PATH).toURI(), new HashMap<String,String>())) {
+            var fp = fs.getPath(FONT_PATH);
+            Files.list(fp).filter(p -> p.endsWith(".pcf") || p.endsWith(".pcf.gz")).forEach(
+                p -> {
+                    rv.add(p.toString());
+                    _log.info("findFonts(res): "+p.toString());
+                }
+            );
+        } catch (IOException x) {
+            _log.error("findFonts: unable to enumerate resources: "+x.toString());
+        } catch (URISyntaxException x) {
+            _log.error("findFonts: unable to enumerate resources: "+x.toString());
+        }
+        return rv.toArray(flds);
+    }
     protected String familyName() { return _family; }
     protected int missingGlyph() {
         return _encoding.dflt;

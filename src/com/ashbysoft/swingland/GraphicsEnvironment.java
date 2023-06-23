@@ -20,6 +20,7 @@ public class GraphicsEnvironment {
     void remDevice(GraphicsDevice d) {
         _devices.remove(d);
     }
+    // public API - devices
     public GraphicsDevice getDefaultScreenDevice() {
         if (_devices.size() > 0)
             return _devices.get(0);
@@ -27,5 +28,15 @@ public class GraphicsEnvironment {
     }
     public GraphicsDevice[] getScreenDevices() {
         return (GraphicsDevice[])_devices.toArray();
+    }
+    // public API - fonts
+    public Font[] getAllFonts() {
+        // ensure we have preloaded the cache
+        Font.preloadCache();
+        // grab it!
+        Font[] rv = Font.getCache();
+        // nuke it
+        Font.flushCache();
+        return rv;
     }
 }

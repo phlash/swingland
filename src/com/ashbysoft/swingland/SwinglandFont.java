@@ -22,6 +22,11 @@ package com.ashbysoft.swingland;
  */
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SwinglandFont extends Font implements FontMetrics {
     protected int _width;
@@ -78,6 +83,24 @@ public class SwinglandFont extends Font implements FontMetrics {
             _log.error("unable to load font resource: "+FONT_PATH + _name + ": "+e.toString());
         }
         return false;
+    }
+    protected String[] findFonts() {
+        ArrayList<String> rv = new ArrayList<>();
+        // https://stackoverflow.com/questions/50469600/how-do-you-list-all-files-in-the-resources-folder-java-scala
+        try (var fs = FileSystems.newFileSystem(getClass().getResource(FONT_PATH).toURI(), new HashMap<String,String>())) {
+            var fp = fs.getPath(FONT_PATH);
+            Files.list(fp).filter(p -> !p.getFileName().toString().contains(".")).forEach(
+                p -> {
+                    rv.add(p.toString());
+                    _log.detail("findFonts(res): "+p.toString());
+                }
+            );
+        } catch (IOException x) {
+            _log.error("findFonts: unable to enumerate resources: "+x.toString());
+        } catch (URISyntaxException x) {
+            _log.error("findFonts: unable to enumerate resources: "+x.toString());
+        }
+        return rv.toArray(new String[0]);
     }
     protected String familyName() { return "Fixed"; }   // all Swingland fonts are fixed width
     protected int missingGlyph() { return _missing; }

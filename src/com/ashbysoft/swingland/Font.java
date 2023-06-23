@@ -86,11 +86,36 @@ public abstract class Font {
     // Lazy loader
     protected abstract boolean ensureLoaded();
     // Implementation methods
+    protected abstract String[] findFonts();                                // return appropriate names for all available fonts of this type
     protected abstract String familyName();                                 // return font family name
     protected abstract int missingGlyph();                                  // glyph id to render if mapping does not exist
     protected abstract int mapCodePoint(int cp);                            // return glyph id, or -1 if not mappable
     protected abstract int renderGlyph(RenderContext ctx, int gl);          // returns advance width to next origin
     protected abstract FontMetrics metrics();                               // return metrics for implementation (can be same instance)
+
+    // package-private cache preloader, reader and flush
+    static void preloadCache() {
+        // Swingland fonts (internal)
+        for (var f : new SwinglandFont("").findFonts())
+            getFont(f);
+        // PCF fonts (on disk)
+        for (var f : new PCFFont("").findFonts())
+            getFont(f);
+    }
+    static Font[] getCache() {
+        synchronized (_fontCache) {
+            Font[] rv = new Font[_fontCache.size()];
+            int i = 0;
+            for (var e : _fontCache.values())
+                rv[i++] = e;
+            return rv;
+        }
+    }
+    static void flushCache() {
+        synchronized (_fontCache) {
+            _fontCache.clear();
+        }
+    }
 
     // Factory method
     public static Font getFont(String name) {
@@ -127,6 +152,7 @@ public abstract class Font {
         }
         public AffineTransform getTransform() { return _transform; }
         protected boolean ensureLoaded() { return _base.ensureLoaded(); }
+        protected String[] findFonts() { return null; }
         protected String familyName() { return _base.familyName(); }
         protected int missingGlyph() { return _base.missingGlyph(); }
         protected int mapCodePoint(int cp) { return _base.mapCodePoint(cp); }
