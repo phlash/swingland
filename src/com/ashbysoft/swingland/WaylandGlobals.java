@@ -9,6 +9,7 @@ import com.ashbysoft.wayland.XdgWmBase;
 import com.ashbysoft.wayland.Shm;
 import com.ashbysoft.wayland.SubCompositor;
 import com.ashbysoft.wayland.Surface;
+import com.ashbysoft.wayland.WaylandBase;
 import com.ashbysoft.wayland.XdgToplevel;
 import com.ashbysoft.wayland.Seat;
 import com.ashbysoft.wayland.Keyboard;
@@ -24,6 +25,7 @@ class WaylandGlobals implements
     Runnable,
     Registry.Listener,
     XdgWmBase.Listener,
+    Output.Listener,
     Seat.Listener,
     Keyboard.Listener,
     Pointer.Listener {
@@ -40,6 +42,7 @@ class WaylandGlobals implements
     }
 
     private Logger _log = new Logger("[WaylandGlobals]:");
+    private HashMap<Integer, WaylandBase> _globals;
     private Display _display;
     private Registry _registry;
     private Compositor _compositor;
@@ -49,8 +52,7 @@ class WaylandGlobals implements
     private Seat _seat;
     private Keyboard _keyboard;
     private Pointer _pointer;
-    private LinkedList<Output> _outputs;
-    private HashMap<GraphicsDevice, Integer> _gdMap;
+    private HashMap<Output, GraphicsDevice> _gdMap;
     private Thread _uiThread;
     private LinkedList<Window> _repaints;
     private LinkedList<Runnable> _runnables;
@@ -61,7 +63,8 @@ class WaylandGlobals implements
 
     public WaylandGlobals() {
         _log.info("<init>()");
-        _outputs = new LinkedList<>();
+        _globals = new HashMap<>();
+        _gdMap = new HashMap<>();
         _display = new Display();
         _registry = new Registry(_display);
         _registry.addListener(this);
@@ -73,28 +76,12 @@ class WaylandGlobals implements
             _log.error(oops);
             throw new RuntimeException(oops);
         }
-        _xdgWmBase.addListener(this);
         _repaints = new LinkedList<>();
         _runnables = new LinkedList<>();
         _popups = new LinkedList<>();
         _windows = new HashMap<>();
         // wait for all bound objects callbacks
         _display.roundtrip();
-        // initialise GraphicsEnvironment from known outputs
-        _gdMap = new HashMap<>();
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        for (int i = 0; i < _outputs.size(); i += 1) {
-            Output o = _outputs.get(i);
-            if (!o.isDone()) {
-                _log.error("output("+o.getID()+") is not done");
-                continue;
-            }
-            GraphicsDevice gd = new GraphicsDevice(o.getScreenMake(), o.getScreenModel(), o.getName(), o.getDescription());
-            gd.addMode(new DisplayMode(o.getGeometryW(), o.getGeometryH(), 32, o.getRefreshRate()));
-            gd.addConfig(new GraphicsConfiguration(gd, new Rectangle(o.getGeometryX(), o.getGeometryY(), o.getModeWidth(), o.getModeHeight())));
-            ge.addDevice(gd);
-            _gdMap.put(gd, i);
-        }
         // create UI thread as non-daemon: holds the application active even if main exits
         _uiThread = new Thread(this);
         _uiThread.setDaemon(false);
@@ -106,21 +93,18 @@ class WaylandGlobals implements
     public SubCompositor subCompositor() { return _subCompositor; }
     public XdgWmBase xdgWmBase() { return _xdgWmBase; }
     public Shm shm() { return _shm; }
-    public Output[] outputs() { return (Output[])_outputs.toArray(); }
     public Output findOutput(GraphicsDevice gd) {
-        if (_gdMap.containsKey(gd))
-            return _outputs.get(_gdMap.get(gd));
+        for (var e : _gdMap.entrySet()) {
+            if (e.getValue() == gd) {
+                return e.getKey();
+            }
+        }
         return null;
     }
     public GraphicsDevice findDevice(int outID) {
-        for (int i = 0; i < _outputs.size(); i += 1) {
-            Output o = _outputs.get(i);
-            if (o.getID() == outID) {
-                for (var e : _gdMap.entrySet()) {
-                    if (e.getValue() == i)
-                        return e.getKey();
-                }
-            }
+        for (var e : _gdMap.entrySet()) {
+            if (e.getKey().getID() == outID)
+                return e.getValue();
         }
         return null;
     }
@@ -166,28 +150,72 @@ class WaylandGlobals implements
     public boolean global(int name, String iface, int version) {
         if (iface.equals("wl_compositor")) {
             _compositor = new Compositor(_display);
+            _globals.put(name, _compositor);
             _registry.bind(name, iface, version, _compositor);
         } else if (iface.equals("wl_subcompositor")) {
             _subCompositor = new SubCompositor(_display);
+            _globals.put(name, _subCompositor);
             _registry.bind(name, iface, version, _subCompositor);
         } else if (iface.equals("wl_shm")) {
             _shm = new Shm(_display);
+            _globals.put(name, _shm);
             _registry.bind(name, iface, version, _shm);
         } else if (iface.equals("xdg_wm_base")) {
             _xdgWmBase = new XdgWmBase(_display);
+            _xdgWmBase.addListener(this);
+            _globals.put(name, _xdgWmBase);
             _registry.bind(name, iface, version, _xdgWmBase);
         } else if (iface.equals("wl_seat")) {
             _seat = new Seat(_display);
             _seat.addListener(this);
+            _globals.put(name, _seat);
             _registry.bind(name, iface, version, _seat);
         } else if (iface.equals("wl_output")) {
             Output o = new Output(_display);
-            _outputs.add(o);
+            o.addListener(this);
+            _globals.put(name, o);
             _registry.bind(name, iface, version, o);
         }
         return true;
     }
-    public boolean remove(int name) { return true; }
+    public boolean remove(int name) {
+        // tidy up if we had bound to this global
+        if (_globals.containsKey(name)) {
+            WaylandBase b = _globals.remove(name);
+            if (b instanceof Output) {
+                Output o = (Output)b;
+                o.release();
+                GraphicsDevice gd = _gdMap.remove(o);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().remDevice(gd);
+            } else if (b instanceof Seat) {
+                if (_keyboard != null) _keyboard.release();
+                if (_pointer != null) _pointer.release();
+                Seat s = (Seat)b;
+                s.release();
+                _keyboard = null;
+                _pointer = null;
+                _seat = null;
+            } else {
+                _log.error("remove: wayland removed a critical global: "+b.toString());
+                return false;
+            }
+        }
+        return true;
+    }
+    // Output.Listener
+    public boolean outputGeometry(int x, int y, int w, int h, int subpix, String make, String model, int trans) { return true; }
+    public boolean outputMode(int flags, int w, int h, int refresh) { return true; }
+    public boolean outputScale(int s) { return true; }
+    public boolean outputName(String s) { return true; }
+    public boolean outputDescription(String s) { return true; }
+    public boolean outputDone(Output o) {
+        GraphicsDevice gd = new GraphicsDevice(o.getScreenMake(), o.getScreenModel(), o.getName(), o.getDescription());
+        GraphicsConfiguration gc = new GraphicsConfiguration(gd, new Rectangle(o.getGeometryX(), o.getGeometryY(), o.getGeometryW(), o.getGeometryH()));
+        gd.addConfig(gc);
+        GraphicsEnvironment.getLocalGraphicsEnvironment().addDevice(gd);
+        _gdMap.put(o, gd);
+        return true;
+    }
     // XdgWmBase.Listener
     public boolean ping(int serial) {
         return _xdgWmBase.pong(serial);

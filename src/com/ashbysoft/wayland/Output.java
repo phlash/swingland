@@ -9,7 +9,7 @@ public class Output extends WaylandObject<Output.Listener> {
         boolean outputScale(int s);
         boolean outputName(String s);
         boolean outputDescription(String s);
-        boolean outputDone();
+        boolean outputDone(Output o);
     }
     public static final int RQ_RELEASE = 0;
     public static final int EV_GEOMETRY = 0;
@@ -101,7 +101,7 @@ public class Output extends WaylandObject<Output.Listener> {
             _done = true;
             log(true, "done");
             for (Listener l : listeners())
-                if (!l.outputDone())
+                if (!l.outputDone(this))
                     rv = false;
         } else {
             rv = unknownOpcode(op);

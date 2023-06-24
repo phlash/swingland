@@ -383,5 +383,5 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     public boolean outputScale(int s) { return true; }
     public boolean outputName(String n) { return true; }
     public boolean outputDescription(String d) { return true; }
-    public boolean outputDone() { return true; }
+    public boolean outputDone(Output o) { return true; }
 }
