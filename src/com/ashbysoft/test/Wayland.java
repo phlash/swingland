@@ -315,7 +315,7 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         _log.error("---- Wayland test done (fps:"+fps+") ----");
     }
     public void error(int id, int code, String msg) {
-        _log.error("OOPS: object="+id+" code="+code+" message="+msg);
+        _log.fatal("OOPS: object="+id+" code="+code+" message="+msg);
     }
     public boolean global(int name, String iface, int version) {
         if (iface.equals("wl_compositor")) {
@@ -346,7 +346,6 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
     public boolean ping(int serial) { return _xdgWmBase.pong(serial); }
     private GetCursor _lastGC;
     public boolean pointerEnter(int serial, int surface, int x, int y) {
-        _log.error("pointerEnter()");
         if (null == _cursorSurface) {
             _cursorSurface = new Surface(_display);
             _compositor.createSurface(_cursorSurface);
@@ -361,19 +360,16 @@ public class Wayland implements Display.Listener, Registry.Listener, XdgWmBase.L
         y >>= 8;
         Cursor c = _lastGC.getCursor(x, y);
         if (c != _lastCursor) {
-            _log.error("pointerMove("+x+","+y+"):new cursor");
             _lastCursor = c;
             c.attach(_cursorSurface);
         }
         return true;
     }
     public boolean pointerButton(int serial, int time, int button, int state) {
-        _log.error("pointerButton("+button+","+state+")");
         return true;
     }
     public boolean pointerAxis(int time, int axis, int clicks) {
         clicks >>= 8;
-        _log.error("pointerAxis("+axis+","+clicks+")");
         return true;
     }
     public boolean pointerFrame() { return true; }

@@ -57,7 +57,7 @@ public class Connection {
             logBuffer("Tx:", b);
             return true;
         } catch (java.io.IOException e) {
-            _log.error(e.toString());
+            _log.fatal(e.toString());
         }
         return false;
     }
@@ -106,7 +106,7 @@ public class Connection {
                 if (_channel.read(b) < 0)
                     throw new java.io.IOException("EOF on Wayland connection");
             } catch (java.io.IOException e) {
-                _log.error(e.toString());
+                _log.fatal(e.toString());
                 return false;
             }
         }

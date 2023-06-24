@@ -53,7 +53,7 @@ public class Display extends WaylandObject<Display.Listener> {
             int eobj    = b.getInt();
             int ecode   = b.getInt();
             String emsg = getString(b);
-            _log.error("Server error: object="+eobj+" code="+ecode+" msg="+emsg);
+            _log.fatal("Server error: object="+eobj+" code="+ecode+" msg="+emsg);
             for (Listener l : listeners())
                 l.error(eobj, ecode, emsg);
             return false;
@@ -72,7 +72,7 @@ public class Display extends WaylandObject<Display.Listener> {
         synchronized(_lock) {
             _log.detail("enter:roundtrip");
             if (_inDispatch) {
-                _log.error("recursive dispatch detected:roundtrip=false");
+                _log.fatal("recursive dispatch detected:roundtrip=false");
                 return false;
             }
             _inDispatch = true;

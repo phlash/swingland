@@ -13,21 +13,21 @@ public class ImageIcon implements Icon {
         try {
             _image = ImageIO.read(data);
         } catch (IOException e) {
-            _log.error("unable to read image from byte array");
+            _log.error("unable to read image from byte array: "+e.toString());
         }
     }
     public ImageIcon(String file) {
         try {
             _image = ImageIO.read(file);
         } catch (IOException e) {
-            _log.error("unable to read image from byte array");
+            _log.error("unable to read image from file: "+e.toString());
         }
     }
     public ImageIcon(URL url) {
         try {
             _image = ImageIO.read(url);
         } catch (IOException e) {
-            _log.error("unable to read image from byte array");
+            _log.error("unable to read image from URL: "+e.toString());
         }
     }
     public ImageIcon(Image image) {

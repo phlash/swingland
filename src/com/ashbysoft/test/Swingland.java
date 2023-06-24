@@ -130,7 +130,8 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		_timer.start();
 		_log.info("<--run()");
     }
-
+	
+	private String _usage ="ESC->quit, F->fatal trace, D->dialog, T->tabbed dialog, <SPC>->pause, V->vsplit, B->border, U->fUllscreen, R->800x600";
 	protected void processEvent(AbstractEvent e) {
 		_log.info(e.toString());
 		if (e instanceof KeyEvent) {
@@ -141,6 +142,9 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 				_log.info("disposing");
 				k.consume();
 				_frame.dispose();
+			} else if (k.getKeyCode() == KeyEvent.VK_F) {
+				_log.fatal("fatal trace test");
+				k.consume();
 			} else if (k.getKeyCode() == KeyEvent.VK_D) {
 				_log.info("dialog");
 				k.consume();
@@ -385,7 +389,7 @@ public class Swingland extends JComponent implements ActionListener, WindowListe
 		g.fillOval(cx-3, cy-3, 6, 6);
 		// instructions
 		g.setColor(Color.MAGENTA);
-		g.drawString("ABCDE... abcde... (ESC to quit, D for dialog, U to toggle fUllscreen, R to resize to 800x600)", l+5, b-5);
+		g.drawString(_usage, l+5, b-5);
 		String m = "Mouse("+_x+","+_y+","+_c+")="+_b;
 		g.drawString(m, getWidth()-getFontMetrics(getFont()).stringWidth(m)-10, t+20);
 		// show our current graphics config

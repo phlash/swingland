@@ -25,7 +25,7 @@ public class EditableFont extends SwinglandFont {
             try (InputStream in = new FileInputStream(_fontfile)) {
                 loadFont(in);
             } catch (IOException e) {
-                _log.error(e.toString());
+                _log.fatal(e.toString());
             }
         } else {
             // new font, initialise state, then add one empty glyph
@@ -95,7 +95,7 @@ public class EditableFont extends SwinglandFont {
             out.write(hdr);
             out.write(_buffer);
         } catch (IOException e) {
-            _log.error(e.toString());
+            _log.fatal(e.toString());
         }
     }
     public int getCurrent() { return _current; }

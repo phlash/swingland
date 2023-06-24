@@ -73,7 +73,7 @@ class WaylandGlobals implements
         _display.roundtrip();
         if (null == _compositor || null == _subCompositor || null == _xdgWmBase || null == _shm) {
             String oops = "missing a required global object in Wayland: compositor="+_compositor+" subCompositor="+_subCompositor+" xdgWmBase="+_xdgWmBase+" shm="+_shm;
-            _log.error(oops);
+            _log.fatal(oops);
             throw new RuntimeException(oops);
         }
         _repaints = new LinkedList<>();
@@ -196,7 +196,7 @@ class WaylandGlobals implements
                 _pointer = null;
                 _seat = null;
             } else {
-                _log.error("remove: wayland removed a critical global: "+b.toString());
+                _log.fatal("remove: wayland removed a critical global: "+b.toString());
                 return false;
             }
         }

@@ -48,6 +48,8 @@ public class SwinglandFont extends Font implements FontMetrics {
     private synchronized boolean ensureImpl() {
         String fullPath = _name.startsWith("/") ? _name : FONT_PATH + _name;
         try (InputStream in = getClass().getResourceAsStream(fullPath)) {
+            if (null == in)
+                throw new IOException("unable to open font resource: "+fullPath);
             // see above for header definition
             byte[] hdr = new byte[16];
             if (in.read(hdr) != 16)
